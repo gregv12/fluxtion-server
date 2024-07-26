@@ -1,0 +1,7 @@
+<component name="CopyrightManager">
+  <settings default="fluxtion-server">
+    <module2copyright>
+      <element module="Production" copyright="fluxtion-server" />
+    </module2copyright>
+  </settings>
+</component>
