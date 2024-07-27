@@ -5,14 +5,17 @@
   ~
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.fluxtion</groupId>
     <artifactId>server</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.11-SNAPSHOT</version>
+    <name>fluxtion :: server</name>
+    <description>
+        A runtime server to load and run Fluxtion event processors, connecting event streams to and from processors
+    </description>
+    <url>https://github.com/gregv12/fluxtion-server</url>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -38,7 +41,7 @@
 
     <scm>
         <connection>scm:git:https://github.com/gregv12/fluxtion-server.git</connection>
-        <developerConnection>scm:git:https://github.com/gregv12/fluxtion-servier.git</developerConnection>
+        <developerConnection>scm:git:https://github.com/gregv12/fluxtion-server.git</developerConnection>
         <url>https://github.com/gregv12/fluxtion-server</url>
         <tag>v0.1.0</tag>
     </scm>
@@ -143,7 +146,7 @@
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.6.8</version>
+                        <version>1.6.13</version>
                         <extensions>true</extensions>
                         <configuration>
                             <serverId>ossrh</serverId>
