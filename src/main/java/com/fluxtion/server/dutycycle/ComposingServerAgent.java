@@ -12,9 +12,9 @@ import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.service.Service;
 import com.fluxtion.runtime.service.ServiceRegistryNode;
 import com.fluxtion.server.FluxtionServer;
+import com.fluxtion.server.dispatch.EventFlowManager;
 import com.fluxtion.server.service.scheduler.DeadWheelScheduler;
 import com.fluxtion.server.service.scheduler.SchedulerService;
-import com.fluxtion.server.subscription.EventFlowManager;
 import lombok.extern.java.Log;
 
 

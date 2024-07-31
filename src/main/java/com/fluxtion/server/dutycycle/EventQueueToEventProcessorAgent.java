@@ -9,7 +9,7 @@ package com.fluxtion.server.dutycycle;
 import com.fluxtion.agrona.concurrent.OneToOneConcurrentArrayQueue;
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.feature.Experimental;
-import com.fluxtion.server.subscription.EventToInvokeStrategy;
+import com.fluxtion.server.dispatch.EventToInvokeStrategy;
 import lombok.extern.java.Log;
 
 import java.util.logging.Logger;

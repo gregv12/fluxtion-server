@@ -8,7 +8,7 @@ package com.fluxtion.server.service.admin;
 
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.feature.Experimental;
-import com.fluxtion.server.subscription.AbstractEventToInvocationStrategy;
+import com.fluxtion.server.dispatch.AbstractEventToInvocationStrategy;
 
 @Experimental
 public class AdminCommandInvoker extends AbstractEventToInvocationStrategy {

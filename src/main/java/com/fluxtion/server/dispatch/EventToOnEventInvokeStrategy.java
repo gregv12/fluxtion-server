@@ -4,7 +4,7 @@
  *
  */
 
-package com.fluxtion.server.subscription;
+package com.fluxtion.server.dispatch;
 
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.feature.Experimental;
