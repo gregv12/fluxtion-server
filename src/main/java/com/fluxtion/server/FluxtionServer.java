@@ -15,11 +15,11 @@ import com.fluxtion.agrona.concurrent.status.AtomicCounter;
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.service.Service;
+import com.fluxtion.server.dispatch.EventFlowService;
 import com.fluxtion.server.dutycycle.ComposingEventProcessorAgent;
 import com.fluxtion.server.dutycycle.ComposingServerAgent;
 import com.fluxtion.server.dutycycle.ServerAgent;
 import com.fluxtion.server.service.scheduler.DeadWheelScheduler;
-import com.fluxtion.server.subscription.EventFlowService;
 import lombok.Value;
 import lombok.extern.java.Log;
 
@@ -32,7 +32,7 @@ import java.util.function.Supplier;
 @Log
 public class FluxtionServer {
 
-    private final com.fluxtion.server.subscription.EventFlowManager flowManager = new com.fluxtion.server.subscription.EventFlowManager();
+    private final com.fluxtion.server.dispatch.EventFlowManager flowManager = new com.fluxtion.server.dispatch.EventFlowManager();
     private final ConcurrentHashMap<String, ComposingAgentRunner> composingEventAgents = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ComposingWorkerServiceAgentRunner> composingServerAgents = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Service<?>> registeredServices = new ConcurrentHashMap<>();
@@ -42,12 +42,12 @@ public class FluxtionServer {
         this.errorHandler = errorHandler;
     }
 
-    public void registerEventMapperFactory(Supplier<com.fluxtion.server.subscription.EventToInvokeStrategy> eventMapper, com.fluxtion.server.subscription.CallBackType type) {
+    public void registerEventMapperFactory(Supplier<com.fluxtion.server.dispatch.EventToInvokeStrategy> eventMapper, com.fluxtion.server.dispatch.CallBackType type) {
         log.info("registerEventMapperFactory:" + eventMapper);
         flowManager.registerEventMapperFactory(eventMapper, type);
     }
 
-    public <T> void registerEventSource(String sourceName, com.fluxtion.server.subscription.EventSource<T> eventSource) {
+    public <T> void registerEventSource(String sourceName, com.fluxtion.server.dispatch.EventSource<T> eventSource) {
         log.info("registerEventSource name:" + sourceName + " eventSource:" + eventSource);
         flowManager.registerEventSource(sourceName, eventSource);
     }
@@ -61,7 +61,7 @@ public class FluxtionServer {
             }
             registeredServices.put(serviceName, service);
             Object instance = service.instance();
-            if (instance instanceof com.fluxtion.server.subscription.EventFlowService) {
+            if (instance instanceof com.fluxtion.server.dispatch.EventFlowService) {
                 ((EventFlowService) instance).setEventFlowManager(flowManager, serviceName);
             }
         }
@@ -92,7 +92,7 @@ public class FluxtionServer {
     public void init() {
         log.info("init");
         registeredServices.values().forEach(svc -> {
-            if (!(svc.instance() instanceof com.fluxtion.server.subscription.LifeCycleEventSource)) {
+            if (!(svc.instance() instanceof com.fluxtion.server.dispatch.LifeCycleEventSource)) {
                 svc.init();
             }
         });
@@ -104,7 +104,7 @@ public class FluxtionServer {
 
         log.info("start registered services");
         registeredServices.values().forEach(svc -> {
-            if (!(svc.instance() instanceof com.fluxtion.server.subscription.LifeCycleEventSource)) {
+            if (!(svc.instance() instanceof com.fluxtion.server.dispatch.LifeCycleEventSource)) {
                 svc.start();
             }
         });

@@ -4,7 +4,7 @@
  *
  */
 
-package com.fluxtion.server.subscription;
+package com.fluxtion.server.dispatch;
 
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.feature.Experimental;
@@ -29,7 +29,7 @@ public abstract class AbstractEventToInvocationStrategy implements EventToInvoke
     public void processEvent(Object event) {
         for (int i = 0, targetQueuesSize = eventProcessorSinks.size(); i < targetQueuesSize; i++) {
             StaticEventProcessor eventProcessor = eventProcessorSinks.get(i);
-            com.fluxtion.server.subscription.EventFlowManager.setCurrentProcessor(eventProcessor);
+            com.fluxtion.server.dispatch.EventFlowManager.setCurrentProcessor(eventProcessor);
             dispatchEvent(event, eventProcessor);
             EventFlowManager.removeCurrentProcessor();
         }
