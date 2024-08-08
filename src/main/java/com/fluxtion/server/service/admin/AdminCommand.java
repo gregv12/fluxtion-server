@@ -7,7 +7,7 @@
 package com.fluxtion.server.service.admin;
 
 import com.fluxtion.runtime.annotations.feature.Experimental;
-import com.fluxtion.server.subscription.EventToQueuePublisher;
+import com.fluxtion.server.dispatch.EventToQueuePublisher;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

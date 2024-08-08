@@ -10,7 +10,7 @@ import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.event.Signal;
 import com.fluxtion.runtime.lifecycle.Lifecycle;
-import com.fluxtion.server.subscription.EventFlowManager;
+import com.fluxtion.server.dispatch.EventFlowManager;
 import lombok.extern.java.Log;
 
 import java.util.*;
@@ -22,16 +22,16 @@ import java.util.stream.Collectors;
 
 @Experimental
 @Log
-public class CliAdmin implements com.fluxtion.server.subscription.EventFlowService, Admin, Lifecycle, com.fluxtion.server.subscription.EventSource<com.fluxtion.server.service.admin.AdminCommand> {
+public class CliAdmin implements com.fluxtion.server.dispatch.EventFlowService, Admin, Lifecycle, com.fluxtion.server.dispatch.EventSource<com.fluxtion.server.service.admin.AdminCommand> {
 
     private static final AtomicBoolean runLoop = new AtomicBoolean(true);
     private ExecutorService executorService;
     private final CommandProcessor commandProcessor = new CommandProcessor();
     private final Map<String, com.fluxtion.server.service.admin.AdminCommand> registeredCommandMap = new HashMap<>();
-    private com.fluxtion.server.subscription.EventFlowManager eventFlowManager;
+    private com.fluxtion.server.dispatch.EventFlowManager eventFlowManager;
     private String serviceName;
 
-    private static class AdminCallbackType implements com.fluxtion.server.subscription.CallBackType {
+    private static class AdminCallbackType implements com.fluxtion.server.dispatch.CallBackType {
 
         @Override
         public String name() {
@@ -40,7 +40,7 @@ public class CliAdmin implements com.fluxtion.server.subscription.EventFlowServi
     }
 
     @Override
-    public void setEventFlowManager(com.fluxtion.server.subscription.EventFlowManager eventFlowManager, String serviceName) {
+    public void setEventFlowManager(com.fluxtion.server.dispatch.EventFlowManager eventFlowManager, String serviceName) {
         this.eventFlowManager = eventFlowManager;
         this.serviceName = serviceName;
         eventFlowManager.registerEventMapperFactory(AdminCommandInvoker::new, AdminCallbackType.class);
@@ -108,7 +108,7 @@ public class CliAdmin implements com.fluxtion.server.subscription.EventFlowServi
 
     @Override
     public void registerCommand(String name, Consumer<List<String>> command) {
-        if (com.fluxtion.server.subscription.EventFlowManager.currentProcessor() == null) {
+        if (com.fluxtion.server.dispatch.EventFlowManager.currentProcessor() == null) {
             registeredCommandMap.put(name, new com.fluxtion.server.service.admin.AdminCommand(command));
         } else {
             String queueKey = "adminCommand." + name;
@@ -121,7 +121,7 @@ public class CliAdmin implements com.fluxtion.server.subscription.EventFlowServi
 
     @Override
     public void registerCommand(String name, AdminFunction command) {
-        if (com.fluxtion.server.subscription.EventFlowManager.currentProcessor() == null) {
+        if (com.fluxtion.server.dispatch.EventFlowManager.currentProcessor() == null) {
             registeredCommandMap.put(name, new com.fluxtion.server.service.admin.AdminCommand(command));
         } else {
             String queueKey = "adminCommand." + name;
@@ -138,8 +138,8 @@ public class CliAdmin implements com.fluxtion.server.subscription.EventFlowServi
 
         registeredCommandMap.put(name, adminCommand);
 
-        com.fluxtion.server.subscription.EventSubscriptionKey<?> subscriptionKey = new com.fluxtion.server.subscription.EventSubscriptionKey<>(
-                new com.fluxtion.server.subscription.EventSourceKey<>(queueKey),
+        com.fluxtion.server.dispatch.EventSubscriptionKey<?> subscriptionKey = new com.fluxtion.server.dispatch.EventSubscriptionKey<>(
+                new com.fluxtion.server.dispatch.EventSourceKey<>(queueKey),
                 AdminCallbackType.class,
                 queueKey
         );
@@ -148,15 +148,15 @@ public class CliAdmin implements com.fluxtion.server.subscription.EventFlowServi
     }
 
     @Override
-    public void subscribe(com.fluxtion.server.subscription.EventSubscriptionKey<com.fluxtion.server.service.admin.AdminCommand> eventSourceKey) {
+    public void subscribe(com.fluxtion.server.dispatch.EventSubscriptionKey<com.fluxtion.server.service.admin.AdminCommand> eventSourceKey) {
     }
 
     @Override
-    public void unSubscribe(com.fluxtion.server.subscription.EventSubscriptionKey<com.fluxtion.server.service.admin.AdminCommand> eventSourceKey) {
+    public void unSubscribe(com.fluxtion.server.dispatch.EventSubscriptionKey<com.fluxtion.server.service.admin.AdminCommand> eventSourceKey) {
     }
 
     @Override
-    public void setEventToQueuePublisher(com.fluxtion.server.subscription.EventToQueuePublisher<AdminCommand> targetQueue) {
+    public void setEventToQueuePublisher(com.fluxtion.server.dispatch.EventToQueuePublisher<AdminCommand> targetQueue) {
     }
 
     private class CommandProcessor {
