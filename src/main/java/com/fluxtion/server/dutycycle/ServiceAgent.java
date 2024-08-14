@@ -13,7 +13,7 @@ import lombok.Value;
 
 @Experimental
 @Value
-public class ServerAgent<T> {
+public class ServiceAgent<T> {
 
     //unique identifier
     String agentGroup;

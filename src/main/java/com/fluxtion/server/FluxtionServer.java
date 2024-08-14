@@ -15,16 +15,19 @@ import com.fluxtion.agrona.concurrent.status.AtomicCounter;
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.service.Service;
+import com.fluxtion.runtime.service.ServiceRegistryNode;
 import com.fluxtion.server.dispatch.EventFlowService;
 import com.fluxtion.server.dutycycle.ComposingEventProcessorAgent;
-import com.fluxtion.server.dutycycle.ComposingServerAgent;
-import com.fluxtion.server.dutycycle.ServerAgent;
+import com.fluxtion.server.dutycycle.ComposingServiceAgent;
+import com.fluxtion.server.dutycycle.ServiceAgent;
 import com.fluxtion.server.service.scheduler.DeadWheelScheduler;
 import lombok.Value;
 import lombok.extern.java.Log;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
@@ -33,10 +36,12 @@ import java.util.function.Supplier;
 public class FluxtionServer {
 
     private final com.fluxtion.server.dispatch.EventFlowManager flowManager = new com.fluxtion.server.dispatch.EventFlowManager();
-    private final ConcurrentHashMap<String, ComposingAgentRunner> composingEventAgents = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, ComposingWorkerServiceAgentRunner> composingServerAgents = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, ComposingAgentRunner> composingEventProcessorAgents = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, ComposingWorkerServiceAgentRunner> composingServiceAgents = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Service<?>> registeredServices = new ConcurrentHashMap<>();
+    private final Set<Service<?>> registeredAgentServices = ConcurrentHashMap.newKeySet();
     private ErrorHandler errorHandler = m -> log.severe(m.getMessage());
+    private final ServiceRegistryNode serviceRegistry = new ServiceRegistryNode();
 
     public void setDefaultErrorHandler(ErrorHandler errorHandler) {
         this.errorHandler = errorHandler;
@@ -67,13 +72,18 @@ public class FluxtionServer {
         }
     }
 
-    public void registerWorkerService(ServerAgent<?> service) {
+    public void registerAgentService(Service<?>... services) {
+        registerService(services);
+        registeredAgentServices.addAll(Arrays.asList(services));
+    }
+
+    public void registerWorkerService(ServiceAgent<?> service) {
         String agentGroup = service.getAgentGroup();
-        ComposingWorkerServiceAgentRunner composingAgentRunner = composingServerAgents.computeIfAbsent(
+        ComposingWorkerServiceAgentRunner composingAgentRunner = composingServiceAgents.computeIfAbsent(
                 agentGroup,
                 ket -> {
                     //build a subscriber group
-                    ComposingServerAgent group = new ComposingServerAgent(agentGroup, flowManager, this, new DeadWheelScheduler());
+                    ComposingServiceAgent group = new ComposingServiceAgent(agentGroup, flowManager, this, new DeadWheelScheduler());
                     //threading to be configured by file
                     IdleStrategy idleStrategy = new SleepingMillisIdleStrategy(100);
                     AtomicCounter errorCounter = new AtomicCounter(new UnsafeBuffer(new byte[4096]), 0);
@@ -89,45 +99,8 @@ public class FluxtionServer {
         composingAgentRunner.getGroup().registerServer(service);
     }
 
-    public void init() {
-        log.info("init");
-        registeredServices.values().forEach(svc -> {
-            if (!(svc.instance() instanceof com.fluxtion.server.dispatch.LifeCycleEventSource)) {
-                svc.init();
-            }
-        });
-        flowManager.init();
-    }
-
-    public void start() {
-        log.info("start");
-
-        log.info("start registered services");
-        registeredServices.values().forEach(svc -> {
-            if (!(svc.instance() instanceof com.fluxtion.server.dispatch.LifeCycleEventSource)) {
-                svc.start();
-            }
-        });
-
-        log.info("start flowManager");
-        flowManager.start();
-
-        log.info("start service agent workers");
-        composingServerAgents.forEach((k, v) -> {
-            log.info("starting composing service agent " + k);
-            AgentRunner.startOnThread(v.getGroupRunner());
-        });
-
-        log.info("start event processor agent workers");
-        composingEventAgents.forEach((k, v) -> {
-            log.info("starting composing event processor agent " + k);
-            AgentRunner.startOnThread(v.getGroupRunner());
-        });
-
-    }
-
     public void addEventProcessor(String groupName, Supplier<StaticEventProcessor> feedConsumer) {
-        ComposingAgentRunner composingAgentRunner = composingEventAgents.computeIfAbsent(
+        ComposingAgentRunner composingAgentRunner = composingEventProcessorAgents.computeIfAbsent(
                 groupName,
                 ket -> {
                     //build a subscriber group
@@ -147,6 +120,52 @@ public class FluxtionServer {
         composingAgentRunner.getGroup().addEventFeedConsumer(feedConsumer);
     }
 
+    public void init() {
+        log.info("init");
+        registeredServices.values().forEach(svc -> {
+            if (!(svc.instance() instanceof com.fluxtion.server.dispatch.LifeCycleEventSource)) {
+                svc.init();
+            }
+        });
+
+        flowManager.init();
+
+        registeredServices.values().forEach(svc -> {
+            if (!(registeredAgentServices.contains(svc))) {
+                serviceRegistry.nodeRegistered(svc.instance(), svc.serviceName());
+                servicesRegistered().forEach(serviceRegistry::registerService);
+            }
+        });
+
+    }
+
+    public void start() {
+        log.info("start");
+
+        log.info("start registered services");
+        registeredServices.values().forEach(svc -> {
+            if (!(svc.instance() instanceof com.fluxtion.server.dispatch.LifeCycleEventSource)) {
+                svc.start();
+            }
+        });
+
+        log.info("start flowManager");
+        flowManager.start();
+
+        log.info("start service agent workers");
+        composingServiceAgents.forEach((k, v) -> {
+            log.info("starting composing service agent " + k);
+            AgentRunner.startOnThread(v.getGroupRunner());
+        });
+
+        log.info("start event processor agent workers");
+        composingEventProcessorAgents.forEach((k, v) -> {
+            log.info("starting composing event processor agent " + k);
+            AgentRunner.startOnThread(v.getGroupRunner());
+        });
+
+    }
+
     public Collection<Service<?>> servicesRegistered() {
         return Collections.unmodifiableCollection(registeredServices.values());
     }
@@ -159,7 +178,7 @@ public class FluxtionServer {
 
     @Value
     private static class ComposingWorkerServiceAgentRunner {
-        ComposingServerAgent group;
+        ComposingServiceAgent group;
         AgentRunner groupRunner;
     }
 }
