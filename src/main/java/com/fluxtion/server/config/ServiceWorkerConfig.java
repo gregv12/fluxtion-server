@@ -9,7 +9,7 @@ package com.fluxtion.server.config;
 import com.fluxtion.agrona.concurrent.Agent;
 import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.service.Service;
-import com.fluxtion.server.dutycycle.ServerAgent;
+import com.fluxtion.server.dutycycle.ServiceAgent;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -29,10 +29,10 @@ public class ServiceWorkerConfig<T extends Agent> {
 
     @SneakyThrows
     @SuppressWarnings("unchecked")
-    public ServerAgent<T> toServiceAgent() {
+    public ServiceAgent<T> toServiceAgent() {
         Class<T> serviceClazz = (Class<T>) (serviceClass == null ? instance.getClass() : Class.forName(serviceClass));
         serviceClass = serviceClazz.getCanonicalName();
         Service<T> svc = new Service<>(instance, serviceClazz, name == null ? serviceClass : name);
-        return new ServerAgent<>(agentGroup, svc, instance);
+        return new ServiceAgent<>(agentGroup, svc, instance);
     }
 }

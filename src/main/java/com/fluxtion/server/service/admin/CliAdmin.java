@@ -56,6 +56,11 @@ public class CliAdmin implements com.fluxtion.server.dispatch.EventFlowService, 
     public void start() {
         log.info("start");
         executorService.submit(() -> {
+            try {
+                Thread.sleep(1_000);
+            } catch (InterruptedException e) {
+                //do nothing
+            }
             log.info("starting");
 
             commandProcessor.help(null);
