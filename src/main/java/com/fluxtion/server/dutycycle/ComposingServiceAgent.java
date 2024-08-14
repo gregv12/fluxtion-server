@@ -23,19 +23,19 @@ import lombok.extern.java.Log;
  */
 @Experimental
 @Log
-public class ComposingServerAgent extends DynamicCompositeAgent {
+public class ComposingServiceAgent extends DynamicCompositeAgent {
 
     private final EventFlowManager eventFlowManager;
     private final FluxtionServer fluxtionServer;
     private final DeadWheelScheduler scheduler;
     private final Service<SchedulerService> schedulerService;
-    private final OneToOneConcurrentArrayQueue<com.fluxtion.server.dutycycle.ServerAgent<?>> toStartList = new OneToOneConcurrentArrayQueue<>(128);
+    private final OneToOneConcurrentArrayQueue<ServiceAgent<?>> toStartList = new OneToOneConcurrentArrayQueue<>(128);
     private final ServiceRegistryNode serviceRegistry = new ServiceRegistryNode();
 
-    public ComposingServerAgent(String roleName,
-                                EventFlowManager eventFlowManager,
-                                FluxtionServer fluxtionServer,
-                                DeadWheelScheduler scheduler) {
+    public ComposingServiceAgent(String roleName,
+                                 EventFlowManager eventFlowManager,
+                                 FluxtionServer fluxtionServer,
+                                 DeadWheelScheduler scheduler) {
         super(roleName, scheduler);
         this.eventFlowManager = eventFlowManager;
         this.fluxtionServer = fluxtionServer;
@@ -43,7 +43,7 @@ public class ComposingServerAgent extends DynamicCompositeAgent {
         this.schedulerService = new Service<>(scheduler, SchedulerService.class);
     }
 
-    public <T> void registerServer(ServerAgent<T> server) {
+    public <T> void registerServer(ServiceAgent<T> server) {
         toStartList.add(server);
     }
 
@@ -55,15 +55,15 @@ public class ComposingServerAgent extends DynamicCompositeAgent {
 
     @Override
     public int doWork() throws Exception {
-        toStartList.drain(serverAgent -> {
-            tryAdd(serverAgent.getDelegate());
-            Service<?> exportedService = serverAgent.getExportedService();
+        toStartList.drain(serviceAgent -> {
+            tryAdd(serviceAgent.getDelegate());
+            Service<?> exportedService = serviceAgent.getExportedService();
             exportedService.init();
             serviceRegistry.init();
             serviceRegistry.nodeRegistered(exportedService.instance(), exportedService.serviceName());
             serviceRegistry.registerService(schedulerService);
             fluxtionServer.servicesRegistered().forEach(serviceRegistry::registerService);
-            fluxtionServer.registerService(exportedService);
+            fluxtionServer.registerAgentService(exportedService);
             exportedService.start();
             //
         });
