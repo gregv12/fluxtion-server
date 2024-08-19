@@ -14,20 +14,29 @@ import com.fluxtion.agrona.concurrent.UnsafeBuffer;
 import com.fluxtion.agrona.concurrent.status.AtomicCounter;
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.feature.Experimental;
+import com.fluxtion.runtime.audit.EventLogControlEvent;
+import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.service.Service;
 import com.fluxtion.runtime.service.ServiceRegistryNode;
+import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.config.ConfigListener;
+import com.fluxtion.server.config.ConfigMap;
+import com.fluxtion.server.config.ServiceConfig;
 import com.fluxtion.server.dispatch.EventFlowService;
 import com.fluxtion.server.dutycycle.ComposingEventProcessorAgent;
 import com.fluxtion.server.dutycycle.ComposingServiceAgent;
+import com.fluxtion.server.dutycycle.GlobalErrorHandler;
 import com.fluxtion.server.dutycycle.ServiceAgent;
 import com.fluxtion.server.service.scheduler.DeadWheelScheduler;
+import lombok.SneakyThrows;
 import lombok.Value;
 import lombok.extern.java.Log;
+import org.yaml.snakeyaml.Yaml;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
+import java.io.File;
+import java.io.FileReader;
+import java.io.Reader;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
@@ -35,6 +44,7 @@ import java.util.function.Supplier;
 @Log
 public class FluxtionServer {
 
+    public static final String CONFIG_FILE_PROPERTY = "fluxtionserver.config.file";
     private final com.fluxtion.server.dispatch.EventFlowManager flowManager = new com.fluxtion.server.dispatch.EventFlowManager();
     private final ConcurrentHashMap<String, ComposingAgentRunner> composingEventProcessorAgents = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ComposingWorkerServiceAgentRunner> composingServiceAgents = new ConcurrentHashMap<>();
@@ -42,6 +52,84 @@ public class FluxtionServer {
     private final Set<Service<?>> registeredAgentServices = ConcurrentHashMap.newKeySet();
     private ErrorHandler errorHandler = m -> log.severe(m.getMessage());
     private final ServiceRegistryNode serviceRegistry = new ServiceRegistryNode();
+
+    public static FluxtionServer bootServer(Reader reader, LogRecordListener logRecordListener) {
+        log.info("loading config");
+        Yaml yaml = new Yaml();
+        String makerConfigFile = System.getProperty(CONFIG_FILE_PROPERTY);
+        Objects.requireNonNull(makerConfigFile, "fluxtion config file must be specified with system property: " + CONFIG_FILE_PROPERTY);
+        File configFile = new File(makerConfigFile);
+        log.info("config file:" + configFile);
+
+        AppConfig appConfig = yaml.loadAs(reader, AppConfig.class);
+        log.info("config file:" + configFile);
+
+        return bootServer(appConfig, logRecordListener);
+    }
+
+    @SneakyThrows
+    public static FluxtionServer bootServer(LogRecordListener logRecordListener) {
+        String configFileName = System.getProperty(CONFIG_FILE_PROPERTY);
+        log.info("loading config file from system property: " + CONFIG_FILE_PROPERTY + " file:" + configFileName);
+        try (FileReader reader = new FileReader(configFileName)) {
+            return bootServer(reader, logRecordListener);
+        }
+    }
+
+    public static FluxtionServer bootServer(AppConfig appConfig, LogRecordListener logRecordListener) {
+        log.info("starting fluxtion server");
+        log.fine("config:" + appConfig);
+        FluxtionServer fluxtionServer = new FluxtionServer();
+        fluxtionServer.setDefaultErrorHandler(new GlobalErrorHandler());
+
+        //event sources
+        if (appConfig.getEventSources() != null) {
+            appConfig.getEventSources().forEach(fluxtionServer::registerEventSource);
+        }
+
+        //service
+        if (appConfig.getServices() != null) {
+            appConfig.getServices().stream()
+                    .map(ServiceConfig::toService)
+                    .forEach(fluxtionServer::registerService);
+        }
+
+        //service on workers
+        if (appConfig.getWorkerService() != null) {
+            appConfig.getWorkerService()
+                    .forEach(server -> {
+                        fluxtionServer.registerWorkerService(server.toServiceAgent());
+                    });
+        }
+
+        //add market maker processors
+        if (appConfig.getStrategyGroups() != null) {
+            appConfig.getStrategyGroups().forEach(cfg -> {
+                String groupName = cfg.getAgentGroupName();
+                cfg.getStrategies().forEach(eventProcessorConfig -> {
+                    fluxtionServer.addEventProcessor(groupName,
+                            () -> {
+                                var eventProcessor = eventProcessorConfig.getStrategy();
+                                @SuppressWarnings("unckecked")
+                                ConfigMap configMap = eventProcessorConfig.getConfig();
+
+                                eventProcessor.setAuditLogProcessor(logRecordListener);
+                                eventProcessor.setAuditLogLevel(EventLogControlEvent.LogLevel.INFO);
+                                eventProcessor.init();
+
+                                eventProcessor.consumeServiceIfExported(ConfigListener.class, l -> l.initialConfig(configMap));
+                                return eventProcessor;
+                            });
+                });
+            });
+        }
+
+        //start
+        fluxtionServer.init();
+        fluxtionServer.start();
+
+        return fluxtionServer;
+    }
 
     public void setDefaultErrorHandler(ErrorHandler errorHandler) {
         this.errorHandler = errorHandler;
