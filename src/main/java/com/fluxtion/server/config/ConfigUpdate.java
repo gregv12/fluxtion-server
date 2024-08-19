@@ -6,11 +6,9 @@
 
 package com.fluxtion.server.config;
 
-public interface ConfigListener {
+import lombok.Value;
 
-    boolean initialConfig(ConfigMap config);
-
-    default boolean configChanged(ConfigUpdate config) {
-        return false;
-    }
+@Value
+public class ConfigUpdate {
+    ConfigMap configMap;
 }
