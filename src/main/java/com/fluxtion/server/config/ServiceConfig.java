@@ -21,16 +21,16 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true, fluent = true)
 public class ServiceConfig<T> {
 
-    private T instance;
+    private T service;
     private String serviceClass;
     private String name;
 
-    public ServiceConfig(T instance, Class<T> serviceClass, String name) {
-        this(instance, serviceClass.getCanonicalName(), name);
+    public ServiceConfig(T service, Class<T> serviceClass, String name) {
+        this(service, serviceClass.getCanonicalName(), name);
     }
 
-    public void setInstance(T instance) {
-        this.instance = instance;
+    public void setService(T service) {
+        this.service = service;
     }
 
     public void setServiceClass(String serviceClass) {
@@ -41,8 +41,8 @@ public class ServiceConfig<T> {
         this.name = name;
     }
 
-    public T getInstance() {
-        return instance;
+    public T getService() {
+        return service;
     }
 
     public String getServiceClass() {
@@ -56,8 +56,8 @@ public class ServiceConfig<T> {
     @SneakyThrows
     @SuppressWarnings("unchecked")
     public Service<T> toService() {
-        Class<T> serviceClazz = (Class<T>) (serviceClass == null ? instance.getClass() : Class.forName(serviceClass));
+        Class<T> serviceClazz = (Class<T>) (serviceClass == null ? service.getClass() : Class.forName(serviceClass));
         serviceClass = serviceClazz.getCanonicalName();
-        return new Service<>(instance, serviceClazz, name == null ? serviceClass : name);
+        return new Service<>(service, serviceClazz, name == null ? serviceClass : name);
     }
 }

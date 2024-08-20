@@ -8,10 +8,10 @@ package com.fluxtion.server.config;
 
 import lombok.Data;
 
-import java.util.List;
+import java.util.Map;
 
 @Data
 public class EventProcessorGroupConfig {
-    private String agentGroupName;
-    private List<EventProcessorConfig<?>> strategies;
+    private String agentName;
+    private Map<String, EventProcessorConfig<?>> eventHandlers;
 }
