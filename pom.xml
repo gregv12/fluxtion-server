@@ -10,7 +10,7 @@
 
     <groupId>com.fluxtion</groupId>
     <artifactId>server</artifactId>
-    <version>0.1.15-SNAPSHOT</version>
+    <version>0.1.16-SNAPSHOT</version>
     <name>fluxtion :: server</name>
     <description>
         A runtime server to load and run Fluxtion event processors, connecting event streams to and from processors
