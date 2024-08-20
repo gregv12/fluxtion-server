@@ -18,10 +18,7 @@ import com.fluxtion.runtime.audit.EventLogControlEvent;
 import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.service.Service;
 import com.fluxtion.runtime.service.ServiceRegistryNode;
-import com.fluxtion.server.config.AppConfig;
-import com.fluxtion.server.config.ConfigListener;
-import com.fluxtion.server.config.ConfigMap;
-import com.fluxtion.server.config.ServiceConfig;
+import com.fluxtion.server.config.*;
 import com.fluxtion.server.dispatch.EventFlowService;
 import com.fluxtion.server.dutycycle.ComposingEventProcessorAgent;
 import com.fluxtion.server.dutycycle.ComposingServiceAgent;
@@ -103,13 +100,15 @@ public class FluxtionServer {
         }
 
         //add market maker processors
-        if (appConfig.getStrategyGroups() != null) {
-            appConfig.getStrategyGroups().forEach(cfg -> {
-                String groupName = cfg.getAgentGroupName();
-                cfg.getStrategies().forEach(eventProcessorConfig -> {
+        if (appConfig.getEventHandlerAgents() != null) {
+            appConfig.getEventHandlerAgents().forEach(cfg -> {
+                String groupName = cfg.getAgentName();
+                cfg.getEventHandlers().entrySet().forEach(handlerEntry -> {
                     fluxtionServer.addEventProcessor(groupName,
                             () -> {
-                                var eventProcessor = eventProcessorConfig.getStrategy();
+                                String name = handlerEntry.getKey();
+                                EventProcessorConfig<?> eventProcessorConfig = handlerEntry.getValue();
+                                var eventProcessor = eventProcessorConfig.getEventHandler();
                                 @SuppressWarnings("unckecked")
                                 ConfigMap configMap = eventProcessorConfig.getConfig();
 
