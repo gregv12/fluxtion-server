@@ -14,7 +14,7 @@ import java.util.Map;
 
 @Data
 public class AppConfig {
-    private List<EventProcessorGroupConfig> strategyGroups;
+    private List<EventProcessorGroupConfig> eventHandlerAgents;
     private Map<String, LifeCycleEventSource<?>> eventSources;
     private List<ServiceConfig<?>> services;
     private List<ServiceWorkerConfig<?>> workerService;

@@ -17,8 +17,7 @@ import java.util.Map;
 
 @Data
 public class EventProcessorConfig<T extends EventProcessor<?>> {
-    private String name;
-    private T strategy;
+    private T eventHandler;
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     private Map<String, Object> configMap = new HashMap<>();
