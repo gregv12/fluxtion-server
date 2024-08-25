@@ -10,7 +10,7 @@
 
     <groupId>com.fluxtion</groupId>
     <artifactId>server</artifactId>
-    <version>0.1.16-SNAPSHOT</version>
+    <version>0.1.16</version>
     <name>fluxtion :: server</name>
     <description>
         A runtime server to load and run Fluxtion event processors, connecting event streams to and from processors
@@ -43,7 +43,7 @@
         <connection>scm:git:https://github.com/gregv12/fluxtion-server.git</connection>
         <developerConnection>scm:git:https://github.com/gregv12/fluxtion-server.git</developerConnection>
         <url>https://github.com/gregv12/fluxtion-server</url>
-        <tag>v0.1.0</tag>
+        <tag>v0.1.16</tag>
     </scm>
 
     <dependencies>
