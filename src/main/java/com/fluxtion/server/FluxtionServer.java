@@ -51,15 +51,10 @@ public class FluxtionServer {
     private final ServiceRegistryNode serviceRegistry = new ServiceRegistryNode();
 
     public static FluxtionServer bootServer(Reader reader, LogRecordListener logRecordListener) {
-        log.info("loading config");
+        log.info("booting server loading config from reader");
         Yaml yaml = new Yaml();
-        String makerConfigFile = System.getProperty(CONFIG_FILE_PROPERTY);
-        Objects.requireNonNull(makerConfigFile, "fluxtion config file must be specified with system property: " + CONFIG_FILE_PROPERTY);
-        File configFile = new File(makerConfigFile);
-        log.info("config file:" + configFile);
-
         AppConfig appConfig = yaml.loadAs(reader, AppConfig.class);
-        log.info("config file:" + configFile);
+        log.info("successfully loaded config from reader");
 
         return bootServer(appConfig, logRecordListener);
     }
@@ -67,14 +62,16 @@ public class FluxtionServer {
     @SneakyThrows
     public static FluxtionServer bootServer(LogRecordListener logRecordListener) {
         String configFileName = System.getProperty(CONFIG_FILE_PROPERTY);
-        log.info("loading config file from system property: " + CONFIG_FILE_PROPERTY + " file:" + configFileName);
+        Objects.requireNonNull(configFileName, "fluxtion config file must be specified by system property: " + CONFIG_FILE_PROPERTY);
+        File configFile = new File(configFileName);
+        log.info("booting fluxtion server with config file:" + configFile + " specified by system property:" + CONFIG_FILE_PROPERTY);
         try (FileReader reader = new FileReader(configFileName)) {
             return bootServer(reader, logRecordListener);
         }
     }
 
     public static FluxtionServer bootServer(AppConfig appConfig, LogRecordListener logRecordListener) {
-        log.info("starting fluxtion server");
+        log.info("booting fluxtion server");
         log.fine("config:" + appConfig);
         FluxtionServer fluxtionServer = new FluxtionServer();
         fluxtionServer.setDefaultErrorHandler(new GlobalErrorHandler());
