@@ -8,13 +8,10 @@ package com.fluxtion.server.service.admin;
 
 import com.fluxtion.runtime.annotations.feature.Experimental;
 
-import java.util.List;
-import java.util.function.Consumer;
-
 @Experimental
-public interface Admin {
+public interface AdminCommandRegistry {
 
-    void registerCommand(String name, Consumer<List<String>> command);
+    <OUT, ERR> void registerCommand(String name, AdminFunction<OUT, ERR> command);
 
-    void registerCommand(String name, AdminFunction command);
+    void processAdminCommandRequest(AdminCommandRequest command);
 }
