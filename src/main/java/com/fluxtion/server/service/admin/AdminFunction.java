@@ -8,11 +8,11 @@ package com.fluxtion.server.service.admin;
 
 import com.fluxtion.runtime.annotations.feature.Experimental;
 
-import java.io.PrintStream;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Experimental
-public interface AdminFunction {
+public interface AdminFunction<OUT, ERR> {
 
-    void processAdminCommand(List<String> commands, PrintStream output, PrintStream errOutput);
+    void processAdminCommand(List<String> commands, Consumer<OUT> output, Consumer<ERR> errOutput);
 }

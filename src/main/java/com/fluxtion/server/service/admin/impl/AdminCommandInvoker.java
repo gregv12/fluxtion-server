@@ -4,7 +4,7 @@
  *
  */
 
-package com.fluxtion.server.service.admin;
+package com.fluxtion.server.service.admin.impl;
 
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.feature.Experimental;
@@ -15,7 +15,7 @@ public class AdminCommandInvoker extends AbstractEventToInvocationStrategy {
 
     @Override
     protected void dispatchEvent(Object event, StaticEventProcessor eventProcessor) {
-        com.fluxtion.server.service.admin.AdminCommand adminCommand = (AdminCommand) event;
+        AdminCommand adminCommand = (AdminCommand) event;
         adminCommand.executeCommand();
     }
 
