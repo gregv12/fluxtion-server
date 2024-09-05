@@ -7,6 +7,7 @@
 package com.fluxtion.server.service.admin;
 
 import lombok.Data;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +18,8 @@ public class AdminCommandRequest {
 
     private String command;
     private List<String> arguments = new ArrayList<>();
+    @ToString.Exclude
     private Consumer<Object> output;
+    @ToString.Exclude
     private Consumer<Object> errOutput;
 }
