@@ -18,9 +18,18 @@ import java.util.concurrent.TimeUnit;
 @Experimental
 public class DeadWheelScheduler implements SchedulerService, Agent {
 
-    private final DeadlineTimerWheel timerWheel = new DeadlineTimerWheel(TimeUnit.MILLISECONDS, System.currentTimeMillis(), 1024, 1);
-    private final Long2ObjectHashMap<Runnable> expiryActions = new Long2ObjectHashMap<>();
-    private final EpochNanoClock clock = new OffsetEpochNanoClock();
+    protected final DeadlineTimerWheel timerWheel = new DeadlineTimerWheel(TimeUnit.MILLISECONDS, System.currentTimeMillis(), 1024, 1);
+    protected final Long2ObjectHashMap<Runnable> expiryActions = new Long2ObjectHashMap<>();
+    protected final EpochNanoClock clock;
+
+    public DeadWheelScheduler() {
+        this(new OffsetEpochNanoClock());
+    }
+
+    public DeadWheelScheduler(EpochNanoClock clock) {
+        this.clock = clock;
+        timerWheel.currentTickTime(clock.nanoTime());
+    }
 
     @Override
     public long scheduleAtTime(long expireTIme, Runnable expiryAction) {
@@ -53,7 +62,8 @@ public class DeadWheelScheduler implements SchedulerService, Agent {
 
     @Override
     public long milliTime() {
-        return TimeUnit.NANOSECONDS.toMillis(clock.nanoTime());
+        long millisToNanos = TimeUnit.NANOSECONDS.toMillis(clock.nanoTime());
+        return millisToNanos;
     }
 
     @Override
@@ -66,4 +76,7 @@ public class DeadWheelScheduler implements SchedulerService, Agent {
         return clock.nanoTime();
     }
 
+    public void setcurrentTickTime(long now) {
+        timerWheel.currentTickTime(now);
+    }
 }
