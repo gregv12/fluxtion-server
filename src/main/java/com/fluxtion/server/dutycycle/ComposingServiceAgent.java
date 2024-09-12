@@ -30,6 +30,7 @@ public class ComposingServiceAgent extends DynamicCompositeAgent {
     private final DeadWheelScheduler scheduler;
     private final Service<SchedulerService> schedulerService;
     private final OneToOneConcurrentArrayQueue<ServiceAgent<?>> toStartList = new OneToOneConcurrentArrayQueue<>(128);
+    private final OneToOneConcurrentArrayQueue<ServiceAgent<?>> toAddList = new OneToOneConcurrentArrayQueue<>(128);
     private final ServiceRegistryNode serviceRegistry = new ServiceRegistryNode();
 
     public ComposingServiceAgent(String roleName,
@@ -45,18 +46,14 @@ public class ComposingServiceAgent extends DynamicCompositeAgent {
 
     public <T> void registerServer(ServiceAgent<T> server) {
         toStartList.add(server);
+        log.info("registerServer toStartList size:" + toStartList.size());
     }
 
     @Override
     public void onStart() {
-        log.info("onStart");
-        super.onStart();
-    }
-
-    @Override
-    public int doWork() throws Exception {
+        log.info("onStart toStartList size:" + toStartList.size());
         toStartList.drain(serviceAgent -> {
-            tryAdd(serviceAgent.getDelegate());
+            toAddList.add(serviceAgent);
             Service<?> exportedService = serviceAgent.getExportedService();
             exportedService.init();
             serviceRegistry.init();
@@ -65,7 +62,15 @@ public class ComposingServiceAgent extends DynamicCompositeAgent {
             fluxtionServer.servicesRegistered().forEach(serviceRegistry::registerService);
             fluxtionServer.registerAgentService(exportedService);
             exportedService.start();
-            //
+        });
+        super.onStart();
+    }
+
+    @Override
+    public int doWork() throws Exception {
+        toAddList.drain(serviceAgent -> {
+            log.info("doWork adding:" + serviceAgent);
+            tryAdd(serviceAgent.getDelegate());
         });
         return super.doWork();
     }

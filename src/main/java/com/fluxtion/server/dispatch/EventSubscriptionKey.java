@@ -23,4 +23,10 @@ public class EventSubscriptionKey<T> {
         this.callBackType = CallBackType.forClass(callBackClass);
         this.subscriptionQualifier = subscriptionQualifier;
     }
+
+    public EventSubscriptionKey(EventSourceKey<T> eventSourceKey, CallBackType callBackType, Object subscriptionQualifier) {
+        this.eventSourceKey = eventSourceKey;
+        this.callBackType = callBackType;
+        this.subscriptionQualifier = subscriptionQualifier;
+    }
 }
