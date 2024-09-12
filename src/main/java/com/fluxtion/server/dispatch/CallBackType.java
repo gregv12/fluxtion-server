@@ -12,6 +12,8 @@ import lombok.Value;
 @Experimental
 public interface CallBackType {
 
+    OnEventCallBack ON_EVENT_CALL_BACK = new OnEventCallBack();
+
     String name();
 
     static CallBackType forClass(Class<?> clazz) {
@@ -29,8 +31,15 @@ public interface CallBackType {
         }
     }
 
-    enum StandardCallbacks implements CallBackType {
-        ON_EVENT
+    class OnEventCallBack implements CallBackType {
+
+        private OnEventCallBack() {
+        }
+
+        @Override
+        public String name() {
+            return "onEventCallBack";
+        }
     }
 
 }

@@ -7,6 +7,7 @@
 package com.fluxtion.server.dutycycle;
 
 import com.fluxtion.agrona.concurrent.Agent;
+import com.fluxtion.agrona.concurrent.IdleStrategy;
 import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.service.Service;
 import lombok.Value;
@@ -17,6 +18,8 @@ public class ServiceAgent<T> {
 
     //unique identifier
     String agentGroup;
+    //thread management
+    IdleStrategy idleStrategy;
     //proxy - exported service
     Service<T> exportedService;
     //adds to EP agent
