@@ -7,6 +7,8 @@
 package com.fluxtion.server.config;
 
 import com.fluxtion.agrona.concurrent.Agent;
+import com.fluxtion.agrona.concurrent.IdleStrategy;
+import com.fluxtion.agrona.concurrent.YieldingIdleStrategy;
 import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.service.Service;
 import com.fluxtion.server.dutycycle.ServiceAgent;
@@ -26,6 +28,7 @@ public class ServiceWorkerConfig<T extends Agent> {
     private String name;
     //do work thread management
     private String agentGroup;
+    private IdleStrategy idleStrategy = new YieldingIdleStrategy();
 
     @SneakyThrows
     @SuppressWarnings("unchecked")
@@ -33,6 +36,6 @@ public class ServiceWorkerConfig<T extends Agent> {
         Class<T> serviceClazz = (Class<T>) (serviceClass == null ? instance.getClass() : Class.forName(serviceClass));
         serviceClass = serviceClazz.getCanonicalName();
         Service<T> svc = new Service<>(instance, serviceClazz, name == null ? serviceClass : name);
-        return new ServiceAgent<>(agentGroup, svc, instance);
+        return new ServiceAgent<>(agentGroup, idleStrategy, svc, instance);
     }
 }

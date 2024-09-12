@@ -51,7 +51,7 @@ public class EventFlowManager {
     }
 
     public EventFlowManager() {
-        eventToInvokerFactoryMap.put(com.fluxtion.server.dispatch.CallBackType.StandardCallbacks.ON_EVENT, EventToOnEventInvokeStrategy::new);
+        eventToInvokerFactoryMap.put(CallBackType.ON_EVENT_CALL_BACK, EventToOnEventInvokeStrategy::new);
     }
 
     public void init() {

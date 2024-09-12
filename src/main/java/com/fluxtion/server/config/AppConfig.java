@@ -17,5 +17,5 @@ public class AppConfig {
     private List<EventProcessorGroupConfig> eventHandlerAgents;
     private Map<String, LifeCycleEventSource<?>> eventSources;
     private List<ServiceConfig<?>> services;
-    private List<ServiceWorkerConfig<?>> workerService;
+    private List<ServiceWorkerConfig<?>> agentHostedServices;
 }
