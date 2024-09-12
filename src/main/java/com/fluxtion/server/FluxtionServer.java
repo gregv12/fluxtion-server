@@ -8,8 +8,8 @@ package com.fluxtion.server;
 
 import com.fluxtion.agrona.ErrorHandler;
 import com.fluxtion.agrona.concurrent.AgentRunner;
+import com.fluxtion.agrona.concurrent.DynamicCompositeAgent;
 import com.fluxtion.agrona.concurrent.IdleStrategy;
-import com.fluxtion.agrona.concurrent.SleepingMillisIdleStrategy;
 import com.fluxtion.agrona.concurrent.UnsafeBuffer;
 import com.fluxtion.agrona.concurrent.status.AtomicCounter;
 import com.fluxtion.runtime.StaticEventProcessor;
@@ -89,8 +89,9 @@ public class FluxtionServer {
         }
 
         //service on workers
-        if (appConfig.getWorkerService() != null) {
-            appConfig.getWorkerService()
+
+        if (appConfig.getAgentHostedServices() != null) {
+            appConfig.getAgentHostedServices()
                     .forEach(server -> {
                         fluxtionServer.registerWorkerService(server.toServiceAgent());
                     });
@@ -100,8 +101,9 @@ public class FluxtionServer {
         if (appConfig.getEventHandlerAgents() != null) {
             appConfig.getEventHandlerAgents().forEach(cfg -> {
                 String groupName = cfg.getAgentName();
+                IdleStrategy ideIdleStrategy = cfg.getIdleStrategy();
                 cfg.getEventHandlers().entrySet().forEach(handlerEntry -> {
-                    fluxtionServer.addEventProcessor(groupName,
+                    fluxtionServer.addEventProcessor(groupName, ideIdleStrategy,
                             () -> {
                                 String name = handlerEntry.getKey();
                                 EventProcessorConfig<?> eventProcessorConfig = handlerEntry.getValue();
@@ -163,13 +165,13 @@ public class FluxtionServer {
 
     public void registerWorkerService(ServiceAgent<?> service) {
         String agentGroup = service.getAgentGroup();
+        IdleStrategy idleStrategy = service.getIdleStrategy();
         ComposingWorkerServiceAgentRunner composingAgentRunner = composingServiceAgents.computeIfAbsent(
                 agentGroup,
                 ket -> {
                     //build a subscriber group
                     ComposingServiceAgent group = new ComposingServiceAgent(agentGroup, flowManager, this, new DeadWheelScheduler());
                     //threading to be configured by file
-                    IdleStrategy idleStrategy = new SleepingMillisIdleStrategy(100);
                     AtomicCounter errorCounter = new AtomicCounter(new UnsafeBuffer(new byte[4096]), 0);
                     //run subscriber group
                     AgentRunner groupRunner = new AgentRunner(
@@ -183,14 +185,17 @@ public class FluxtionServer {
         composingAgentRunner.getGroup().registerServer(service);
     }
 
-    public void addEventProcessor(String groupName, Supplier<StaticEventProcessor> feedConsumer) {
+    public void addEventProcessor(
+            String groupName,
+            IdleStrategy idleStrategy,
+            Supplier<StaticEventProcessor> feedConsumer) {
         ComposingAgentRunner composingAgentRunner = composingEventProcessorAgents.computeIfAbsent(
                 groupName,
                 ket -> {
                     //build a subscriber group
                     ComposingEventProcessorAgent group = new ComposingEventProcessorAgent(groupName, flowManager, this, new DeadWheelScheduler(), registeredServices);
                     //threading to be configured by file
-                    IdleStrategy idleStrategy = new SleepingMillisIdleStrategy(100);
+//                    IdleStrategy idleStrategy = new SleepingMillisIdleStrategy(100);
                     AtomicCounter errorCounter = new AtomicCounter(new UnsafeBuffer(new byte[4096]), 0);
                     //run subscriber group
                     AgentRunner groupRunner = new AgentRunner(
@@ -223,6 +228,7 @@ public class FluxtionServer {
 
     }
 
+    @SneakyThrows
     public void start() {
         log.info("start");
 
@@ -241,6 +247,14 @@ public class FluxtionServer {
             log.info("starting composing service agent " + k);
             AgentRunner.startOnThread(v.getGroupRunner());
         });
+
+        boolean waiting = true;
+        while (waiting) {
+            log.info("waiting for service agents to start");
+            waiting = composingServiceAgents.values().stream()
+                    .anyMatch(f -> f.group.status() != DynamicCompositeAgent.Status.ACTIVE);
+            Thread.sleep(100);
+        }
 
         log.info("start event processor agent workers");
         composingEventProcessorAgents.forEach((k, v) -> {
