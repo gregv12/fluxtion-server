@@ -6,7 +6,6 @@
 
 package com.fluxtion.server.service;
 
-import com.fluxtion.agrona.concurrent.Agent;
 import com.fluxtion.runtime.annotations.runtime.ServiceRegistered;
 import com.fluxtion.runtime.input.SubscriptionManager;
 import com.fluxtion.server.dispatch.*;
@@ -16,12 +15,11 @@ import lombok.extern.java.Log;
 import java.util.function.Supplier;
 
 @Log
-public abstract class AbstractAgentHostedService<T> implements
-        Agent,
+public abstract class AbstractEventSourceService<T> implements
         LifeCycleEventSource<T>,
         EventFlowService {
 
-    private final String name;
+    protected final String name;
     private final CallBackType eventToInvokeType;
     private final Supplier<EventToInvokeStrategy> eventToInokeStrategySupplier;
     protected EventToQueuePublisher<T> output;
@@ -29,15 +27,15 @@ public abstract class AbstractAgentHostedService<T> implements
     protected EventSubscriptionKey<T> subscriptionKey;
     protected SchedulerService scheduler;
 
-    protected AbstractAgentHostedService(String name) {
+    protected AbstractEventSourceService(String name) {
         this(name, CallBackType.ON_EVENT_CALL_BACK);
     }
 
-    public AbstractAgentHostedService(String name, CallBackType eventToInvokeType) {
+    public AbstractEventSourceService(String name, CallBackType eventToInvokeType) {
         this(name, eventToInvokeType, null);
     }
 
-    public AbstractAgentHostedService(
+    public AbstractEventSourceService(
             String name,
             CallBackType eventToInvokeType,
             Supplier<EventToInvokeStrategy> eventToInokeStrategySupplier) {
@@ -64,11 +62,6 @@ public abstract class AbstractAgentHostedService<T> implements
     @ServiceRegistered
     public void scheduler(SchedulerService scheduler) {
         this.scheduler = scheduler;
-    }
-
-    @Override
-    public String roleName() {
-        return name;
     }
 
     @Override
