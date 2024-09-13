@@ -26,7 +26,7 @@ import java.util.function.Supplier;
  * <ul>
  *     <li>{@link com.fluxtion.server.dispatch.EventSource} - pushed events into a queue</li>
  *     <li>{@link com.fluxtion.server.dutycycle.EventQueueToEventProcessor} -  reads from a queue and handles multiplexing to registered {@link com.fluxtion.runtime.StaticEventProcessor}</li>
- *     <li>{@link com.fluxtion.server.dispatch.EventToInvokeStrategy} - processed an event and map events to callbacks on the {@link com.fluxtion.runtime.StaticEventProcessor}</li>
+ *     <li>{@link EventToInvokeStrategy} - processed an event and map events to callbacks on the {@link com.fluxtion.runtime.StaticEventProcessor}</li>
  * </ul>
  */
 @Experimental
@@ -34,7 +34,7 @@ public class EventFlowManager {
 
     private final ConcurrentHashMap<com.fluxtion.server.dispatch.EventSourceKey<?>, EventSource_QueuePublisher<?>> eventSourceToQueueMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<EventSinkKey<?>, ManyToOneConcurrentArrayQueue<?>> eventSinkToQueueMap = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<com.fluxtion.server.dispatch.CallBackType, Supplier<com.fluxtion.server.dispatch.EventToInvokeStrategy>> eventToInvokerFactoryMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<com.fluxtion.server.dispatch.CallBackType, Supplier<EventToInvokeStrategy>> eventToInvokerFactoryMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<EventSourceKey_Subscriber<?>, OneToOneConcurrentArrayQueue<?>> subscriberKeyToQueueMap = new ConcurrentHashMap<>();
     private final static ThreadLocal<StaticEventProcessor> currentProcessor = new ThreadLocal<>();
 
@@ -71,7 +71,7 @@ public class EventFlowManager {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> ManyToOneConcurrentArrayQueue<T> registerEventSink(com.fluxtion.server.dispatch.EventSourceKey<T> sinkKey, Object sinkReader) {
+    public <T> ManyToOneConcurrentArrayQueue<T> registerEventSink(EventSourceKey<T> sinkKey, Object sinkReader) {
         Objects.requireNonNull(sinkKey, "sinkKey must be non-null");
         EventSinkKey<T> eventSinkKey = new EventSinkKey<>(sinkKey, sinkReader);
         return (ManyToOneConcurrentArrayQueue<T>) eventSinkToQueueMap.computeIfAbsent(
@@ -110,14 +110,14 @@ public class EventFlowManager {
         return queuePublisher;
     }
 
-    public void registerEventMapperFactory(Supplier<com.fluxtion.server.dispatch.EventToInvokeStrategy> eventMapper, com.fluxtion.server.dispatch.CallBackType type) {
+    public void registerEventMapperFactory(Supplier<EventToInvokeStrategy> eventMapper, com.fluxtion.server.dispatch.CallBackType type) {
         Objects.requireNonNull(eventMapper, "eventMapper must be non-null");
         Objects.requireNonNull(type, "type must be non-null");
 
         eventToInvokerFactoryMap.put(type, eventMapper);
     }
 
-    public void registerEventMapperFactory(Supplier<com.fluxtion.server.dispatch.EventToInvokeStrategy> eventMapper, Class<?> type) {
+    public void registerEventMapperFactory(Supplier<EventToInvokeStrategy> eventMapper, Class<?> type) {
         Objects.requireNonNull(eventMapper, "eventMapper must be non-null");
         Objects.requireNonNull(type, "Callback class type must be non-null");
 
@@ -125,7 +125,7 @@ public class EventFlowManager {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public <T> com.fluxtion.server.dutycycle.EventQueueToEventProcessor getMappingAgent(com.fluxtion.server.dispatch.EventSourceKey<T> eventSourceKey, CallBackType type, Agent subscriber) {
+    public <T> com.fluxtion.server.dutycycle.EventQueueToEventProcessor getMappingAgent(EventSourceKey<T> eventSourceKey, CallBackType type, Agent subscriber) {
         Objects.requireNonNull(eventSourceKey, "eventSourceKey must be non-null");
         Objects.requireNonNull(type, "type must be non-null");
         Objects.requireNonNull(subscriber, "subscriber must be non-null");
@@ -178,7 +178,7 @@ public class EventFlowManager {
 
     @Value
     private static class EventSourceKey_Subscriber<T> {
-        com.fluxtion.server.dispatch.EventSourceKey<T> eventSourceKey;
+        EventSourceKey<T> eventSourceKey;
         Object subscriber;
     }
 
