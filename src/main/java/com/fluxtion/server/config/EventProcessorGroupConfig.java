@@ -8,6 +8,7 @@ package com.fluxtion.server.config;
 
 import com.fluxtion.agrona.concurrent.IdleStrategy;
 import com.fluxtion.agrona.concurrent.YieldingIdleStrategy;
+import com.fluxtion.runtime.audit.EventLogControlEvent;
 import lombok.Data;
 
 import java.util.Map;
@@ -16,5 +17,6 @@ import java.util.Map;
 public class EventProcessorGroupConfig {
     private String agentName;
     private IdleStrategy idleStrategy = new YieldingIdleStrategy();
+    private EventLogControlEvent.LogLevel logLevel;
     private Map<String, EventProcessorConfig<?>> eventHandlers;
 }

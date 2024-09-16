@@ -100,6 +100,7 @@ public class FluxtionServer {
         //add market maker processors
         if (appConfig.getEventHandlerAgents() != null) {
             appConfig.getEventHandlerAgents().forEach(cfg -> {
+                final EventLogControlEvent.LogLevel defaultLogLevel = cfg.getLogLevel() == null ? EventLogControlEvent.LogLevel.INFO : cfg.getLogLevel();
                 String groupName = cfg.getAgentName();
                 IdleStrategy ideIdleStrategy = cfg.getIdleStrategy();
                 cfg.getEventHandlers().entrySet().forEach(handlerEntry -> {
@@ -108,11 +109,12 @@ public class FluxtionServer {
                                 String name = handlerEntry.getKey();
                                 EventProcessorConfig<?> eventProcessorConfig = handlerEntry.getValue();
                                 var eventProcessor = eventProcessorConfig.getEventHandler();
+                                var logLevel = eventProcessorConfig.getLogLevel() == null ? defaultLogLevel : eventProcessorConfig.getLogLevel();
                                 @SuppressWarnings("unckecked")
                                 ConfigMap configMap = eventProcessorConfig.getConfig();
 
                                 eventProcessor.setAuditLogProcessor(logRecordListener);
-                                eventProcessor.setAuditLogLevel(EventLogControlEvent.LogLevel.INFO);
+                                eventProcessor.setAuditLogLevel(logLevel);
                                 eventProcessor.init();
 
                                 eventProcessor.consumeServiceIfExported(ConfigListener.class, l -> l.initialConfig(configMap));

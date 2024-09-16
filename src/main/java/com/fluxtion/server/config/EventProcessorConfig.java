@@ -7,6 +7,7 @@
 package com.fluxtion.server.config;
 
 import com.fluxtion.runtime.EventProcessor;
+import com.fluxtion.runtime.audit.EventLogControlEvent;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
@@ -18,6 +19,7 @@ import java.util.Map;
 @Data
 public class EventProcessorConfig<T extends EventProcessor<?>> {
     private T eventHandler;
+    private EventLogControlEvent.LogLevel logLevel;
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     private Map<String, Object> configMap = new HashMap<>();
