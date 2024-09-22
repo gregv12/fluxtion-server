@@ -15,10 +15,12 @@ import lombok.Setter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 @Data
 public class EventProcessorConfig<T extends EventProcessor<?>> {
     private T eventHandler;
+    private Supplier<T> eventHandlerBuilder;
     private EventLogControlEvent.LogLevel logLevel;
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
