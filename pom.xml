@@ -10,7 +10,7 @@
 
     <groupId>com.fluxtion</groupId>
     <artifactId>server</artifactId>
-    <version>0.1.23-SNAPSHOT</version>
+    <version>0.1.24-SNAPSHOT</version>
     <name>fluxtion :: server</name>
 
     <description>
@@ -158,7 +158,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>3.2.5</version>
+                        <version>3.2.6</version>
                         <executions>
                             <execution>
                                 <phase>verify</phase>
