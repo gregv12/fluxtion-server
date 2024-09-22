@@ -107,8 +107,11 @@ public class FluxtionServer {
                     fluxtionServer.addEventProcessor(groupName, ideIdleStrategy,
                             () -> {
                                 String name = handlerEntry.getKey();
+                                log.info("adding eventProcessor:" + name + " to group:" + groupName);
                                 EventProcessorConfig<?> eventProcessorConfig = handlerEntry.getValue();
-                                var eventProcessor = eventProcessorConfig.getEventHandler();
+                                var eventProcessor = eventProcessorConfig.getEventHandler() == null
+                                        ? eventProcessorConfig.getEventHandlerBuilder().get()
+                                        : eventProcessorConfig.getEventHandler();
                                 var logLevel = eventProcessorConfig.getLogLevel() == null ? defaultLogLevel : eventProcessorConfig.getLogLevel();
                                 @SuppressWarnings("unckecked")
                                 ConfigMap configMap = eventProcessorConfig.getConfig();
