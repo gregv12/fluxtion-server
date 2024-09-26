@@ -36,7 +36,6 @@ public class AdminCommandProcessor implements EventFlowService, AdminCommandRegi
             ---------------------------
             quit         - exit the console
             help/?       - this message
-            name         - service name
             commands     - registered service commands
             eventSources - list event sources
             """;
@@ -85,6 +84,11 @@ public class AdminCommandProcessor implements EventFlowService, AdminCommandRegi
                     queueKey,
                     new AdminCommand((AdminFunction<Object, Object>) command, eventFlowManager.registerEventSource(queueKey, this)));
         }
+    }
+
+    @Override
+    public List<String> commandList() {
+        return registeredCommandMap.keySet().stream().sorted().collect(Collectors.toList());
     }
 
     @Override
