@@ -14,6 +14,7 @@ import com.fluxtion.agrona.concurrent.UnsafeBuffer;
 import com.fluxtion.agrona.concurrent.status.AtomicCounter;
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.feature.Experimental;
+import com.fluxtion.runtime.annotations.runtime.ServiceRegistered;
 import com.fluxtion.runtime.audit.EventLogControlEvent;
 import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.service.Service;
@@ -24,7 +25,9 @@ import com.fluxtion.server.dutycycle.ComposingEventProcessorAgent;
 import com.fluxtion.server.dutycycle.ComposingServiceAgent;
 import com.fluxtion.server.dutycycle.GlobalErrorHandler;
 import com.fluxtion.server.dutycycle.ServiceAgent;
+import com.fluxtion.server.service.admin.AdminCommandRegistry;
 import com.fluxtion.server.service.scheduler.DeadWheelScheduler;
+import com.fluxtion.server.service.servercontrol.FluxtionServerController;
 import lombok.SneakyThrows;
 import lombok.Value;
 import lombok.extern.java.Log;
@@ -39,9 +42,10 @@ import java.util.function.Supplier;
 
 @Experimental
 @Log
-public class FluxtionServer {
+public class FluxtionServer implements FluxtionServerController {
 
     public static final String CONFIG_FILE_PROPERTY = "fluxtionserver.config.file";
+    private static LogRecordListener logRecordListener;
     private final com.fluxtion.server.dispatch.EventFlowManager flowManager = new com.fluxtion.server.dispatch.EventFlowManager();
     private final ConcurrentHashMap<String, ComposingAgentRunner> composingEventProcessorAgents = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ComposingWorkerServiceAgentRunner> composingServiceAgents = new ConcurrentHashMap<>();
@@ -49,6 +53,7 @@ public class FluxtionServer {
     private final Set<Service<?>> registeredAgentServices = ConcurrentHashMap.newKeySet();
     private ErrorHandler errorHandler = m -> log.severe(m.getMessage());
     private final ServiceRegistryNode serviceRegistry = new ServiceRegistryNode();
+    private volatile boolean started = false;
 
     public static FluxtionServer bootServer(Reader reader, LogRecordListener logRecordListener) {
         log.info("booting server loading config from reader");
@@ -71,10 +76,14 @@ public class FluxtionServer {
     }
 
     public static FluxtionServer bootServer(AppConfig appConfig, LogRecordListener logRecordListener) {
+        FluxtionServer.logRecordListener = logRecordListener;
         log.info("booting fluxtion server");
         log.fine("config:" + appConfig);
         FluxtionServer fluxtionServer = new FluxtionServer();
         fluxtionServer.setDefaultErrorHandler(new GlobalErrorHandler());
+
+        //root server controller
+        fluxtionServer.registerService(new Service<>(fluxtionServer, FluxtionServerController.class, FluxtionServerController.SERVICE_NAME));
 
         //event sources
         if (appConfig.getEventSources() != null) {
@@ -200,7 +209,6 @@ public class FluxtionServer {
                     //build a subscriber group
                     ComposingEventProcessorAgent group = new ComposingEventProcessorAgent(groupName, flowManager, this, new DeadWheelScheduler(), registeredServices);
                     //threading to be configured by file
-//                    IdleStrategy idleStrategy = new SleepingMillisIdleStrategy(100);
                     AtomicCounter errorCounter = new AtomicCounter(new UnsafeBuffer(new byte[4096]), 0);
                     //run subscriber group
                     AgentRunner groupRunner = new AgentRunner(
@@ -211,7 +219,20 @@ public class FluxtionServer {
                     return new ComposingAgentRunner(group, groupRunner);
                 });
 
-        composingAgentRunner.getGroup().addEventFeedConsumer(feedConsumer);
+        composingAgentRunner.getGroup().addEventFeedConsumer(() -> {
+            StaticEventProcessor eventProcessor = feedConsumer.get();
+            if (started) {
+                log.info("init event processor in already started server processor:'" + eventProcessor + "'");
+                eventProcessor.setAuditLogProcessor(logRecordListener);
+                eventProcessor.setAuditLogLevel(EventLogControlEvent.LogLevel.INFO);
+            }
+            return eventProcessor;
+        });
+
+        if (started && composingAgentRunner.getGroupRunner().thread() == null) {
+            log.info("staring event processor group:'" + groupName + "' for running server");
+            AgentRunner.startOnThread(composingAgentRunner.getGroupRunner());
+        }
     }
 
     public void init() {
@@ -267,10 +288,17 @@ public class FluxtionServer {
             AgentRunner.startOnThread(v.getGroupRunner());
         });
 
+        started = true;
     }
 
     public Collection<Service<?>> servicesRegistered() {
         return Collections.unmodifiableCollection(registeredServices.values());
+    }
+
+
+    @ServiceRegistered
+    public void adminClient(AdminCommandRegistry adminCommandRegistry, String name) {
+        log.info("adminCommandRegistry registered:" + name);
     }
 
     @Value

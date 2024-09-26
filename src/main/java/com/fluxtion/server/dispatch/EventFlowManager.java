@@ -155,6 +155,14 @@ public class EventFlowManager {
     }
 
     public void appendQueueInformation(Appendable appendable) {
+        if (eventSourceToQueueMap.isEmpty()) {
+            try {
+                appendable.append("No event readers registered");
+            } catch (IOException ex) {
+                System.err.println("problem logging event queues, exception:" + ex);
+            }
+            return;
+        }
         eventSourceToQueueMap
                 .forEach((key, value) -> {
                     try {
