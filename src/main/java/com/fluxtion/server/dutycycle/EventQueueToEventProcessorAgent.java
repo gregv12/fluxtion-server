@@ -9,6 +9,7 @@ package com.fluxtion.server.dutycycle;
 import com.fluxtion.agrona.concurrent.OneToOneConcurrentArrayQueue;
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.feature.Experimental;
+import com.fluxtion.runtime.event.ReplayRecord;
 import com.fluxtion.server.dispatch.EventToInvokeStrategy;
 import lombok.extern.java.Log;
 
@@ -45,7 +46,11 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
     public int doWork() {
         Object event = inputQueue.poll();
         if (event != null) {
-            eventToInvokeStrategy.processEvent(event);
+            if (event instanceof ReplayRecord replayRecord) {
+                eventToInvokeStrategy.processEvent(replayRecord.getEvent(), replayRecord.getWallClockTime());
+            } else {
+                eventToInvokeStrategy.processEvent(event);
+            }
             return 1;
         }
         return 0;
