@@ -10,7 +10,10 @@ import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.feature.Experimental;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Abstract class to simplify create an EventToInvokeStrategy, by implementing two methods:
@@ -24,6 +27,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public abstract class AbstractEventToInvocationStrategy implements EventToInvokeStrategy {
 
     protected final List<StaticEventProcessor> eventProcessorSinks = new CopyOnWriteArrayList<>();
+    protected static final Map<StaticEventProcessor, AtomicLong> syntheticClocks = new ConcurrentHashMap<>();
 
     @Override
     public void processEvent(Object event) {
@@ -33,6 +37,20 @@ public abstract class AbstractEventToInvocationStrategy implements EventToInvoke
             dispatchEvent(event, eventProcessor);
             EventFlowManager.removeCurrentProcessor();
         }
+    }
+
+    @Override
+    public void processEvent(Object event, long time) {
+        for (int i = 0, targetQueuesSize = eventProcessorSinks.size(); i < targetQueuesSize; i++) {
+            StaticEventProcessor eventProcessor = eventProcessorSinks.get(i);
+            syntheticClocks.computeIfAbsent(eventProcessor, k -> {
+                AtomicLong atomicLong = new AtomicLong();
+                eventProcessor.setClockStrategy(atomicLong::get);
+                return atomicLong;
+            }).set(time);
+        }
+
+        processEvent(event);
     }
 
     /**

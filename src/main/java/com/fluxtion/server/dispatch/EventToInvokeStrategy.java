@@ -17,6 +17,8 @@ public interface EventToInvokeStrategy {
 
     void processEvent(Object event);
 
+    void processEvent(Object event, long time);
+
     void registerProcessor(StaticEventProcessor eventProcessor);
 
     void deregisterProcessor(StaticEventProcessor eventProcessor);
