@@ -8,6 +8,7 @@ package com.fluxtion.server.dispatch;
 
 import com.fluxtion.agrona.concurrent.OneToOneConcurrentArrayQueue;
 import com.fluxtion.runtime.annotations.feature.Experimental;
+import com.fluxtion.runtime.event.ReplayRecord;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -56,6 +57,21 @@ public class EventToQueuePublisher<T> {
             NamedQueue<T> namedQueue = targetQueues.get(i);
             OneToOneConcurrentArrayQueue<T> targetQueue = namedQueue.getTargetQueue();
             targetQueue.offer(itemToPublish);
+            if (log.isLoggable(Level.FINE)) {
+                log.fine("queue:" + namedQueue.getName() + " size:" + targetQueue.size());
+            }
+        }
+    }
+
+    public void publishReplay(ReplayRecord record) {
+        if (log.isLoggable(Level.FINE)) {
+            log.fine("listenerCount:" + targetQueues.size() + " publish:" + record);
+        }
+
+        for (int i = 0, targetQueuesSize = targetQueues.size(); i < targetQueuesSize; i++) {
+            NamedQueue<T> namedQueue = targetQueues.get(i);
+            OneToOneConcurrentArrayQueue<Object> targetQueue = (OneToOneConcurrentArrayQueue<Object>) namedQueue.getTargetQueue();
+            targetQueue.offer(record);
             if (log.isLoggable(Level.FINE)) {
                 log.fine("queue:" + namedQueue.getName() + " size:" + targetQueue.size());
             }
