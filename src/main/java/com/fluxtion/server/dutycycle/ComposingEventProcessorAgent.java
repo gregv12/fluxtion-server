@@ -61,42 +61,26 @@ public class ComposingEventProcessorAgent extends DynamicCompositeAgent implemen
 
     @Override
     public void onStart() {
-        log.info("onStart");
+        log.info("onStart " + roleName());
+        checkForAdded();
         super.onStart();
     }
 
     @Override
     public int doWork() throws Exception {
-        toStartList.drain(init -> {
-            StaticEventProcessor eventProcessor = init.get();
-            com.fluxtion.server.dispatch.EventFlowManager.setCurrentProcessor(eventProcessor);
-            eventProcessor.registerService(schedulerService);
-            registeredServices.values().forEach(eventProcessor::registerService);
-            eventProcessor.addEventFeed(this);
-            if (eventProcessor instanceof Lifecycle) {
-                ((Lifecycle) eventProcessor).start();
-            }
-            EventFlowManager.removeCurrentProcessor();
-        });
-
-        if (!queueReadersToAdd.isEmpty()) {
-            if (tryAdd(queueReadersToAdd.get(0))) {
-                queueReadersToAdd.remove(0);
-            }
-        }
-
+        checkForAdded();
         return super.doWork();
     }
 
     @Override
     public void onClose() {
-        log.info("onClose");
+        log.info("onClose " + roleName());
         super.onClose();
     }
 
     @Override
     public void registerSubscriber(StaticEventProcessor subscriber) {
-        log.info("registerSubscriber:" + subscriber);
+        log.info("registerSubscriber:" + subscriber + " " + roleName());
     }
 
     @Override
@@ -133,5 +117,26 @@ public class ComposingEventProcessorAgent extends DynamicCompositeAgent implemen
     @Override
     public void removeAllSubscriptions(StaticEventProcessor subscriber) {
 
+    }
+
+    private void checkForAdded() {
+        toStartList.drain(init -> {
+            StaticEventProcessor eventProcessor = init.get();
+            com.fluxtion.server.dispatch.EventFlowManager.setCurrentProcessor(eventProcessor);
+            eventProcessor.registerService(schedulerService);
+            registeredServices.values().forEach(eventProcessor::registerService);
+            eventProcessor.addEventFeed(this);
+            if (eventProcessor instanceof Lifecycle) {
+                ((Lifecycle) eventProcessor).start();
+                ((Lifecycle) eventProcessor).startComplete();
+            }
+            EventFlowManager.removeCurrentProcessor();
+        });
+
+        if (!queueReadersToAdd.isEmpty()) {
+            if (status() == Status.ACTIVE && tryAdd(queueReadersToAdd.get(0))) {
+                queueReadersToAdd.remove(0);
+            }
+        }
     }
 }
