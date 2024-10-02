@@ -17,6 +17,8 @@ import com.fluxtion.server.service.scheduler.DeadWheelScheduler;
 import com.fluxtion.server.service.scheduler.SchedulerService;
 import lombok.extern.java.Log;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 
 /**
  *
@@ -31,7 +33,9 @@ public class ComposingServiceAgent extends DynamicCompositeAgent {
     private final Service<SchedulerService> schedulerService;
     private final OneToOneConcurrentArrayQueue<ServiceAgent<?>> toStartList = new OneToOneConcurrentArrayQueue<>(128);
     private final OneToOneConcurrentArrayQueue<ServiceAgent<?>> toAddList = new OneToOneConcurrentArrayQueue<>(128);
+    private final OneToOneConcurrentArrayQueue<ServiceAgent<?>> toCallStartupCompleteList = new OneToOneConcurrentArrayQueue<>(128);
     private final ServiceRegistryNode serviceRegistry = new ServiceRegistryNode();
+    private final AtomicBoolean startUpComplete = new AtomicBoolean(false);
 
     public ComposingServiceAgent(String roleName,
                                  EventFlowManager eventFlowManager,
@@ -46,12 +50,35 @@ public class ComposingServiceAgent extends DynamicCompositeAgent {
 
     public <T> void registerServer(ServiceAgent<T> server) {
         toStartList.add(server);
-        log.info("registerServer toStartList size:" + toStartList.size());
+        toCallStartupCompleteList.add(server);
+        log.info("registerServer toCallStartupCompleteList size:" + toCallStartupCompleteList.size());
     }
 
     @Override
     public void onStart() {
         log.info("onStart toStartList size:" + toStartList.size());
+        checkForAdded();
+        super.onStart();
+    }
+
+    @Override
+    public int doWork() throws Exception {
+        checkForAdded();
+        return super.doWork();
+    }
+
+    public void startComplete() {
+        log.info("startComplete toCallStartupCompleteList size:" + toCallStartupCompleteList.size());
+        startUpComplete.set(true);
+    }
+
+    @Override
+    public void onClose() {
+        log.info("onClose");
+        super.onClose();
+    }
+
+    private void checkForAdded() {
         toStartList.drain(serviceAgent -> {
             toAddList.add(serviceAgent);
             Service<?> exportedService = serviceAgent.getExportedService();
@@ -63,21 +90,18 @@ public class ComposingServiceAgent extends DynamicCompositeAgent {
             fluxtionServer.registerAgentService(exportedService);
             exportedService.start();
         });
-        super.onStart();
-    }
 
-    @Override
-    public int doWork() throws Exception {
-        toAddList.drain(serviceAgent -> {
-            log.info("doWork adding:" + serviceAgent);
-            tryAdd(serviceAgent.getDelegate());
-        });
-        return super.doWork();
-    }
+        ServiceAgent<?> serviceAgent = toAddList.poll();
+        if (serviceAgent != null & status() == Status.ACTIVE) {
+            if (!tryAdd(serviceAgent.getDelegate())) {
+                toAddList.add(serviceAgent);
+            }
+        }
 
-    @Override
-    public void onClose() {
-        log.info("onClose");
-        super.onClose();
+        if (startUpComplete.get()) {
+            toCallStartupCompleteList.drain(s -> {
+                s.getExportedService().startComplete();
+            });
+        }
     }
 }

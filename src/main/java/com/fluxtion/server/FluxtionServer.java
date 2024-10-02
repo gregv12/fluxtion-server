@@ -279,7 +279,7 @@ public class FluxtionServer implements FluxtionServerController {
             log.info("waiting for service agents to start");
             waiting = composingServiceAgents.values().stream()
                     .anyMatch(f -> f.group.status() != DynamicCompositeAgent.Status.ACTIVE);
-            Thread.sleep(100);
+            Thread.sleep(10);
         }
 
         log.info("start event processor agent workers");
@@ -288,7 +288,22 @@ public class FluxtionServer implements FluxtionServerController {
             AgentRunner.startOnThread(v.getGroupRunner());
         });
 
+        waiting = true;
+        while (waiting) {
+            log.info("waiting for  event processor agents to start");
+            waiting = composingEventProcessorAgents.values().stream()
+                    .anyMatch(f -> f.group.status() != DynamicCompositeAgent.Status.ACTIVE);
+            Thread.sleep(10);
+        }
+
+        log.info("calling startup complete on services");
+        composingServiceAgents.values()
+                .stream()
+                .map(ComposingWorkerServiceAgentRunner::getGroup)
+                .forEach(ComposingServiceAgent::startComplete);
+
         started = true;
+        log.info("start complete");
     }
 
     public Collection<Service<?>> servicesRegistered() {
