@@ -91,11 +91,8 @@ public class ComposingServiceAgent extends DynamicCompositeAgent {
             exportedService.start();
         });
 
-        ServiceAgent<?> serviceAgent = toAddList.poll();
-        if (serviceAgent != null & status() == Status.ACTIVE) {
-            if (!tryAdd(serviceAgent.getDelegate())) {
-                toAddList.add(serviceAgent);
-            }
+        if (!toAddList.isEmpty() && status() == Status.ACTIVE && tryAdd(toAddList.peek().getDelegate())) {
+            toAddList.poll();
         }
 
         if (startUpComplete.get()) {
