@@ -235,6 +235,27 @@ public class FluxtionServer implements FluxtionServerController {
         }
     }
 
+    @Override
+    public void startService(String serviceName) {
+        log.info("start service:" + serviceName);
+        if (registeredServices.containsKey(serviceName)) {
+            registeredServices.get(serviceName).start();
+        }
+    }
+
+    @Override
+    public void stopService(String serviceName) {
+        log.info("stop service:" + serviceName);
+        if (registeredServices.containsKey(serviceName)) {
+            registeredServices.get(serviceName).stop();
+        }
+    }
+
+    @Override
+    public Map<String, Service<?>> registeredServices() {
+        return registeredServices;
+    }
+
     public void init() {
         log.info("init");
         registeredServices.values().forEach(svc -> {
