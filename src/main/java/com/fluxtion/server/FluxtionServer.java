@@ -1,7 +1,6 @@
 /*
  * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
- *
  */
 
 package com.fluxtion.server;
@@ -21,10 +20,7 @@ import com.fluxtion.runtime.service.Service;
 import com.fluxtion.runtime.service.ServiceRegistryNode;
 import com.fluxtion.server.config.*;
 import com.fluxtion.server.dispatch.EventFlowService;
-import com.fluxtion.server.dutycycle.ComposingEventProcessorAgent;
-import com.fluxtion.server.dutycycle.ComposingServiceAgent;
-import com.fluxtion.server.dutycycle.GlobalErrorHandler;
-import com.fluxtion.server.dutycycle.ServiceAgent;
+import com.fluxtion.server.dutycycle.*;
 import com.fluxtion.server.service.admin.AdminCommandRegistry;
 import com.fluxtion.server.service.scheduler.DeadWheelScheduler;
 import com.fluxtion.server.service.servercontrol.FluxtionServerController;
@@ -47,7 +43,7 @@ public class FluxtionServer implements FluxtionServerController {
     public static final String CONFIG_FILE_PROPERTY = "fluxtionserver.config.file";
     private static LogRecordListener logRecordListener;
     private final com.fluxtion.server.dispatch.EventFlowManager flowManager = new com.fluxtion.server.dispatch.EventFlowManager();
-    private final ConcurrentHashMap<String, ComposingAgentRunner> composingEventProcessorAgents = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, ComposingEventProcessorAgentRunner> composingEventProcessorAgents = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ComposingWorkerServiceAgentRunner> composingServiceAgents = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Service<?>> registeredServices = new ConcurrentHashMap<>();
     private final Set<Service<?>> registeredAgentServices = ConcurrentHashMap.newKeySet();
@@ -113,9 +109,12 @@ public class FluxtionServer implements FluxtionServerController {
                 String groupName = cfg.getAgentName();
                 IdleStrategy ideIdleStrategy = cfg.getIdleStrategy();
                 cfg.getEventHandlers().entrySet().forEach(handlerEntry -> {
-                    fluxtionServer.addEventProcessor(groupName, ideIdleStrategy,
+                    String name = handlerEntry.getKey();
+                    fluxtionServer.addEventProcessor(
+                            name,
+                            groupName,
+                            ideIdleStrategy,
                             () -> {
-                                String name = handlerEntry.getKey();
                                 log.info("adding eventProcessor:" + name + " to group:" + groupName);
                                 EventProcessorConfig<?> eventProcessorConfig = handlerEntry.getValue();
                                 var eventProcessor = eventProcessorConfig.getEventHandler() == null
@@ -200,10 +199,11 @@ public class FluxtionServer implements FluxtionServerController {
     }
 
     public void addEventProcessor(
+            String processorName,
             String groupName,
             IdleStrategy idleStrategy,
             Supplier<StaticEventProcessor> feedConsumer) {
-        ComposingAgentRunner composingAgentRunner = composingEventProcessorAgents.computeIfAbsent(
+        ComposingEventProcessorAgentRunner composingEventProcessorAgentRunner = composingEventProcessorAgents.computeIfAbsent(
                 groupName,
                 ket -> {
                     //build a subscriber group
@@ -216,23 +216,32 @@ public class FluxtionServer implements FluxtionServerController {
                             errorHandler,
                             errorCounter,
                             group);
-                    return new ComposingAgentRunner(group, groupRunner);
+                    return new ComposingEventProcessorAgentRunner(group, groupRunner);
                 });
 
-        composingAgentRunner.getGroup().addEventFeedConsumer(() -> {
+        composingEventProcessorAgentRunner.getGroup().addEventFeedConsumer(() -> {
             StaticEventProcessor eventProcessor = feedConsumer.get();
             if (started) {
                 log.info("init event processor in already started server processor:'" + eventProcessor + "'");
                 eventProcessor.setAuditLogProcessor(logRecordListener);
                 eventProcessor.setAuditLogLevel(EventLogControlEvent.LogLevel.INFO);
             }
-            return eventProcessor;
+            return new NamedEventProcessor(processorName, eventProcessor);
         });
 
-        if (started && composingAgentRunner.getGroupRunner().thread() == null) {
+        if (started && composingEventProcessorAgentRunner.getGroupRunner().thread() == null) {
             log.info("staring event processor group:'" + groupName + "' for running server");
-            AgentRunner.startOnThread(composingAgentRunner.getGroupRunner());
+            AgentRunner.startOnThread(composingEventProcessorAgentRunner.getGroupRunner());
         }
+    }
+
+    @Override
+    public Map<String, Collection<NamedEventProcessor>> registeredProcessors() {
+        HashMap<String, Collection<NamedEventProcessor>> result = new HashMap<>();
+        composingEventProcessorAgents.entrySet().forEach(entry -> {
+            result.put(entry.getKey(), entry.getValue().getGroup().registeredEventProcessors());
+        });
+        return result;
     }
 
     @Override
@@ -246,6 +255,7 @@ public class FluxtionServer implements FluxtionServerController {
     @Override
     public void stopService(String serviceName) {
         log.info("stop service:" + serviceName);
+        //check if registered and started
         if (registeredServices.containsKey(serviceName)) {
             registeredServices.get(serviceName).stop();
         }
@@ -340,7 +350,7 @@ public class FluxtionServer implements FluxtionServerController {
     }
 
     @Value
-    private static class ComposingAgentRunner {
+    private static class ComposingEventProcessorAgentRunner {
         ComposingEventProcessorAgent group;
         AgentRunner groupRunner;
     }

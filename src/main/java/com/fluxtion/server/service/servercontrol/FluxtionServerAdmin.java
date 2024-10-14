@@ -42,9 +42,11 @@ public class FluxtionServerAdmin implements Lifecycle {
     @Override
     public void start() {
         log.info("Fluxtion Server admin started");
-        registry.registerCommand("service.list", this::listServices);
-        registry.registerCommand("service.start", this::startServices);
-        registry.registerCommand("service.stop", this::stopServices);
+        registry.registerCommand("server.service.list", this::listServices);
+        registry.registerCommand("server.service.start", this::startServices);
+        registry.registerCommand("server.service.stop", this::stopServices);
+
+        registry.registerCommand("server.processors.list", this::listProcessors);
     }
 
     @Override
@@ -69,5 +71,19 @@ public class FluxtionServerAdmin implements Lifecycle {
     private void startServices(List<String> args, Consumer<String> out, Consumer<String> err) {
         out.accept("starting service:" + args.get(1));
         serverController.startService(args.get(1));
+    }
+
+    private void listProcessors(List<String> args, Consumer<String> out, Consumer<String> err) {
+        out.accept(
+                serverController.registeredProcessors()
+                        .entrySet()
+                        .stream()
+                        .map(e -> {
+                            return "group:" + e.getKey() +
+                                   "\nprocessors:" + e.getValue().stream()
+                                           .map(namedEventProcessor -> "name:" + namedEventProcessor.name() + " -> " + namedEventProcessor.eventProcessor())
+                                           .collect(Collectors.joining("\n\t", "\n\t", "\n"));
+                        })
+                        .collect(Collectors.joining("\n", "\n", "\n")));
     }
 }
