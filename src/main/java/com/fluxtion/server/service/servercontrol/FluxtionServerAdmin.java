@@ -1,7 +1,6 @@
 /*
  * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
- *
  */
 
 package com.fluxtion.server.service.servercontrol;
@@ -43,10 +42,11 @@ public class FluxtionServerAdmin implements Lifecycle {
     public void start() {
         log.info("Fluxtion Server admin started");
         registry.registerCommand("server.service.list", this::listServices);
-        registry.registerCommand("server.service.start", this::startServices);
-        registry.registerCommand("server.service.stop", this::stopServices);
+//        registry.registerCommand("server.service.start", this::startServices);
+//        registry.registerCommand("server.service.stop", this::stopServices);
 
         registry.registerCommand("server.processors.list", this::listProcessors);
+        registry.registerCommand("server.processors.stop", this::stopProcessors);
     }
 
     @Override
@@ -79,11 +79,19 @@ public class FluxtionServerAdmin implements Lifecycle {
                         .entrySet()
                         .stream()
                         .map(e -> {
-                            return "group:" + e.getKey() +
+                            String groupName = e.getKey();
+                            return "group:" + groupName +
                                    "\nprocessors:" + e.getValue().stream()
-                                           .map(namedEventProcessor -> "name:" + namedEventProcessor.name() + " -> " + namedEventProcessor.eventProcessor())
+                                           .map(namedEventProcessor -> groupName + "/" + namedEventProcessor.name() + " -> " + namedEventProcessor.eventProcessor())
                                            .collect(Collectors.joining("\n\t", "\n\t", "\n"));
                         })
                         .collect(Collectors.joining("\n", "\n", "\n")));
+    }
+
+    private void stopProcessors(List<String> args, Consumer<String> out, Consumer<String> err) {
+        String arg = args.get(1);
+        out.accept("stopping processor:" + arg);
+        String[] splitArgs = arg.split("/");
+        serverController.stopProcessor(splitArgs[0], splitArgs[1]);
     }
 }

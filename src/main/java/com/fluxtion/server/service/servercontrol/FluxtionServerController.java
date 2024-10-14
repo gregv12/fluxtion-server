@@ -23,7 +23,7 @@ public interface FluxtionServerController {
             String processorName,
             String groupName,
             IdleStrategy idleStrategy,
-            Supplier<StaticEventProcessor> feedConsumer);
+            Supplier<StaticEventProcessor> feedConsumer) throws IllegalArgumentException;
 
     void stopService(String serviceName);
 
@@ -32,4 +32,6 @@ public interface FluxtionServerController {
     void startService(String serviceName);
 
     Map<String, Collection<NamedEventProcessor>> registeredProcessors();
+
+    void stopProcessor(String groupName, String processorName);
 }

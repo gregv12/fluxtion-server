@@ -1,6 +1,7 @@
 /*
  * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
+ *
  */
 
 package com.fluxtion.server;
@@ -110,27 +111,31 @@ public class FluxtionServer implements FluxtionServerController {
                 IdleStrategy ideIdleStrategy = cfg.getIdleStrategy();
                 cfg.getEventHandlers().entrySet().forEach(handlerEntry -> {
                     String name = handlerEntry.getKey();
-                    fluxtionServer.addEventProcessor(
-                            name,
-                            groupName,
-                            ideIdleStrategy,
-                            () -> {
-                                log.info("adding eventProcessor:" + name + " to group:" + groupName);
-                                EventProcessorConfig<?> eventProcessorConfig = handlerEntry.getValue();
-                                var eventProcessor = eventProcessorConfig.getEventHandler() == null
-                                        ? eventProcessorConfig.getEventHandlerBuilder().get()
-                                        : eventProcessorConfig.getEventHandler();
-                                var logLevel = eventProcessorConfig.getLogLevel() == null ? defaultLogLevel : eventProcessorConfig.getLogLevel();
-                                @SuppressWarnings("unckecked")
-                                ConfigMap configMap = eventProcessorConfig.getConfig();
+                    try {
+                        fluxtionServer.addEventProcessor(
+                                name,
+                                groupName,
+                                ideIdleStrategy,
+                                () -> {
+                                    log.info("adding eventProcessor:" + name + " to group:" + groupName);
+                                    EventProcessorConfig<?> eventProcessorConfig = handlerEntry.getValue();
+                                    var eventProcessor = eventProcessorConfig.getEventHandler() == null
+                                            ? eventProcessorConfig.getEventHandlerBuilder().get()
+                                            : eventProcessorConfig.getEventHandler();
+                                    var logLevel = eventProcessorConfig.getLogLevel() == null ? defaultLogLevel : eventProcessorConfig.getLogLevel();
+                                    @SuppressWarnings("unckecked")
+                                    ConfigMap configMap = eventProcessorConfig.getConfig();
 
-                                eventProcessor.setAuditLogProcessor(logRecordListener);
-                                eventProcessor.setAuditLogLevel(logLevel);
-                                eventProcessor.init();
+                                    eventProcessor.setAuditLogProcessor(logRecordListener);
+                                    eventProcessor.setAuditLogLevel(logLevel);
+                                    eventProcessor.init();
 
-                                eventProcessor.consumeServiceIfExported(ConfigListener.class, l -> l.initialConfig(configMap));
-                                return eventProcessor;
-                            });
+                                    eventProcessor.consumeServiceIfExported(ConfigListener.class, l -> l.initialConfig(configMap));
+                                    return eventProcessor;
+                                });
+                    } catch (Exception e) {
+                        log.warning("could not add eventProcessor:" + name + " to group:" + groupName + " error:" + e.getMessage());
+                    }
                 });
             });
         }
@@ -202,7 +207,7 @@ public class FluxtionServer implements FluxtionServerController {
             String processorName,
             String groupName,
             IdleStrategy idleStrategy,
-            Supplier<StaticEventProcessor> feedConsumer) {
+            Supplier<StaticEventProcessor> feedConsumer) throws IllegalArgumentException {
         ComposingEventProcessorAgentRunner composingEventProcessorAgentRunner = composingEventProcessorAgents.computeIfAbsent(
                 groupName,
                 ket -> {
@@ -219,7 +224,11 @@ public class FluxtionServer implements FluxtionServerController {
                     return new ComposingEventProcessorAgentRunner(group, groupRunner);
                 });
 
-        composingEventProcessorAgentRunner.getGroup().addEventFeedConsumer(() -> {
+        if (composingEventProcessorAgentRunner.getGroup().isProcessorRegistered(processorName)) {
+            throw new IllegalArgumentException("cannot add event processor name is already assigned:" + processorName);
+        }
+
+        composingEventProcessorAgentRunner.getGroup().addNamedEventProcessor(() -> {
             StaticEventProcessor eventProcessor = feedConsumer.get();
             if (started) {
                 log.info("init event processor in already started server processor:'" + eventProcessor + "'");
@@ -242,6 +251,15 @@ public class FluxtionServer implements FluxtionServerController {
             result.put(entry.getKey(), entry.getValue().getGroup().registeredEventProcessors());
         });
         return result;
+    }
+
+    @Override
+    public void stopProcessor(String groupName, String processorName) {
+        log.info("stopProcessor:" + processorName + " in group:" + groupName);
+        var processorAgent = composingEventProcessorAgents.get(groupName);
+        if (processorAgent != null) {
+            processorAgent.getGroup().removeEventProcessorByName(processorName);
+        }
     }
 
     @Override
