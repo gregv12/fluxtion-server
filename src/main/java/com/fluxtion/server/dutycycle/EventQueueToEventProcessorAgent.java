@@ -26,6 +26,8 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
     private final Logger logger;
 
 
+    //TODO add an unsubscribe action that is called when there are no more listeners registered
+    // should remove from the EventFLowManager
     public EventQueueToEventProcessorAgent(
             OneToOneConcurrentArrayQueue<?> inputQueue,
             EventToInvokeStrategy eventToInvokeStrategy,
@@ -77,6 +79,7 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
     public int deregisterProcessor(StaticEventProcessor eventProcessor) {
         logger.info("deregisterProcessor: " + eventProcessor);
         eventToInvokeStrategy.deregisterProcessor(eventProcessor);
+        //TODO when the listener count is < 1 then run the unsubscribe action
         return listenerCount();
     }
 
