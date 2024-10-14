@@ -8,7 +8,11 @@ package com.fluxtion.server.service.servercontrol;
 
 import com.fluxtion.agrona.concurrent.IdleStrategy;
 import com.fluxtion.runtime.StaticEventProcessor;
+import com.fluxtion.runtime.service.Service;
+import com.fluxtion.server.dutycycle.NamedEventProcessor;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.function.Supplier;
 
 public interface FluxtionServerController {
@@ -16,7 +20,18 @@ public interface FluxtionServerController {
     String SERVICE_NAME = "com.fluxtion.server.service.servercontrol.FluxtionServerController";
 
     void addEventProcessor(
+            String processorName,
             String groupName,
             IdleStrategy idleStrategy,
-            Supplier<StaticEventProcessor> feedConsumer);
+            Supplier<StaticEventProcessor> feedConsumer) throws IllegalArgumentException;
+
+    void stopService(String serviceName);
+
+    Map<String, Service<?>> registeredServices();
+
+    void startService(String serviceName);
+
+    Map<String, Collection<NamedEventProcessor>> registeredProcessors();
+
+    void stopProcessor(String groupName, String processorName);
 }
