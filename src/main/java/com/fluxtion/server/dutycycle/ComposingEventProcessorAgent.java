@@ -1,7 +1,6 @@
 /*
  * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
- *
  */
 
 package com.fluxtion.server.dutycycle;
@@ -21,6 +20,7 @@ import com.fluxtion.server.service.scheduler.SchedulerService;
 import lombok.extern.java.Log;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,8 +35,10 @@ public class ComposingEventProcessorAgent extends DynamicCompositeAgent implemen
 
     private final com.fluxtion.server.dispatch.EventFlowManager eventFlowManager;
     private final ConcurrentHashMap<String, Service<?>> registeredServices;
+    private final ConcurrentHashMap<String, NamedEventProcessor> registeredEventProcessors = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<com.fluxtion.server.dispatch.EventSubscriptionKey<?>, EventQueueToEventProcessor> queueProcessorMap = new ConcurrentHashMap<>();
-    private final OneToOneConcurrentArrayQueue<Supplier<StaticEventProcessor>> toStartList = new OneToOneConcurrentArrayQueue<>(128);
+    private final OneToOneConcurrentArrayQueue<Supplier<NamedEventProcessor>> toStartList = new OneToOneConcurrentArrayQueue<>(128);
+    private final OneToOneConcurrentArrayQueue<String> toStopList = new OneToOneConcurrentArrayQueue<>(128);
     private final List<EventQueueToEventProcessor> queueReadersToAdd = new ArrayList<>();
     private final FluxtionServer fluxtionServer;
     private final DeadWheelScheduler scheduler;
@@ -55,8 +57,12 @@ public class ComposingEventProcessorAgent extends DynamicCompositeAgent implemen
         this.schedulerService = new Service<>(scheduler, SchedulerService.class);
     }
 
-    public void addEventFeedConsumer(Supplier<StaticEventProcessor> initFunction) {
+    public void addNamedEventProcessor(Supplier<NamedEventProcessor> initFunction) {
         toStartList.add(initFunction);
+    }
+
+    public void removeEventProcessorByName(String name) {
+        toStopList.add(name);
     }
 
     @Override
@@ -68,6 +74,7 @@ public class ComposingEventProcessorAgent extends DynamicCompositeAgent implemen
 
     @Override
     public int doWork() throws Exception {
+        checkForStopped();
         checkForAdded();
         return super.doWork();
     }
@@ -116,12 +123,19 @@ public class ComposingEventProcessorAgent extends DynamicCompositeAgent implemen
 
     @Override
     public void removeAllSubscriptions(StaticEventProcessor subscriber) {
+        log.info("removing all subscriptions for:" + subscriber + " " + roleName());
+        queueProcessorMap.values().forEach(q -> q.deregisterProcessor(subscriber));
+    }
 
+    public Collection<NamedEventProcessor> registeredEventProcessors() {
+        return registeredEventProcessors.values();
     }
 
     private void checkForAdded() {
         toStartList.drain(init -> {
-            StaticEventProcessor eventProcessor = init.get();
+            NamedEventProcessor namedEventProcessor = init.get();
+            StaticEventProcessor eventProcessor = namedEventProcessor.eventProcessor();
+            registeredEventProcessors.put(namedEventProcessor.name(), namedEventProcessor);
             com.fluxtion.server.dispatch.EventFlowManager.setCurrentProcessor(eventProcessor);
             eventProcessor.registerService(schedulerService);
             registeredServices.values().forEach(eventProcessor::registerService);
@@ -138,5 +152,21 @@ public class ComposingEventProcessorAgent extends DynamicCompositeAgent implemen
                 queueReadersToAdd.remove(0);
             }
         }
+    }
+
+    private void checkForStopped() {
+        toStopList.drain(name -> {
+            if (registeredEventProcessors.containsKey(name)) {
+                var eventProcessor = registeredEventProcessors.remove(name).eventProcessor();
+                if (eventProcessor instanceof Lifecycle) {
+                    ((Lifecycle) eventProcessor).stop();
+                    ((Lifecycle) eventProcessor).tearDown();
+                }
+            }
+        });
+    }
+
+    public boolean isProcessorRegistered(String processorName) {
+        return registeredEventProcessors.containsKey(processorName);
     }
 }
