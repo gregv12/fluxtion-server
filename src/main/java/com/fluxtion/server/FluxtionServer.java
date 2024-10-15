@@ -1,7 +1,6 @@
 /*
  * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
- *
  */
 
 package com.fluxtion.server;
@@ -317,14 +316,14 @@ public class FluxtionServer implements FluxtionServerController {
         log.info("start flowManager");
         flowManager.start();
 
-        log.info("start service agent workers");
+        log.info("start agent hosted services");
         composingServiceAgents.forEach((k, v) -> {
             log.info("starting composing service agent " + k);
             AgentRunner.startOnThread(v.getGroupRunner());
         });
 
         boolean waiting = true;
-        log.info("waiting for service agents to start");
+        log.info("waiting for agent hosted services to start");
         while (waiting) {
             waiting = composingServiceAgents.values().stream()
                     .anyMatch(f -> f.group.status() != DynamicCompositeAgent.Status.ACTIVE);
@@ -348,6 +347,13 @@ public class FluxtionServer implements FluxtionServerController {
         }
 
         log.info("calling startup complete on services");
+        for (Service<?> service : registeredServices.values()) {
+            if (!registeredAgentServices.contains(service)) {
+                service.startComplete();
+            }
+        }
+
+        log.info("calling startup complete on agent hosted services");
         composingServiceAgents.values()
                 .stream()
                 .map(ComposingWorkerServiceAgentRunner::getGroup)
