@@ -229,10 +229,10 @@ public class FluxtionServer implements FluxtionServerController {
 
         composingEventProcessorAgentRunner.getGroup().addNamedEventProcessor(() -> {
             StaticEventProcessor eventProcessor = feedConsumer.get();
+            eventProcessor.setAuditLogProcessor(logRecordListener);
             if (started) {
                 log.info("init event processor in already started server processor:'" + eventProcessor + "'");
-                eventProcessor.setAuditLogProcessor(logRecordListener);
-                eventProcessor.setAuditLogLevel(EventLogControlEvent.LogLevel.INFO);
+//                eventProcessor.setAuditLogLevel(EventLogControlEvent.LogLevel.INFO);
             }
             return new NamedEventProcessor(processorName, eventProcessor);
         });
