@@ -1,6 +1,7 @@
 /*
  * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
+ *
  */
 
 package com.fluxtion.server;
@@ -143,6 +144,7 @@ public class FluxtionServer implements FluxtionServerController {
         fluxtionServer.init();
         fluxtionServer.start();
 
+        //success
         return fluxtionServer;
     }
 
@@ -229,10 +231,10 @@ public class FluxtionServer implements FluxtionServerController {
 
         composingEventProcessorAgentRunner.getGroup().addNamedEventProcessor(() -> {
             StaticEventProcessor eventProcessor = feedConsumer.get();
+            eventProcessor.setAuditLogProcessor(logRecordListener);
             if (started) {
                 log.info("init event processor in already started server processor:'" + eventProcessor + "'");
-                eventProcessor.setAuditLogProcessor(logRecordListener);
-                eventProcessor.setAuditLogLevel(EventLogControlEvent.LogLevel.INFO);
+//                eventProcessor.setAuditLogLevel(EventLogControlEvent.LogLevel.INFO);
             }
             return new NamedEventProcessor(processorName, eventProcessor);
         });
