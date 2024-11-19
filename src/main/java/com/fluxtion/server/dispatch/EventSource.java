@@ -1,7 +1,6 @@
 /*
  * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
- *
  */
 
 package com.fluxtion.server.dispatch;
@@ -18,9 +17,14 @@ import com.fluxtion.runtime.annotations.feature.Experimental;
 @Experimental
 public interface EventSource<T> {
 
+    enum EventWrapStrategy {NONE, NAMED_EVENT, BROADCAST_EVENT}
+
     void subscribe(EventSubscriptionKey<T> eventSourceKey);
 
     void unSubscribe(EventSubscriptionKey<T> eventSourceKey);
 
     void setEventToQueuePublisher(EventToQueuePublisher<T> targetQueue);
+
+    default void setEventWrapStrategy(EventWrapStrategy eventWrapStrategy) {
+    }
 }
