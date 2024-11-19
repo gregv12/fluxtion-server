@@ -6,16 +6,20 @@
 
 package com.fluxtion.server.config;
 
-import com.fluxtion.server.dispatch.LifeCycleEventSource;
 import lombok.Data;
 
 import java.util.List;
-import java.util.Map;
 
 @Data
 public class AppConfig {
+    //event handler
     private List<EventProcessorGroupConfig> eventHandlerAgents;
-    private Map<String, LifeCycleEventSource<?>> eventSources;
+
+    //event feeds
+    private List<EventFeedConfig<?>> eventFeeds;
+    private List<EventFeedWorkerConfig<?>> agentHostedEventFeeds;
+
+    //services
     private List<ServiceConfig<?>> services;
     private List<ServiceWorkerConfig<?>> agentHostedServices;
 }
