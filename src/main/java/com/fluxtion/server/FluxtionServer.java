@@ -1,7 +1,6 @@
 /*
  * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
- *
  */
 
 package com.fluxtion.server;
@@ -83,8 +82,17 @@ public class FluxtionServer implements FluxtionServerController {
         fluxtionServer.registerService(new Service<>(fluxtionServer, FluxtionServerController.class, FluxtionServerController.SERVICE_NAME));
 
         //event sources
-        if (appConfig.getEventSources() != null) {
-            appConfig.getEventSources().forEach(fluxtionServer::registerEventSource);
+        if (appConfig.getEventFeeds() != null) {
+            appConfig.getEventFeeds().forEach(server -> {
+                fluxtionServer.registerService(server.toServiceAgent());
+            });
+        }
+
+        //event sources on workers
+        if (appConfig.getAgentHostedEventFeeds() != null) {
+            appConfig.getAgentHostedEventFeeds().forEach(server -> {
+                fluxtionServer.registerWorkerService(server.toServiceAgent());
+            });
         }
 
         //service
@@ -95,7 +103,6 @@ public class FluxtionServer implements FluxtionServerController {
         }
 
         //service on workers
-
         if (appConfig.getAgentHostedServices() != null) {
             appConfig.getAgentHostedServices()
                     .forEach(server -> {

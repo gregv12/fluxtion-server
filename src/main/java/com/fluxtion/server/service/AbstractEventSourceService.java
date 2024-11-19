@@ -1,13 +1,15 @@
 /*
  * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
- *
  */
 
 package com.fluxtion.server.service;
 
+import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.runtime.ServiceRegistered;
+import com.fluxtion.runtime.input.NamedEventFeed;
 import com.fluxtion.runtime.input.SubscriptionManager;
+import com.fluxtion.runtime.node.EventSubscription;
 import com.fluxtion.server.dispatch.*;
 import com.fluxtion.server.service.scheduler.SchedulerService;
 import lombok.extern.java.Log;
@@ -15,7 +17,9 @@ import lombok.extern.java.Log;
 import java.util.function.Supplier;
 
 @Log
-public abstract class AbstractEventSourceService<T> implements
+public abstract class AbstractEventSourceService<T>
+        implements
+        NamedEventFeed,
         LifeCycleEventSource<T>,
         EventFlowService {
 
@@ -26,6 +30,7 @@ public abstract class AbstractEventSourceService<T> implements
     protected String serviceName;
     protected EventSubscriptionKey<T> subscriptionKey;
     protected SchedulerService scheduler;
+    private EventWrapStrategy eventWrapStrategy = EventWrapStrategy.NONE;
 
     protected AbstractEventSourceService(String name) {
         this(name, CallBackType.ON_EVENT_CALL_BACK);
@@ -48,6 +53,7 @@ public abstract class AbstractEventSourceService<T> implements
     public void setEventFlowManager(EventFlowManager eventFlowManager, String serviceName) {
         this.serviceName = serviceName;
         output = eventFlowManager.registerEventSource(serviceName, this);
+        output.setEventWrapStrategy(eventWrapStrategy);
         subscriptionKey = new EventSubscriptionKey<>(
                 new EventSourceKey<>(serviceName),
                 eventToInvokeType,
@@ -78,5 +84,32 @@ public abstract class AbstractEventSourceService<T> implements
     @Override
     public void tearDown() {
 
+    }
+
+    @Override
+    public void registerSubscriber(StaticEventProcessor subscriber) {
+        if (eventWrapStrategy == EventWrapStrategy.BROADCAST_EVENT) {
+            subscribe();
+        }
+    }
+
+    @Override
+    public void subscribe(StaticEventProcessor subscriber, EventSubscription<?> eventSubscription) {
+        subscribe();
+    }
+
+    @Override
+    public void unSubscribe(StaticEventProcessor subscriber, EventSubscription<?> eventSubscription) {
+        subscriber.getSubscriptionManager().unSubscribe(subscriptionKey);
+    }
+
+    @Override
+    public void removeAllSubscriptions(StaticEventProcessor subscriber) {
+        //do nothing
+    }
+
+    @Override
+    public void setEventWrapStrategy(EventWrapStrategy eventWrapStrategy) {
+        this.eventWrapStrategy = eventWrapStrategy;
     }
 }

@@ -1,7 +1,6 @@
 /*
  * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
- *
  */
 
 package com.fluxtion.server.dutycycle;
@@ -9,6 +8,7 @@ package com.fluxtion.server.dutycycle;
 import com.fluxtion.agrona.concurrent.OneToOneConcurrentArrayQueue;
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.feature.Experimental;
+import com.fluxtion.runtime.event.BroadcastEvent;
 import com.fluxtion.runtime.event.ReplayRecord;
 import com.fluxtion.server.dispatch.EventToInvokeStrategy;
 import lombok.extern.java.Log;
@@ -50,6 +50,8 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
         if (event != null) {
             if (event instanceof ReplayRecord replayRecord) {
                 eventToInvokeStrategy.processEvent(replayRecord.getEvent(), replayRecord.getWallClockTime());
+            } else if (event instanceof BroadcastEvent broadcastEvent) {
+                eventToInvokeStrategy.processEvent(broadcastEvent.getEvent());
             } else {
                 eventToInvokeStrategy.processEvent(event);
             }
