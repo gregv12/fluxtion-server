@@ -12,6 +12,8 @@ import com.fluxtion.runtime.input.SubscriptionManager;
 import com.fluxtion.runtime.node.EventSubscription;
 import com.fluxtion.server.dispatch.*;
 import com.fluxtion.server.service.scheduler.SchedulerService;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.java.Log;
 
 import java.util.function.Supplier;
@@ -23,7 +25,9 @@ public abstract class AbstractEventSourceService<T>
         LifeCycleEventSource<T>,
         EventFlowService {
 
-    protected final String name;
+    @Getter
+    @Setter
+    protected String name;
     private final CallBackType eventToInvokeType;
     private final Supplier<EventToInvokeStrategy> eventToInokeStrategySupplier;
     protected EventToQueuePublisher<T> output;
