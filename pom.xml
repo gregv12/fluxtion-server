@@ -9,7 +9,7 @@
 
     <groupId>com.fluxtion</groupId>
     <artifactId>server</artifactId>
-    <version>0.1.42-SNAPSHOT</version>
+    <version>0.1.43-SNAPSHOT</version>
     <name>fluxtion :: server</name>
 
     <description>
@@ -20,7 +20,7 @@
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <fluxtion.version>9.3.48</fluxtion.version>
+        <fluxtion.version>9.3.50</fluxtion.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -49,14 +49,14 @@
     <dependencies>
         <dependency>
             <groupId>com.fluxtion</groupId>
-            <artifactId>compiler</artifactId>
+            <artifactId>runtime</artifactId>
             <version>${fluxtion.version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.fluxtion</groupId>
-            <artifactId>runtime</artifactId>
+            <artifactId>compiler</artifactId>
             <version>${fluxtion.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
