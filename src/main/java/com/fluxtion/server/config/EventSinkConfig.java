@@ -13,18 +13,22 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 
+import java.util.function.Function;
+
 @Experimental
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class EventSinkConfig<T> {
+public class EventSinkConfig<T extends MessageSink<T>> {
 
     private T instance;
     private String name;
+    private Function<? super T, ?> valueMapper = Function.identity();
 
     @SneakyThrows
     @SuppressWarnings({"unchecked", "all"})
     public Service<T> toService() {
+        instance.setValueMapper(valueMapper);
         Service svc = new Service(instance, MessageSink.class, name);
         return svc;
     }

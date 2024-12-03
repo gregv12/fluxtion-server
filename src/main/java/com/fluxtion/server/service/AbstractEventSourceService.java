@@ -16,6 +16,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.java.Log;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Log
@@ -34,7 +35,8 @@ public abstract class AbstractEventSourceService<T>
     protected String serviceName;
     protected EventSubscriptionKey<T> subscriptionKey;
     protected SchedulerService scheduler;
-    private EventWrapStrategy eventWrapStrategy = EventWrapStrategy.NONE;
+    private EventWrapStrategy eventWrapStrategy = EventWrapStrategy.SUBSCRIPTION_NOWRAP;
+    private Function<T, ?> dataMapper = Function.identity();
 
     protected AbstractEventSourceService(String name) {
         this(name, CallBackType.ON_EVENT_CALL_BACK);
@@ -58,6 +60,7 @@ public abstract class AbstractEventSourceService<T>
         this.serviceName = serviceName;
         output = eventFlowManager.registerEventSource(serviceName, this);
         output.setEventWrapStrategy(eventWrapStrategy);
+        output.setDataMapper(dataMapper);
         subscriptionKey = new EventSubscriptionKey<>(
                 new EventSourceKey<>(serviceName),
                 eventToInvokeType,
@@ -92,7 +95,7 @@ public abstract class AbstractEventSourceService<T>
 
     @Override
     public void registerSubscriber(StaticEventProcessor subscriber) {
-        if (eventWrapStrategy == EventWrapStrategy.BROADCAST_EVENT) {
+        if (eventWrapStrategy == EventWrapStrategy.BROADCAST_NOWRAP | eventWrapStrategy == EventWrapStrategy.BROADCAST_NAMED_EVENT) {
             subscribe();
         }
     }
@@ -115,5 +118,10 @@ public abstract class AbstractEventSourceService<T>
     @Override
     public void setEventWrapStrategy(EventWrapStrategy eventWrapStrategy) {
         this.eventWrapStrategy = eventWrapStrategy;
+    }
+
+    @Override
+    public void setDataMapper(Function<T, ?> dataMapper) {
+        this.dataMapper = dataMapper;
     }
 }

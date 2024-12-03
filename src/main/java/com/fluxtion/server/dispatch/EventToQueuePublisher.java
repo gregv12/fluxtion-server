@@ -14,6 +14,7 @@ import lombok.extern.java.Log;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Function;
 import java.util.logging.Level;
 
 /**
@@ -35,7 +36,9 @@ public class EventToQueuePublisher<T> {
     private final List<NamedQueue<T>> targetQueues = new CopyOnWriteArrayList<>();
     private final String name;
     @Setter
-    private EventSource.EventWrapStrategy eventWrapStrategy = EventSource.EventWrapStrategy.NONE;
+    private EventSource.EventWrapStrategy eventWrapStrategy = EventSource.EventWrapStrategy.SUBSCRIPTION_NOWRAP;
+    @Setter
+    private Function<T, ?> dataMapper = Function.identity();
 
     public void addTargetQueue(OneToOneConcurrentArrayQueue<T> targetQueue, String name) {
         NamedQueue<T> namedQueue = new NamedQueue<>(name, targetQueue);
@@ -53,12 +56,15 @@ public class EventToQueuePublisher<T> {
             log.fine("listenerCount:" + targetQueues.size() + " publish:" + itemToPublish);
         }
 
+        var mappedItem = dataMapper.apply(itemToPublish);
+
         for (int i = 0, targetQueuesSize = targetQueues.size(); i < targetQueuesSize; i++) {
             NamedQueue<T> namedQueue = targetQueues.get(i);
             OneToOneConcurrentArrayQueue<Object> targetQueue = (OneToOneConcurrentArrayQueue<Object>) namedQueue.getTargetQueue();
             switch (eventWrapStrategy) {
-                case NONE, BROADCAST_EVENT -> targetQueue.offer(itemToPublish);
-                case NAMED_EVENT -> targetQueue.offer(new NamedFeedEvent<>(name, null, itemToPublish));
+                case SUBSCRIPTION_NOWRAP, BROADCAST_NOWRAP -> targetQueue.offer(mappedItem);
+                case SUBSCRIPTION_NAMED_EVENT, BROADCAST_NAMED_EVENT ->
+                        targetQueue.offer(new NamedFeedEvent<>(name, null, mappedItem));
             }
             if (log.isLoggable(Level.FINE)) {
                 log.fine("queue:" + namedQueue.getName() + " size:" + targetQueue.size());
