@@ -52,11 +52,20 @@ public class EventToQueuePublisher<T> {
 
     @SuppressWarnings("unchecked")
     public void publish(T itemToPublish) {
-        if (log.isLoggable(Level.FINE)) {
-            log.fine("listenerCount:" + targetQueues.size() + " publish:" + itemToPublish);
+        if (itemToPublish == null) {
+            log.fine("itemToPublish is null");
+            return;
         }
 
         var mappedItem = dataMapper.apply(itemToPublish);
+        if (mappedItem == null) {
+            log.fine("mappedItem is null");
+            return;
+        }
+
+        if (log.isLoggable(Level.FINE)) {
+            log.fine("listenerCount:" + targetQueues.size() + " publish:" + itemToPublish);
+        }
 
         for (int i = 0, targetQueuesSize = targetQueues.size(); i < targetQueuesSize; i++) {
             NamedQueue<T> namedQueue = targetQueues.get(i);
@@ -74,6 +83,10 @@ public class EventToQueuePublisher<T> {
 
     @SuppressWarnings("unchecked")
     public void publishReplay(ReplayRecord record) {
+        if (record == null) {
+            log.fine("itemToPublish is null");
+            return;
+        }
         if (log.isLoggable(Level.FINE)) {
             log.fine("listenerCount:" + targetQueues.size() + " publish:" + record);
         }
