@@ -30,7 +30,7 @@ public class ScheduledTriggerNode extends CallBackNode {
 
     public void triggerAfterDelay(long millis) {
         if (schedulerService != null) {
-            schedulerService.scheduleAfterDelay(millis, this::fireCallback);
+            schedulerService.scheduleAfterDelay(millis, this::fireNewEventCycle);
         }
     }
 }
