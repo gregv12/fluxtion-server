@@ -185,6 +185,7 @@ public class FluxtionServer implements FluxtionServerController {
             }
             registeredServices.put(serviceName, service);
             Object instance = service.instance();
+            //TODO set service name if not an EventFlow service
             if (instance instanceof com.fluxtion.server.dispatch.EventFlowService) {
                 ((EventFlowService) instance).setEventFlowManager(flowManager, serviceName);
             }
