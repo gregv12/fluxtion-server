@@ -21,6 +21,7 @@ public class ScheduledTriggerNode extends CallBackNode {
     }
 
     public ScheduledTriggerNode() {
+        this(InstanceCallbackEvent.nextCallBackEvent());
     }
 
     @ServiceRegistered
