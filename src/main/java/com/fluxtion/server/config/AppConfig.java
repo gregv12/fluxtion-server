@@ -1,7 +1,6 @@
 /*
  * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
- *
  */
 
 package com.fluxtion.server.config;
@@ -21,6 +20,7 @@ public class AppConfig {
 
     //event sink
     private List<EventSinkConfig<?>> eventSinks;
+    private List<EventSinkWorkerConfig<?>> agentHostedEventSinks;
 
     //services
     private List<ServiceConfig<?>> services;

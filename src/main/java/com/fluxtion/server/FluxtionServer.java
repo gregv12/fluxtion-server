@@ -102,6 +102,13 @@ public class FluxtionServer implements FluxtionServerController {
             });
         }
 
+        //event sink workers
+        if (appConfig.getAgentHostedEventSinks() != null) {
+            appConfig.getAgentHostedEventSinks().forEach(server -> {
+                fluxtionServer.registerWorkerService(server.toServiceAgent());
+            });
+        }
+
         //service
         if (appConfig.getServices() != null) {
             appConfig.getServices().stream()
