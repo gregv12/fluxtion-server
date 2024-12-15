@@ -16,13 +16,10 @@ public class AppConfig {
 
     //event feeds
     private List<EventFeedConfig<?>> eventFeeds;
-    private List<EventFeedWorkerConfig<?>> agentHostedEventFeeds;
 
     //event sink
     private List<EventSinkConfig<?>> eventSinks;
-    private List<EventSinkWorkerConfig<?>> agentHostedEventSinks;
 
     //services
     private List<ServiceConfig<?>> services;
-    private List<ServiceWorkerConfig<?>> agentHostedServices;
 }
