@@ -84,44 +84,34 @@ public class FluxtionServer implements FluxtionServerController {
         //event sources
         if (appConfig.getEventFeeds() != null) {
             appConfig.getEventFeeds().forEach(server -> {
-                fluxtionServer.registerService(server.toServiceAgent());
-            });
-        }
-
-        //event sources on workers
-        if (appConfig.getAgentHostedEventFeeds() != null) {
-            appConfig.getAgentHostedEventFeeds().forEach(server -> {
-                fluxtionServer.registerWorkerService(server.toServiceAgent());
+                if (server.isAgent()) {
+                    fluxtionServer.registerWorkerService(server.toServiceAgent());
+                } else {
+                    fluxtionServer.registerService(server.toService());
+                }
             });
         }
 
         //event sinks eventSinks
         if (appConfig.getEventSinks() != null) {
             appConfig.getEventSinks().forEach(server -> {
-                fluxtionServer.registerService(server.toService());
-            });
-        }
-
-        //event sink workers
-        if (appConfig.getAgentHostedEventSinks() != null) {
-            appConfig.getAgentHostedEventSinks().forEach(server -> {
-                fluxtionServer.registerWorkerService(server.toServiceAgent());
+                if (server.isAgent()) {
+                    fluxtionServer.registerWorkerService(server.toServiceAgent());
+                } else {
+                    fluxtionServer.registerService(server.toService());
+                }
             });
         }
 
         //service
         if (appConfig.getServices() != null) {
-            appConfig.getServices().stream()
-                    .map(ServiceConfig::toService)
-                    .forEach(fluxtionServer::registerService);
-        }
-
-        //service on workers
-        if (appConfig.getAgentHostedServices() != null) {
-            appConfig.getAgentHostedServices()
-                    .forEach(server -> {
-                        fluxtionServer.registerWorkerService(server.toServiceAgent());
-                    });
+            for (ServiceConfig<?> serviceConfig : appConfig.getServices()) {
+                if (serviceConfig.isAgent()) {
+                    fluxtionServer.registerWorkerService(serviceConfig.toServiceAgent());
+                } else {
+                    fluxtionServer.registerService(serviceConfig.toService());
+                }
+            }
         }
 
         //add market maker processors

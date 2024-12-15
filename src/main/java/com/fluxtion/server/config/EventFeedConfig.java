@@ -5,10 +5,14 @@
 
 package com.fluxtion.server.config;
 
+import com.fluxtion.agrona.concurrent.Agent;
+import com.fluxtion.agrona.concurrent.IdleStrategy;
+import com.fluxtion.agrona.concurrent.YieldingIdleStrategy;
 import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.input.NamedEventFeed;
 import com.fluxtion.runtime.service.Service;
 import com.fluxtion.server.dispatch.EventSource;
+import com.fluxtion.server.dutycycle.ServiceAgent;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -29,10 +33,17 @@ public class EventFeedConfig<T> {
     //event feed management
     private EventSource.EventWrapStrategy eventWrapStrategy = EventSource.EventWrapStrategy.SUBSCRIPTION_NAMED_EVENT;
     private Function<T, ?> valueMapper = Function.identity();
+    //optional agent configuration
+    private String agentGroup;
+    private IdleStrategy idleStrategy = new YieldingIdleStrategy();
+
+    public boolean isAgent() {
+        return agentGroup != null;
+    }
 
     @SneakyThrows
     @SuppressWarnings({"unchecked", "all"})
-    public Service<T> toServiceAgent() {
+    public Service<T> toService() {
         if (instance instanceof EventSource<?> eventSource) {
             if (wrapWithNamedEvent & broadcast) {
                 eventWrapStrategy = EventSource.EventWrapStrategy.BROADCAST_NAMED_EVENT;
@@ -49,5 +60,12 @@ public class EventFeedConfig<T> {
         }
         Service svc = new Service(instance, NamedEventFeed.class, name);
         return svc;
+    }
+
+    @SneakyThrows
+    @SuppressWarnings({"unchecked", "all"})
+    public <A extends Agent> ServiceAgent<A> toServiceAgent() {
+        Service svc = toService();
+        return new ServiceAgent<>(agentGroup, idleStrategy, svc, (A) instance);
     }
 }
