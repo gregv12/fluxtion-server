@@ -7,7 +7,6 @@ package com.fluxtion.server.config;
 
 import com.fluxtion.agrona.concurrent.Agent;
 import com.fluxtion.agrona.concurrent.IdleStrategy;
-import com.fluxtion.agrona.concurrent.YieldingIdleStrategy;
 import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.output.MessageSink;
 import com.fluxtion.runtime.service.Service;
@@ -29,11 +28,11 @@ public class EventSinkConfig<T extends MessageSink<T>> {
     private String name;
     private Function<? super T, ?> valueMapper = Function.identity();
     //optional agent configuration
-    private String agentGroup;
-    private IdleStrategy idleStrategy = new YieldingIdleStrategy();
+    private String agentName;
+    private IdleStrategy idleStrategy;
 
     public boolean isAgent() {
-        return agentGroup != null;
+        return agentName != null;
     }
 
     @SneakyThrows
@@ -48,6 +47,6 @@ public class EventSinkConfig<T extends MessageSink<T>> {
     @SuppressWarnings({"unchecked", "all"})
     public <A extends Agent> ServiceAgent<A> toServiceAgent() {
         Service svc = toService();
-        return new ServiceAgent<>(agentGroup, idleStrategy, svc, (A) instance);
+        return new ServiceAgent<>(agentName, idleStrategy, svc, (A) instance);
     }
 }

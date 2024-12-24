@@ -7,7 +7,6 @@ package com.fluxtion.server.config;
 
 import com.fluxtion.agrona.concurrent.Agent;
 import com.fluxtion.agrona.concurrent.IdleStrategy;
-import com.fluxtion.agrona.concurrent.YieldingIdleStrategy;
 import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.service.Service;
 import com.fluxtion.server.dutycycle.ServiceAgent;
@@ -29,7 +28,7 @@ public class ServiceConfig<T> {
     private String name;
     //optional agent configuration
     private String agentGroup;
-    private IdleStrategy idleStrategy = new YieldingIdleStrategy();
+    private IdleStrategy idleStrategy;
 
     public ServiceConfig(T service, Class<T> serviceClass, String name) {
         this(service, serviceClass.getCanonicalName(), name, null, null);
