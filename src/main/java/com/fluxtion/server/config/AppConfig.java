@@ -5,6 +5,8 @@
 
 package com.fluxtion.server.config;
 
+import com.fluxtion.agrona.concurrent.IdleStrategy;
+import com.fluxtion.agrona.concurrent.YieldingIdleStrategy;
 import lombok.Data;
 
 import java.util.List;
@@ -12,7 +14,7 @@ import java.util.List;
 @Data
 public class AppConfig {
     //event handler
-    private List<EventProcessorGroupConfig> eventHandlerAgents;
+    private List<EventProcessorGroupConfig> eventHandlers;
 
     //event feeds
     private List<EventFeedConfig<?>> eventFeeds;
@@ -22,4 +24,17 @@ public class AppConfig {
 
     //services
     private List<ServiceConfig<?>> services;
+
+    //agent thread config
+    private List<ThreadConfig> agentThreads;
+
+    public IdleStrategy getIdleStrategy(String agentName, IdleStrategy overrideIdeIdleStrategy) {
+        if (overrideIdeIdleStrategy == null) {
+            return agentThreads.stream().filter(cfg -> cfg.getAgentName().equals(agentName))
+                    .findFirst()
+                    .map(ThreadConfig::getIdleStrategy)
+                    .orElse(new YieldingIdleStrategy());
+        }
+        return overrideIdeIdleStrategy;
+    }
 }

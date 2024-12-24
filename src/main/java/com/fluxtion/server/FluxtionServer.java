@@ -42,6 +42,7 @@ public class FluxtionServer implements FluxtionServerController {
 
     public static final String CONFIG_FILE_PROPERTY = "fluxtionserver.config.file";
     private static LogRecordListener logRecordListener;
+    private final AppConfig appConfig;
     private final com.fluxtion.server.dispatch.EventFlowManager flowManager = new com.fluxtion.server.dispatch.EventFlowManager();
     private final ConcurrentHashMap<String, ComposingEventProcessorAgentRunner> composingEventProcessorAgents = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ComposingWorkerServiceAgentRunner> composingServiceAgents = new ConcurrentHashMap<>();
@@ -50,6 +51,10 @@ public class FluxtionServer implements FluxtionServerController {
     private ErrorHandler errorHandler = m -> log.severe(m.getMessage());
     private final ServiceRegistryNode serviceRegistry = new ServiceRegistryNode();
     private volatile boolean started = false;
+
+    public FluxtionServer(AppConfig appConfig) {
+        this.appConfig = appConfig;
+    }
 
     public static FluxtionServer bootServer(Reader reader, LogRecordListener logRecordListener) {
         log.info("booting server loading config from reader");
@@ -75,7 +80,7 @@ public class FluxtionServer implements FluxtionServerController {
         FluxtionServer.logRecordListener = logRecordListener;
         log.info("booting fluxtion server");
         log.fine("config:" + appConfig);
-        FluxtionServer fluxtionServer = new FluxtionServer();
+        FluxtionServer fluxtionServer = new FluxtionServer(appConfig);
         fluxtionServer.setDefaultErrorHandler(new GlobalErrorHandler());
 
         //root server controller
@@ -115,20 +120,20 @@ public class FluxtionServer implements FluxtionServerController {
         }
 
         //add market maker processors
-        if (appConfig.getEventHandlerAgents() != null) {
-            appConfig.getEventHandlerAgents().forEach(cfg -> {
+        if (appConfig.getEventHandlers() != null) {
+            appConfig.getEventHandlers().forEach(cfg -> {
                 final EventLogControlEvent.LogLevel defaultLogLevel = cfg.getLogLevel() == null ? EventLogControlEvent.LogLevel.INFO : cfg.getLogLevel();
                 String groupName = cfg.getAgentName();
-                IdleStrategy ideIdleStrategy = cfg.getIdleStrategy();
+                IdleStrategy idleStrategy = appConfig.getIdleStrategy(cfg.getAgentName(), cfg.getIdleStrategy());
                 cfg.getEventHandlers().entrySet().forEach(handlerEntry -> {
                     String name = handlerEntry.getKey();
                     try {
                         fluxtionServer.addEventProcessor(
                                 name,
                                 groupName,
-                                ideIdleStrategy,
+                                idleStrategy,
                                 () -> {
-                                    log.info("adding eventProcessor:" + name + " to group:" + groupName);
+                                    log.info("adding eventProcessor:" + name + " to group:" + groupName + ", idleStrategy:" + idleStrategy);
                                     EventProcessorConfig<?> eventProcessorConfig = handlerEntry.getValue();
                                     var eventProcessor = eventProcessorConfig.getEventHandler() == null
                                             ? eventProcessorConfig.getEventHandlerBuilder().get()
@@ -195,7 +200,8 @@ public class FluxtionServer implements FluxtionServerController {
 
     public void registerWorkerService(ServiceAgent<?> service) {
         String agentGroup = service.getAgentGroup();
-        IdleStrategy idleStrategy = service.getIdleStrategy();
+        IdleStrategy idleStrategy = appConfig.getIdleStrategy(service.getAgentGroup(), service.getIdleStrategy());
+        log.info("registerWorkerService:" + service + " agentGroup:" + agentGroup + " idleStrategy:" + idleStrategy);
         ComposingWorkerServiceAgentRunner composingAgentRunner = composingServiceAgents.computeIfAbsent(
                 agentGroup,
                 ket -> {
