@@ -7,7 +7,7 @@ package com.fluxtion.server.service;
 
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.runtime.ServiceRegistered;
-import com.fluxtion.runtime.input.NamedEventFeed;
+import com.fluxtion.runtime.input.NamedFeed;
 import com.fluxtion.runtime.input.SubscriptionManager;
 import com.fluxtion.runtime.node.EventSubscription;
 import com.fluxtion.server.dispatch.*;
@@ -22,7 +22,7 @@ import java.util.function.Supplier;
 @Log
 public abstract class AbstractEventSourceService<T>
         implements
-        NamedEventFeed,
+        NamedFeed,
         LifeCycleEventSource<T>,
         EventFlowService {
 
