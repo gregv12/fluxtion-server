@@ -5,9 +5,12 @@
 
 package com.fluxtion.server.config;
 
+import com.fluxtion.agrona.concurrent.Agent;
+import com.fluxtion.agrona.concurrent.IdleStrategy;
 import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.output.MessageSink;
 import com.fluxtion.runtime.service.Service;
+import com.fluxtion.server.dutycycle.ServiceAgent;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,6 +27,13 @@ public class EventSinkConfig<T extends MessageSink<T>> {
     private T instance;
     private String name;
     private Function<? super T, ?> valueMapper = Function.identity();
+    //optional agent configuration
+    private String agentName;
+    private IdleStrategy idleStrategy;
+
+    public boolean isAgent() {
+        return agentName != null;
+    }
 
     @SneakyThrows
     @SuppressWarnings({"unchecked", "all"})
@@ -31,5 +41,12 @@ public class EventSinkConfig<T extends MessageSink<T>> {
         instance.setValueMapper(valueMapper);
         Service svc = new Service(instance, MessageSink.class, name);
         return svc;
+    }
+
+    @SneakyThrows
+    @SuppressWarnings({"unchecked", "all"})
+    public <A extends Agent> ServiceAgent<A> toServiceAgent() {
+        Service svc = toService();
+        return new ServiceAgent<>(agentName, idleStrategy, svc, (A) instance);
     }
 }
