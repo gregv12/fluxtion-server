@@ -7,7 +7,7 @@ package com.fluxtion.server.dispatch;
 
 import com.fluxtion.agrona.concurrent.OneToOneConcurrentArrayQueue;
 import com.fluxtion.runtime.annotations.feature.Experimental;
-import com.fluxtion.runtime.event.NamedFeedEvent;
+import com.fluxtion.runtime.event.NamedFeedEventImpl;
 import com.fluxtion.runtime.event.ReplayRecord;
 import lombok.*;
 import lombok.extern.java.Log;
@@ -73,7 +73,7 @@ public class EventToQueuePublisher<T> {
             switch (eventWrapStrategy) {
                 case SUBSCRIPTION_NOWRAP, BROADCAST_NOWRAP -> targetQueue.offer(mappedItem);
                 case SUBSCRIPTION_NAMED_EVENT, BROADCAST_NAMED_EVENT ->
-                        targetQueue.offer(new NamedFeedEvent<>(name, null, mappedItem));
+                        targetQueue.offer(new NamedFeedEventImpl<>(name).setData(mappedItem));
             }
             if (log.isLoggable(Level.FINE)) {
                 log.fine("queue:" + namedQueue.getName() + " size:" + targetQueue.size());
