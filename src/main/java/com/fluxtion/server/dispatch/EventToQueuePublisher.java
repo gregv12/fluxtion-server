@@ -12,6 +12,7 @@ import com.fluxtion.runtime.event.ReplayRecord;
 import lombok.*;
 import lombok.extern.java.Log;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
@@ -34,7 +35,10 @@ import java.util.logging.Level;
 public class EventToQueuePublisher<T> {
 
     private final List<NamedQueue<T>> targetQueues = new CopyOnWriteArrayList<>();
+    private final List<NamedFeedEventImpl<T>> eventLog = new ArrayList<>();
     private final String name;
+    @Setter
+    private boolean cacheEventLog = false;
     @Setter
     private EventSource.EventWrapStrategy eventWrapStrategy = EventSource.EventWrapStrategy.SUBSCRIPTION_NOWRAP;
     @Setter
