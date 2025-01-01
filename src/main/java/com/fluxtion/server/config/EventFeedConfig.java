@@ -8,7 +8,7 @@ package com.fluxtion.server.config;
 import com.fluxtion.agrona.concurrent.Agent;
 import com.fluxtion.agrona.concurrent.IdleStrategy;
 import com.fluxtion.runtime.annotations.feature.Experimental;
-import com.fluxtion.runtime.input.NamedEventFeed;
+import com.fluxtion.runtime.input.NamedFeed;
 import com.fluxtion.runtime.service.Service;
 import com.fluxtion.server.dispatch.EventSource;
 import com.fluxtion.server.dutycycle.ServiceAgent;
@@ -57,7 +57,7 @@ public class EventFeedConfig<T> {
             eventSource_t.setEventWrapStrategy(eventWrapStrategy);
             eventSource_t.setDataMapper(valueMapper);
         }
-        Service svc = new Service(instance, NamedEventFeed.class, name);
+        Service svc = new Service(instance, NamedFeed.class, name);
         return svc;
     }
 

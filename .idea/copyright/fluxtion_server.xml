@@ -1,5 +1,6 @@
 <component name="CopyrightManager">
   <copyright>
+    <option name="allowReplaceRegexp" value="SPDX-License-Identifier: AGPL-3.0-only" />
     <option name="notice" value="SPDX-FileCopyrightText: © &amp;#36;today.year Gregory Higgins &lt;greg.higgins@v12technology.com&gt;&#10;SPDX-License-Identifier: AGPL-3.0-only" />
     <option name="myName" value="fluxtion-server" />
   </copyright>
