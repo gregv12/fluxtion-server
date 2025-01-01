@@ -7,11 +7,12 @@ package com.fluxtion.server.service;
 
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.runtime.ServiceRegistered;
-import com.fluxtion.runtime.input.NamedEventFeed;
+import com.fluxtion.runtime.input.NamedFeed;
 import com.fluxtion.runtime.input.SubscriptionManager;
 import com.fluxtion.runtime.node.EventSubscription;
 import com.fluxtion.server.dispatch.*;
 import com.fluxtion.server.service.scheduler.SchedulerService;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.java.Log;
@@ -22,7 +23,7 @@ import java.util.function.Supplier;
 @Log
 public abstract class AbstractEventSourceService<T>
         implements
-        NamedEventFeed,
+        NamedFeed,
         LifeCycleEventSource<T>,
         EventFlowService {
 
@@ -36,6 +37,7 @@ public abstract class AbstractEventSourceService<T>
     protected EventSubscriptionKey<T> subscriptionKey;
     protected SchedulerService scheduler;
     private EventWrapStrategy eventWrapStrategy = EventWrapStrategy.SUBSCRIPTION_NOWRAP;
+    @Getter(AccessLevel.PROTECTED)
     private Function<T, ?> dataMapper = Function.identity();
 
     protected AbstractEventSourceService(String name) {
