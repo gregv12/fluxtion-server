@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
+  ~ SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
   ~ SPDX-License-Identifier: AGPL-3.0-only
   -->
 
@@ -64,6 +64,12 @@
             <artifactId>lombok</artifactId>
             <version>1.18.36</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.9.3</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

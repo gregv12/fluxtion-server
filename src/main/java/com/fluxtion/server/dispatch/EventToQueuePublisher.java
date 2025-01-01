@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
+ * SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -7,12 +7,14 @@ package com.fluxtion.server.dispatch;
 
 import com.fluxtion.agrona.concurrent.OneToOneConcurrentArrayQueue;
 import com.fluxtion.runtime.annotations.feature.Experimental;
+import com.fluxtion.runtime.event.NamedFeedEvent;
 import com.fluxtion.runtime.event.NamedFeedEventImpl;
 import com.fluxtion.runtime.event.ReplayRecord;
 import lombok.*;
 import lombok.extern.java.Log;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
@@ -35,14 +37,16 @@ import java.util.logging.Level;
 public class EventToQueuePublisher<T> {
 
     private final List<NamedQueue<T>> targetQueues = new CopyOnWriteArrayList<>();
-    private final List<NamedFeedEventImpl<T>> eventLog = new ArrayList<>();
+    private final List<NamedFeedEvent<?>> eventLog = new ArrayList<>();
     private final String name;
     @Setter
-    private boolean cacheEventLog = false;
+    private boolean cacheEventLog;
+    private long sequenceNumber = 0;
     @Setter
     private EventSource.EventWrapStrategy eventWrapStrategy = EventSource.EventWrapStrategy.SUBSCRIPTION_NOWRAP;
     @Setter
     private Function<T, ?> dataMapper = Function.identity();
+    private int cacheReadPointer = 0;
 
     public void addTargetQueue(OneToOneConcurrentArrayQueue<T> targetQueue, String name) {
         NamedQueue<T> namedQueue = new NamedQueue<>(name, targetQueue);
@@ -67,21 +71,56 @@ public class EventToQueuePublisher<T> {
             return;
         }
 
+        sequenceNumber++;
+
         if (log.isLoggable(Level.FINE)) {
-            log.fine("listenerCount:" + targetQueues.size() + " publish:" + itemToPublish);
+            log.fine("listenerCount:" + targetQueues.size() + " sequenceNumber:" + sequenceNumber + " publish:" + itemToPublish);
         }
 
-        for (int i = 0, targetQueuesSize = targetQueues.size(); i < targetQueuesSize; i++) {
-            NamedQueue<T> namedQueue = targetQueues.get(i);
-            OneToOneConcurrentArrayQueue<Object> targetQueue = (OneToOneConcurrentArrayQueue<Object>) namedQueue.getTargetQueue();
-            switch (eventWrapStrategy) {
-                case SUBSCRIPTION_NOWRAP, BROADCAST_NOWRAP -> targetQueue.offer(mappedItem);
-                case SUBSCRIPTION_NAMED_EVENT, BROADCAST_NAMED_EVENT ->
-                        targetQueue.offer(new NamedFeedEventImpl<>(name).setData(mappedItem));
+        if (cacheEventLog) {
+            if (cacheReadPointer < eventLog.size()) {
+                if (log.isLoggable(Level.FINE)) {
+                    log.fine("publishing cached items cacheReadPointer:" + cacheReadPointer + " eventLog.size():" + eventLog.size());
+                }
+                //send updates
+                for (int i = cacheReadPointer, eventLogSize = eventLog.size(); i < eventLogSize; i++) {
+                    NamedFeedEvent<?> cachedFeedEvent = eventLog.get(i);
+                    dispatch(cachedFeedEvent.data());
+                }
+
             }
-            if (log.isLoggable(Level.FINE)) {
-                log.fine("queue:" + namedQueue.getName() + " size:" + targetQueue.size());
-            }
+            cacheReadPointer = eventLog.size();
+            NamedFeedEventImpl<Object> namedFeedEvent = new NamedFeedEventImpl<>(name)
+                    .data(mappedItem)
+                    .sequenceNumber(sequenceNumber);
+            eventLog.add(namedFeedEvent);
+        }
+
+        cacheReadPointer++;
+        dispatch(mappedItem);
+    }
+
+    public void cache(T itemToCache) {
+        if (itemToCache == null) {
+            log.fine("itemToCache is null");
+            return;
+        }
+
+        var mappedItem = dataMapper.apply(itemToCache);
+        if (mappedItem == null) {
+            log.fine("mappedItem is null");
+            return;
+        }
+
+        if (log.isLoggable(Level.FINE)) {
+            log.fine("listenerCount:" + targetQueues.size() + " sequenceNumber:" + sequenceNumber + " publish:" + itemToCache);
+        }
+        sequenceNumber++;
+        if (cacheEventLog) {
+            NamedFeedEventImpl<Object> namedFeedEvent = new NamedFeedEventImpl<>(name)
+                    .data(mappedItem)
+                    .sequenceNumber(sequenceNumber);
+            eventLog.add(namedFeedEvent);
         }
     }
 
@@ -99,6 +138,30 @@ public class EventToQueuePublisher<T> {
             NamedQueue<T> namedQueue = targetQueues.get(i);
             OneToOneConcurrentArrayQueue<Object> targetQueue = (OneToOneConcurrentArrayQueue<Object>) namedQueue.getTargetQueue();
             targetQueue.offer(record);
+            if (log.isLoggable(Level.FINE)) {
+                log.fine("queue:" + namedQueue.getName() + " size:" + targetQueue.size());
+            }
+        }
+    }
+
+    public List<NamedFeedEvent<?>> getEventLog() {
+        return cacheEventLog ? eventLog : Collections.emptyList();
+    }
+
+    private void dispatch(Object mappedItem) {
+        for (int i = 0, targetQueuesSize = targetQueues.size(); i < targetQueuesSize; i++) {
+            NamedQueue<T> namedQueue = targetQueues.get(i);
+            OneToOneConcurrentArrayQueue<Object> targetQueue = (OneToOneConcurrentArrayQueue<Object>) namedQueue.getTargetQueue();
+            switch (eventWrapStrategy) {
+                case SUBSCRIPTION_NOWRAP, BROADCAST_NOWRAP -> targetQueue.offer(mappedItem);
+                case SUBSCRIPTION_NAMED_EVENT, BROADCAST_NAMED_EVENT -> {
+                    //TODO reduce memory pressure by using copy
+                    NamedFeedEventImpl<Object> namedFeedEvent = new NamedFeedEventImpl<>(name)
+                            .data(mappedItem)
+                            .sequenceNumber(sequenceNumber);
+                    targetQueue.offer(namedFeedEvent);
+                }
+            }
             if (log.isLoggable(Level.FINE)) {
                 log.fine("queue:" + namedQueue.getName() + " size:" + targetQueue.size());
             }
