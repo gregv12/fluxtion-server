@@ -78,18 +78,7 @@ public class EventToQueuePublisher<T> {
         }
 
         if (cacheEventLog) {
-            if (cacheReadPointer < eventLog.size()) {
-                if (log.isLoggable(Level.FINE)) {
-                    log.fine("publishing cached items cacheReadPointer:" + cacheReadPointer + " eventLog.size():" + eventLog.size());
-                }
-                //send updates
-                for (int i = cacheReadPointer, eventLogSize = eventLog.size(); i < eventLogSize; i++) {
-                    NamedFeedEvent<?> cachedFeedEvent = eventLog.get(i);
-                    dispatch(cachedFeedEvent.data());
-                }
-
-            }
-            cacheReadPointer = eventLog.size();
+            dispatchCachedEventLog();
             NamedFeedEventImpl<Object> namedFeedEvent = new NamedFeedEventImpl<>(name)
                     .data(mappedItem)
                     .sequenceNumber(sequenceNumber);
@@ -142,6 +131,21 @@ public class EventToQueuePublisher<T> {
                 log.fine("queue:" + namedQueue.getName() + " size:" + targetQueue.size());
             }
         }
+    }
+
+    public void dispatchCachedEventLog() {
+        if (cacheReadPointer < eventLog.size()) {
+            if (log.isLoggable(Level.FINE)) {
+                log.fine("publishing cached items cacheReadPointer:" + cacheReadPointer + " eventLog.size():" + eventLog.size());
+            }
+            //send updates
+            for (int i = cacheReadPointer, eventLogSize = eventLog.size(); i < eventLogSize; i++) {
+                NamedFeedEvent<?> cachedFeedEvent = eventLog.get(i);
+                dispatch(cachedFeedEvent.data());
+            }
+
+        }
+        cacheReadPointer = eventLog.size();
     }
 
     public List<NamedFeedEvent<?>> getEventLog() {

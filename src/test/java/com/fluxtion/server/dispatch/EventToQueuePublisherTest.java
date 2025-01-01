@@ -58,15 +58,13 @@ public class EventToQueuePublisherTest {
 
         eventToQueue.publish("A");
 
-//       ----------- cache start --------------
+//       ----------- cache no publish start --------------
         eventToQueue.cache("cache-1");
         eventToQueue.cache("cache-2");
-//      ----------- cache end --------------
-
         targetQueue.drainTo(actual, 100);
         Assertions.assertIterableEquals(List.of("A"), actual);
 
-//      ----------- publish B --------------
+//      ----------- publish B sends cached items--------------
         actual.clear();
         eventToQueue.publish("B");
         targetQueue.drainTo(actual, 100);
@@ -82,5 +80,13 @@ public class EventToQueuePublisherTest {
         Assertions.assertIterableEquals(
                 List.of("A", "cache-1", "cache-2", "B", "C"),
                 eventToQueue.getEventLog().stream().map(NamedFeedEvent::data).collect(Collectors.toList()));
+
+//       ----------- cache and dispatch cached --------------
+        actual.clear();
+        eventToQueue.cache("cache-2");
+        eventToQueue.cache("cache-3");
+        eventToQueue.dispatchCachedEventLog();
+        targetQueue.drainTo(actual, 100);
+        Assertions.assertIterableEquals(List.of("cache-2", "cache-3"), actual);
     }
 }
