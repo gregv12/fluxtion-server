@@ -9,7 +9,7 @@
 
     <groupId>com.fluxtion</groupId>
     <artifactId>server</artifactId>
-    <version>0.1.56-SNAPSHOT</version>
+    <version>0.1.57-SNAPSHOT</version>
     <name>fluxtion :: server</name>
 
     <description>
@@ -20,7 +20,7 @@
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <fluxtion.version>9.7.3</fluxtion.version>
+        <fluxtion.version>9.7.6</fluxtion.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
