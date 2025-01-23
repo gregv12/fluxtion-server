@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
+ * SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -227,6 +227,7 @@ public class FluxtionServer implements FluxtionServerController {
             String groupName,
             IdleStrategy idleStrategy,
             Supplier<StaticEventProcessor> feedConsumer) throws IllegalArgumentException {
+        IdleStrategy idleStrategyOverride = appConfig.getIdleStrategyOrDefault(groupName, idleStrategy);
         ComposingEventProcessorAgentRunner composingEventProcessorAgentRunner = composingEventProcessorAgents.computeIfAbsent(
                 groupName,
                 ket -> {
@@ -236,7 +237,7 @@ public class FluxtionServer implements FluxtionServerController {
                     AtomicCounter errorCounter = new AtomicCounter(new UnsafeBuffer(new byte[4096]), 0);
                     //run subscriber group
                     AgentRunner groupRunner = new AgentRunner(
-                            idleStrategy,
+                            idleStrategyOverride,
                             errorHandler,
                             errorCounter,
                             group);
