@@ -124,7 +124,7 @@ public class FluxtionServer implements FluxtionServerController {
             appConfig.getEventHandlers().forEach(cfg -> {
                 final EventLogControlEvent.LogLevel defaultLogLevel = cfg.getLogLevel() == null ? EventLogControlEvent.LogLevel.INFO : cfg.getLogLevel();
                 String groupName = cfg.getAgentName();
-                IdleStrategy idleStrategy = appConfig.getIdleStrategy(cfg.getAgentName(), cfg.getIdleStrategy());
+                IdleStrategy idleStrategy = appConfig.lookupIdleStrategyWhenNull(cfg.getAgentName(), cfg.getIdleStrategy());
                 cfg.getEventHandlers().entrySet().forEach(handlerEntry -> {
                     String name = handlerEntry.getKey();
                     try {
@@ -201,7 +201,7 @@ public class FluxtionServer implements FluxtionServerController {
 
     public void registerWorkerService(ServiceAgent<?> service) {
         String agentGroup = service.getAgentGroup();
-        IdleStrategy idleStrategy = appConfig.getIdleStrategy(service.getAgentGroup(), service.getIdleStrategy());
+        IdleStrategy idleStrategy = appConfig.lookupIdleStrategyWhenNull(service.getAgentGroup(), service.getIdleStrategy());
         log.info("registerWorkerService:" + service + " agentGroup:" + agentGroup + " idleStrategy:" + idleStrategy);
         ComposingWorkerServiceAgentRunner composingAgentRunner = composingServiceAgents.computeIfAbsent(
                 agentGroup,

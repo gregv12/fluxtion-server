@@ -28,21 +28,33 @@ public class AppConfig {
     //agent thread config
     private List<ThreadConfig> agentThreads;
 
-    public IdleStrategy getIdleStrategy(String agentName, IdleStrategy overrideIdeIdleStrategy) {
-        if (overrideIdeIdleStrategy == null) {
+    /**
+     * Return an {@link IdleStrategy}, looking up from config if the supplied strategy is null
+     *
+     * @param agentName                The name of the agent in {@link ThreadConfig}
+     * @param preferredIdeIdleStrategy the preferred idle strategy to use
+     * @return An IdleStrategy
+     */
+    public IdleStrategy lookupIdleStrategyWhenNull(String agentName, IdleStrategy preferredIdeIdleStrategy) {
+        if (preferredIdeIdleStrategy == null) {
             return agentThreads.stream().filter(cfg -> cfg.getAgentName().equals(agentName))
                     .findFirst()
                     .map(ThreadConfig::getIdleStrategy)
                     .orElse(new YieldingIdleStrategy());
         }
-        return overrideIdeIdleStrategy;
+        return preferredIdeIdleStrategy;
     }
 
-    public IdleStrategy getIdleStrategyOrDefault(String agentName, IdleStrategy overrideIdeIdleStrategy) {
+    /**
+     * @param agentName              The name of the agent in {@link ThreadConfig}
+     * @param defaultIdeIdleStrategy the default idle strategy to use if no match found in {@link ThreadConfig}
+     * @return An IdleStrategy
+     */
+    public IdleStrategy getIdleStrategyOrDefault(String agentName, IdleStrategy defaultIdeIdleStrategy) {
         var idleStrategy = agentThreads.stream().filter(cfg -> cfg.getAgentName().equals(agentName))
                 .findFirst()
                 .map(ThreadConfig::getIdleStrategy)
                 .orElse(new YieldingIdleStrategy());
-        return idleStrategy == null ? overrideIdeIdleStrategy : idleStrategy;
+        return idleStrategy == null ? defaultIdeIdleStrategy : idleStrategy;
     }
 }
