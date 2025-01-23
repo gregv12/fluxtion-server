@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
+ * SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -36,5 +36,13 @@ public class AppConfig {
                     .orElse(new YieldingIdleStrategy());
         }
         return overrideIdeIdleStrategy;
+    }
+
+    public IdleStrategy getIdleStrategyOrDefault(String agentName, IdleStrategy overrideIdeIdleStrategy) {
+        var idleStrategy = agentThreads.stream().filter(cfg -> cfg.getAgentName().equals(agentName))
+                .findFirst()
+                .map(ThreadConfig::getIdleStrategy)
+                .orElse(new YieldingIdleStrategy());
+        return idleStrategy == null ? overrideIdeIdleStrategy : idleStrategy;
     }
 }
