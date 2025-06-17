@@ -32,4 +32,8 @@ public interface EventSource<T> {
 
     default void setDataMapper(Function<T, ?> dataMapper) {
     }
+
+    default Function<T, ?> getDataMapper(){
+        return Function.identity();
+    }
 }

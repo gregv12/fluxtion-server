@@ -37,7 +37,7 @@ public abstract class AbstractEventSourceService<T>
     protected EventSubscriptionKey<T> subscriptionKey;
     protected SchedulerService scheduler;
     private EventWrapStrategy eventWrapStrategy = EventWrapStrategy.SUBSCRIPTION_NOWRAP;
-    @Getter(AccessLevel.PROTECTED)
+    @Getter
     private Function<T, ?> dataMapper = Function.identity();
 
     protected AbstractEventSourceService(String name) {
@@ -60,6 +60,7 @@ public abstract class AbstractEventSourceService<T>
     @Override
     public void setEventFlowManager(EventFlowManager eventFlowManager, String serviceName) {
         this.serviceName = serviceName;
+        log.info("setEventFlowManager for:" + getName() + " serviceName:" + serviceName);
         output = eventFlowManager.registerEventSource(serviceName, this);
         output.setEventWrapStrategy(eventWrapStrategy);
         output.setDataMapper(dataMapper);
@@ -81,22 +82,23 @@ public abstract class AbstractEventSourceService<T>
 
     @Override
     public void init() {
-
+        log.info("init:" + getName());
     }
 
     public void subscribe() {
-        log.info("subscribe request");
+        log.info("subscribe for:" + getName());
         SubscriptionManager subscriptionManager = EventFlowManager.currentProcessor().getSubscriptionManager();
         subscriptionManager.subscribe(subscriptionKey);
     }
 
     @Override
     public void tearDown() {
-
+        log.info("tearDown:" + getName());
     }
 
     @Override
     public void registerSubscriber(StaticEventProcessor subscriber) {
+        log.info("subscribe for:" + getName() + " processor:" + subscriber);
         if (eventWrapStrategy == EventWrapStrategy.BROADCAST_NOWRAP | eventWrapStrategy == EventWrapStrategy.BROADCAST_NAMED_EVENT) {
             subscribe();
         }
@@ -109,6 +111,7 @@ public abstract class AbstractEventSourceService<T>
 
     @Override
     public void unSubscribe(StaticEventProcessor subscriber, EventSubscription<?> eventSubscription) {
+        log.info("unSubscribe for:" + getName() + " processor:" + subscriber + " eventSubscription:" + eventSubscription);
         subscriber.getSubscriptionManager().unSubscribe(subscriptionKey);
     }
 

@@ -20,6 +20,7 @@ import com.fluxtion.runtime.service.Service;
 import com.fluxtion.runtime.service.ServiceRegistryNode;
 import com.fluxtion.server.config.*;
 import com.fluxtion.server.dispatch.EventFlowService;
+import com.fluxtion.server.dispatch.EventSource;
 import com.fluxtion.server.dutycycle.*;
 import com.fluxtion.server.service.admin.AdminCommandRegistry;
 import com.fluxtion.server.service.scheduler.DeadWheelScheduler;
@@ -34,6 +35,7 @@ import java.io.FileReader;
 import java.io.Reader;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Experimental
@@ -316,8 +318,23 @@ public class FluxtionServer implements FluxtionServerController {
 
         registeredServices.values().forEach(svc -> {
             if (!(registeredAgentServices.contains(svc))) {
-                serviceRegistry.nodeRegistered(svc.instance(), svc.serviceName());
+                Object instance = svc.instance();
+                String serviceName = svc.serviceName();
+                serviceRegistry.nodeRegistered(instance, serviceName);
                 servicesRegistered().forEach(serviceRegistry::registerService);
+            }
+        });
+
+        registeredServices.values().forEach(svc -> {
+            if (!(registeredAgentServices.contains(svc))) {
+                Object instance = svc.instance();
+                String serviceName = svc.serviceName();
+                if(instance instanceof EventSource<?> eventSource && eventSource.getDataMapper() != null && eventSource.getDataMapper() != Function.identity()){
+                    log.info("registering data mapper for service:" + serviceName);
+                    ServiceRegistryNode serviceRegistryTemp = new ServiceRegistryNode();
+                    serviceRegistryTemp.nodeRegistered(eventSource.getDataMapper(), serviceName + "_dataMapper");
+                    servicesRegistered().forEach(serviceRegistryTemp::registerService);
+                }
             }
         });
 
