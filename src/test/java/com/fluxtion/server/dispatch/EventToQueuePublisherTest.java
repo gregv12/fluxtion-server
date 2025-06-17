@@ -8,7 +8,6 @@ package com.fluxtion.server.dispatch;
 import com.fluxtion.agrona.concurrent.OneToOneConcurrentArrayQueue;
 import com.fluxtion.runtime.event.NamedFeedEvent;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -18,12 +17,12 @@ import java.util.stream.Collectors;
 public class EventToQueuePublisherTest {
 
     @Test
-    @Disabled
+//    @Disabled
     public void testPublishToConsole() {
         EventToQueuePublisher<String> eventToQueue = new EventToQueuePublisher<>("myQueue");
         eventToQueue.setCacheEventLog(true);
 
-        OneToOneConcurrentArrayQueue<String> targetQueue = new OneToOneConcurrentArrayQueue<>(100);
+        OneToOneConcurrentArrayQueue<Object> targetQueue = new OneToOneConcurrentArrayQueue<>(100);
         eventToQueue.addTargetQueue(targetQueue, "outputQueue");
 
         eventToQueue.publish("A");
@@ -51,9 +50,9 @@ public class EventToQueuePublisherTest {
     public void testPublish() {
         EventToQueuePublisher<String> eventToQueue = new EventToQueuePublisher<>("myQueue");
         eventToQueue.setCacheEventLog(true);
-        ArrayList<String> actual = new ArrayList<>();
+        ArrayList<Object> actual = new ArrayList<>();
 
-        OneToOneConcurrentArrayQueue<String> targetQueue = new OneToOneConcurrentArrayQueue<>(100);
+        OneToOneConcurrentArrayQueue<Object> targetQueue = new OneToOneConcurrentArrayQueue<>(100);
         eventToQueue.addTargetQueue(targetQueue, "outputQueue");
 
         eventToQueue.publish("A");
