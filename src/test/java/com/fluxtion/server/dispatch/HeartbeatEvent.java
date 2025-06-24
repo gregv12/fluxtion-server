@@ -6,12 +6,14 @@
 package com.fluxtion.server.dispatch;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 @Getter
+@Setter
 @ToString
 public class HeartbeatEvent {
-    private final long timestamp;
+    private long timestamp;
 
     public HeartbeatEvent() {
         timestamp = System.nanoTime();

@@ -157,13 +157,13 @@ public class EventToQueuePublisher<T> {
             NamedQueue namedQueue = targetQueues.get(i);
             OneToOneConcurrentArrayQueue<Object> targetQueue = namedQueue.getTargetQueue();
             switch (eventWrapStrategy) {
-                case SUBSCRIPTION_NOWRAP, BROADCAST_NOWRAP -> writeToQueue(targetQueue, mappedItem);
+                case SUBSCRIPTION_NOWRAP, BROADCAST_NOWRAP -> writeToQueue(namedQueue, mappedItem);
                 case SUBSCRIPTION_NAMED_EVENT, BROADCAST_NAMED_EVENT -> {
                     //TODO reduce memory pressure by using copy
                     NamedFeedEventImpl<Object> namedFeedEvent = new NamedFeedEventImpl<>(name)
                             .data(mappedItem)
                             .sequenceNumber(sequenceNumber);
-                    writeToQueue(targetQueue, mappedItem);
+                    writeToQueue(namedQueue, mappedItem);
                 }
             }
             if (log.isLoggable(Level.FINE)) {
@@ -172,13 +172,22 @@ public class EventToQueuePublisher<T> {
         }
     }
 
-    private void writeToQueue(OneToOneConcurrentArrayQueue<Object> targetQueue, Object itemToPublish) {
-        boolean eventNotificationNotReceived = true;
-        while (eventNotificationNotReceived) {
+    private void writeToQueue(NamedQueue namedQueue, Object itemToPublish) {
+        OneToOneConcurrentArrayQueue<Object> targetQueue = namedQueue.getTargetQueue();
+        boolean eventNotificationNotReceived = false;
+        long now = -1;
+        while (!eventNotificationNotReceived) {
             eventNotificationNotReceived = targetQueue.offer(itemToPublish);
             if (!eventNotificationNotReceived) {
+                if (now < 0) {
+                    now = System.nanoTime();
+                }
                 java.lang.Thread.onSpinWait();
             }
+        }
+        if(now > 1){
+            long delta = System.nanoTime() - now;
+            log.warning("spin wait took " + (delta / 1_000_000) + "ms queue:" + namedQueue.getName() + " size:" + targetQueue.size() );
         }
     }
 

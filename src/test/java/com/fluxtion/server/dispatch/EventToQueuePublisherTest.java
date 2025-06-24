@@ -8,16 +8,19 @@ package com.fluxtion.server.dispatch;
 import com.fluxtion.agrona.concurrent.OneToOneConcurrentArrayQueue;
 import com.fluxtion.runtime.event.NamedFeedEvent;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class EventToQueuePublisherTest {
 
     @Test
-//    @Disabled
+    @Disabled
     public void testPublishToConsole() {
         EventToQueuePublisher<String> eventToQueue = new EventToQueuePublisher<>("myQueue");
         eventToQueue.setCacheEventLog(true);
@@ -25,7 +28,11 @@ public class EventToQueuePublisherTest {
         OneToOneConcurrentArrayQueue<Object> targetQueue = new OneToOneConcurrentArrayQueue<>(100);
         eventToQueue.addTargetQueue(targetQueue, "outputQueue");
 
-        eventToQueue.publish("A");
+        Executors.newScheduledThreadPool(1).schedule(() -> targetQueue.drain(System.out::println), 100, TimeUnit.MILLISECONDS);
+
+        for (int i = 0; i < 200; i++) {
+            eventToQueue.publish("A-" + i);
+        }
 
         System.out.println("----------- cache start --------------");
         eventToQueue.cache("cache-1");

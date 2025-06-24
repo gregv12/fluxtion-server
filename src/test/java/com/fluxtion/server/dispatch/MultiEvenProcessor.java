@@ -54,9 +54,9 @@ public class MultiEvenProcessor {
             # --------- AGENT THREAD BEGIN CONFIG ---------
             agentThreads:
               - agentName: heartBeatPublisher-thread
-                idleStrategy: !!com.fluxtion.agrona.concurrent.BackoffIdleStrategy { }
+                idleStrategy: !!com.fluxtion.agrona.concurrent.BusySpinIdleStrategy { }
               - agentName: heartBeatProcessor-thread
-                idleStrategy: !!com.fluxtion.agrona.concurrent.BackoffIdleStrategy { }
+                idleStrategy: !!com.fluxtion.agrona.concurrent.BusySpinIdleStrategy { }
             # --------- AGENT THREAD END CONFIG ---------
             """;
 }

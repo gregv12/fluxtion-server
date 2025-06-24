@@ -12,10 +12,10 @@ public class HeartBeatNode extends EventLogNode {
 
     @OnEventHandler
     public boolean heartBeat(HeartbeatEvent time) {
-        long deltaMicros = (System.nanoTime() - time.getTimestamp()) / 1_000_000;
-        auditLog.info("eventCbDeltaMicros", deltaMicros)
-                .debug("debugMessage", deltaMicros);
-        System.out.println("received heartbeat deltaMicros " + deltaMicros);
+        long deltaMicros = (System.nanoTime() - time.getTimestamp()) / 1_000;
+//        auditLog.info("eventCbDeltaMicros", deltaMicros)
+//                .debug("debugMessage", deltaMicros);
+//        System.out.println("deltaMicros " + deltaMicros);
         return true;
     }
 
