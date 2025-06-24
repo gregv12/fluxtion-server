@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
+ * SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -21,6 +21,8 @@ public interface EventSource<T> {
 
     enum EventWrapStrategy {SUBSCRIPTION_NOWRAP, SUBSCRIPTION_NAMED_EVENT, BROADCAST_NOWRAP, BROADCAST_NAMED_EVENT}
 
+    enum SlowConsumerStrategy {DISCONNECT, EXIT_PROCESS, BACKOFF}
+
     void subscribe(EventSubscriptionKey<T> eventSourceKey);
 
     void unSubscribe(EventSubscriptionKey<T> eventSourceKey);
@@ -28,6 +30,9 @@ public interface EventSource<T> {
     void setEventToQueuePublisher(EventToQueuePublisher<T> targetQueue);
 
     default void setEventWrapStrategy(EventWrapStrategy eventWrapStrategy) {
+    }
+
+    default void setSlowConsumerStrategy(EventSource.SlowConsumerStrategy slowConsumerStrategy) {
     }
 
     default void setDataMapper(Function<T, ?> dataMapper) {
