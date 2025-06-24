@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
+ * SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -31,8 +31,9 @@ public class EventFeedConfig<T> {
     private boolean wrapWithNamedEvent = false;
     //event feed management
     private EventSource.EventWrapStrategy eventWrapStrategy = EventSource.EventWrapStrategy.SUBSCRIPTION_NAMED_EVENT;
+    private EventSource.SlowConsumerStrategy slowConsumerStrategy = EventSource.SlowConsumerStrategy.BACKOFF;
     private Function<T, ?> valueMapper = Function.identity();
-    //optional agent configuration
+    //optional agent configurationx
     private String agentName;
     private IdleStrategy idleStrategy;
 
@@ -55,6 +56,7 @@ public class EventFeedConfig<T> {
             }
             EventSource<T> eventSource_t = (EventSource<T>) eventSource;
             eventSource_t.setEventWrapStrategy(eventWrapStrategy);
+            eventSource_t.setSlowConsumerStrategy(slowConsumerStrategy);
             eventSource_t.setDataMapper(valueMapper);
         }
         Service svc = new Service(instance, NamedFeed.class, name);

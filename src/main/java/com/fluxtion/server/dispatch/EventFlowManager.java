@@ -1,7 +1,6 @@
 /*
- * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
+ * SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
- *
  */
 
 package com.fluxtion.server.dispatch;
@@ -169,7 +168,7 @@ public class EventFlowManager {
                         com.fluxtion.server.dispatch.EventToQueuePublisher<?> queue = value.getQueuePublisher();
                         appendable.append("eventSource:").append(key.getSourceName())
                                 .append("\n\treadQueues:\n");
-                        for (com.fluxtion.server.dispatch.EventToQueuePublisher.NamedQueue<?> q : queue.getTargetQueues()) {
+                        for (com.fluxtion.server.dispatch.EventToQueuePublisher.NamedQueue q : queue.getTargetQueues()) {
                             appendable.append("\t\t").append(q.getName()).append(" -> ").append(q.getTargetQueue().toString()).append("\n");
                         }
                     } catch (IOException ex) {
