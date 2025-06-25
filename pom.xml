@@ -20,7 +20,7 @@
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <fluxtion.version>9.7.9</fluxtion.version>
+        <fluxtion.version>9.7.10</fluxtion.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -53,10 +53,9 @@
             <version>${fluxtion.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.fluxtion</groupId>
-            <artifactId>compiler</artifactId>
-            <version>${fluxtion.version}</version>
-            <scope>provided</scope>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>2.4</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
