@@ -27,6 +27,7 @@ import com.fluxtion.server.service.servercontrol.FluxtionServerController;
 import lombok.SneakyThrows;
 import lombok.Value;
 import lombok.extern.java.Log;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
@@ -58,7 +59,9 @@ public class FluxtionServer implements FluxtionServerController {
 
     public static FluxtionServer bootServer(Reader reader, LogRecordListener logRecordListener) {
         log.info("booting server loading config from reader");
-        Yaml yaml = new Yaml();
+        LoaderOptions loaderOptions = new LoaderOptions();
+        loaderOptions.setTagInspector(tag -> true);
+        Yaml yaml = new Yaml(loaderOptions);
         AppConfig appConfig = yaml.loadAs(reader, AppConfig.class);
         log.info("successfully loaded config from reader");
 
