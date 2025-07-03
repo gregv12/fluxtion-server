@@ -62,7 +62,7 @@ public class DeadWheelScheduler implements SchedulerService, Agent {
 
     @Override
     public long milliTime() {
-        long millisToNanos = TimeUnit.NANOSECONDS.toMillis(clock.nanoTime());
+        long millisToNanos = clock.nanoTime() / 1_000_000;//TimeUnit.NANOSECONDS.toMillis(clock.nanoTime());
         return millisToNanos;
     }
 

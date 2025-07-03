@@ -17,6 +17,7 @@ import lombok.Value;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 
@@ -35,18 +36,31 @@ public class EventFlowManager {
     private final ConcurrentHashMap<EventSinkKey<?>, ManyToOneConcurrentArrayQueue<?>> eventSinkToQueueMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<com.fluxtion.server.dispatch.CallBackType, Supplier<EventToInvokeStrategy>> eventToInvokerFactoryMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<EventSourceKey_Subscriber<?>, OneToOneConcurrentArrayQueue<?>> subscriberKeyToQueueMap = new ConcurrentHashMap<>();
-    private final static ThreadLocal<StaticEventProcessor> currentProcessor = new ThreadLocal<>();
+    private final static ThreadLocal<AtomicReference<StaticEventProcessor>> currentProcessor = new ThreadLocal<>();
 
     public static void setCurrentProcessor(StaticEventProcessor eventProcessor) {
-        currentProcessor.set(eventProcessor);
+        AtomicReference<StaticEventProcessor> ref = currentProcessor.get();
+        if (ref == null) {
+            ref = new AtomicReference<>(eventProcessor);
+            currentProcessor.set(ref);
+        }
+        ref.set(eventProcessor);
     }
 
     public static void removeCurrentProcessor() {
-        currentProcessor.remove();
+        AtomicReference<StaticEventProcessor> ref = currentProcessor.get();
+        if (ref != null) {
+            ref.set(null);
+        }
     }
 
     public static StaticEventProcessor currentProcessor() {
-        return currentProcessor.get();
+        AtomicReference<StaticEventProcessor> ref = currentProcessor.get();
+        StaticEventProcessor processor = null;
+        if (ref != null) {
+            processor = ref.get();
+        }
+        return processor;
     }
 
     public EventFlowManager() {
