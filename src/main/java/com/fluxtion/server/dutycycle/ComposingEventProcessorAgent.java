@@ -132,20 +132,22 @@ public class ComposingEventProcessorAgent extends DynamicCompositeAgent implemen
     }
 
     private void checkForAdded() {
-        toStartList.drain(init -> {
-            NamedEventProcessor namedEventProcessor = init.get();
-            StaticEventProcessor eventProcessor = namedEventProcessor.eventProcessor();
-            registeredEventProcessors.put(namedEventProcessor.name(), namedEventProcessor);
-            com.fluxtion.server.dispatch.EventFlowManager.setCurrentProcessor(eventProcessor);
-            eventProcessor.registerService(schedulerService);
-            registeredServices.values().forEach(eventProcessor::registerService);
-            eventProcessor.addEventFeed(this);
-            if (eventProcessor instanceof Lifecycle) {
-                ((Lifecycle) eventProcessor).start();
-                ((Lifecycle) eventProcessor).startComplete();
-            }
-            EventFlowManager.removeCurrentProcessor();
-        });
+        if(!toStartList.isEmpty()) {
+            toStartList.drain(init -> {
+                NamedEventProcessor namedEventProcessor = init.get();
+                StaticEventProcessor eventProcessor = namedEventProcessor.eventProcessor();
+                registeredEventProcessors.put(namedEventProcessor.name(), namedEventProcessor);
+                com.fluxtion.server.dispatch.EventFlowManager.setCurrentProcessor(eventProcessor);
+                eventProcessor.registerService(schedulerService);
+                registeredServices.values().forEach(eventProcessor::registerService);
+                eventProcessor.addEventFeed(this);
+                if (eventProcessor instanceof Lifecycle) {
+                    ((Lifecycle) eventProcessor).start();
+                    ((Lifecycle) eventProcessor).startComplete();
+                }
+                EventFlowManager.removeCurrentProcessor();
+            });
+        }
 
         if (!queueReadersToAdd.isEmpty()) {
             if (status() == Status.ACTIVE && tryAdd(queueReadersToAdd.get(0))) {
@@ -155,6 +157,9 @@ public class ComposingEventProcessorAgent extends DynamicCompositeAgent implemen
     }
 
     private void checkForStopped() {
+        if(toStopList.isEmpty()) {
+            return;
+        }
         toStopList.drain(name -> {
             if (registeredEventProcessors.containsKey(name)) {
                 var eventProcessor = registeredEventProcessors.remove(name).eventProcessor();

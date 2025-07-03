@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class EventToQueuePublisherTest {
@@ -23,10 +25,14 @@ public class EventToQueuePublisherTest {
         EventToQueuePublisher<String> eventToQueue = new EventToQueuePublisher<>("myQueue");
         eventToQueue.setCacheEventLog(true);
 
-        OneToOneConcurrentArrayQueue<String> targetQueue = new OneToOneConcurrentArrayQueue<>(100);
+        OneToOneConcurrentArrayQueue<Object> targetQueue = new OneToOneConcurrentArrayQueue<>(100);
         eventToQueue.addTargetQueue(targetQueue, "outputQueue");
 
-        eventToQueue.publish("A");
+        Executors.newScheduledThreadPool(1).schedule(() -> targetQueue.drain(System.out::println), 100, TimeUnit.MILLISECONDS);
+
+        for (int i = 0; i < 200; i++) {
+            eventToQueue.publish("A-" + i);
+        }
 
         System.out.println("----------- cache start --------------");
         eventToQueue.cache("cache-1");
@@ -51,9 +57,9 @@ public class EventToQueuePublisherTest {
     public void testPublish() {
         EventToQueuePublisher<String> eventToQueue = new EventToQueuePublisher<>("myQueue");
         eventToQueue.setCacheEventLog(true);
-        ArrayList<String> actual = new ArrayList<>();
+        ArrayList<Object> actual = new ArrayList<>();
 
-        OneToOneConcurrentArrayQueue<String> targetQueue = new OneToOneConcurrentArrayQueue<>(100);
+        OneToOneConcurrentArrayQueue<Object> targetQueue = new OneToOneConcurrentArrayQueue<>(100);
         eventToQueue.addTargetQueue(targetQueue, "outputQueue");
 
         eventToQueue.publish("A");

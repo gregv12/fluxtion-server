@@ -79,23 +79,25 @@ public class ComposingServiceAgent extends DynamicCompositeAgent {
     }
 
     private void checkForAdded() {
-        toStartList.drain(serviceAgent -> {
-            toAddList.add(serviceAgent);
-            Service<?> exportedService = serviceAgent.getExportedService();
-            exportedService.init();
-            serviceRegistry.init();
-            serviceRegistry.nodeRegistered(exportedService.instance(), exportedService.serviceName());
-            serviceRegistry.registerService(schedulerService);
-            fluxtionServer.servicesRegistered().forEach(serviceRegistry::registerService);
-            fluxtionServer.registerAgentService(exportedService);
-            exportedService.start();
-        });
+        if(!toStartList.isEmpty()) {
+            toStartList.drain(serviceAgent -> {
+                toAddList.add(serviceAgent);
+                Service<?> exportedService = serviceAgent.getExportedService();
+                exportedService.init();
+                serviceRegistry.init();
+                serviceRegistry.nodeRegistered(exportedService.instance(), exportedService.serviceName());
+                serviceRegistry.registerService(schedulerService);
+                fluxtionServer.servicesRegistered().forEach(serviceRegistry::registerService);
+                fluxtionServer.registerAgentService(exportedService);
+                exportedService.start();
+            });
+        }
 
         if (!toAddList.isEmpty() && status() == Status.ACTIVE && tryAdd(toAddList.peek().getDelegate())) {
             toAddList.poll();
         }
 
-        if (startUpComplete.get()) {
+        if (startUpComplete.get() & !toCallStartupCompleteList.isEmpty()) {
             toCallStartupCompleteList.drain(s -> {
                 s.getExportedService().startComplete();
             });

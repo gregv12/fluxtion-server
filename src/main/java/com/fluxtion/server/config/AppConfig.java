@@ -31,11 +31,11 @@ public class AppConfig {
     /**
      * Return an {@link IdleStrategy}, looking up from config if the supplied strategy is null
      *
-     * @param agentName                The name of the agent in {@link ThreadConfig}
      * @param preferredIdeIdleStrategy the preferred idle strategy to use
+     * @param agentName                The name of the agent in {@link ThreadConfig}
      * @return An IdleStrategy
      */
-    public IdleStrategy lookupIdleStrategyWhenNull(String agentName, IdleStrategy preferredIdeIdleStrategy) {
+    public IdleStrategy lookupIdleStrategyWhenNull(IdleStrategy preferredIdeIdleStrategy, String agentName) {
         if (preferredIdeIdleStrategy == null) {
             return agentThreads.stream().filter(cfg -> cfg.getAgentName().equals(agentName))
                     .findFirst()
