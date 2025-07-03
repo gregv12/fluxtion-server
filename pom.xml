@@ -9,7 +9,7 @@
 
     <groupId>com.fluxtion</groupId>
     <artifactId>server</artifactId>
-    <version>0.1.65</version>
+    <version>0.1.66-SNAPSHOT</version>
     <name>fluxtion :: server</name>
 
     <description>
@@ -43,7 +43,7 @@
         <connection>scm:git:https://github.com/gregv12/fluxtion-server.git</connection>
         <developerConnection>scm:git:https://github.com/gregv12/fluxtion-server.git</developerConnection>
         <url>https://github.com/gregv12/fluxtion-server</url>
-        <tag>v0.1.65</tag>
+        <tag>v0.1.61</tag>
     </scm>
 
     <dependencies>
