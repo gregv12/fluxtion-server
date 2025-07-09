@@ -159,7 +159,7 @@ This design enables developers to create custom implementations while maintainin
 ### Component Types
 
 ```mermaid
-mermaid graph TD A[Plugin System] --> B[Event Feeds] A --> C[Event Sinks] A --> D[Services] A --> E[Event Handlers]
+graph TD A[Plugin System] --> B[Event Feeds] A --> C[Event Sinks] A --> D[Services] A --> E[Event Handlers]
 
 subgraph "Configuration"
     F[YAML Config]
