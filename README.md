@@ -127,28 +127,41 @@ EH --> ESK[Event Sinks]
 ## Configuration
 
 Fluxtion Server uses YAML configuration files for setup. Configure using the system property:
+
+```shell
 java -Dfluxtionserver.config.file=path/to/config.yaml
-
+```
+Sample yaml 
 ```yaml
+# --------- EVENT INPUT FEEDS BEGIN CONFIG ---------
 eventFeeds:
-  - name: marketDataFeed
-    agent: true
-    # source configuration
+  - instance: !!com.fluxtion.server.dispatch.HeartBeatEventFeed { }
+    name: heartBeater
+    agentName: heartBeatPublisher-thread
+    broadcast: true
+# --------- EVENT INPUT FEEDS END CONFIG ---------
 
+# --------- EVENT HANDLERS BEGIN CONFIG ---------
 eventHandlers:
-  - agentName: processingGroup1
-    logLevel: INFO
-    idleStrategy: BUSY_SPIN
+  - agentName: heartBeatProcessor-thread
     eventHandlers:
-    handler1:
-    # handler specific config
-    handler2:
-    # handler specific config
-
-eventSinks:
-  - name: databaseWriter
-    agent: true
-    # sink configuration
+       # handler specific config
+        heartBeatProcessor_1:
+        eventHandler: !!com.fluxtion.server.dispatch.HeartBeatExampleProcessor {
+        logLevel: DEBUG
+      # handler specific config
+        heartBeatProcessor_2:
+        eventHandler: !!com.fluxtion.server.dispatch.HeartBeatExampleProcessor {
+        logLevel: DEBUG
+# --------- EVENT HANDLERS END CONFIG ---------
+        
+# --------- AGENT THREAD BEGIN CONFIG ---------
+agentThreads:
+  - agentName: heartBeatPublisher-thread
+    idleStrategy: !!com.fluxtion.agrona.concurrent.BusySpinIdleStrategy { }
+  - agentName: heartBeatProcessor-thread
+    idleStrategy: !!com.fluxtion.agrona.concurrent.BusySpinIdleStrategy { }
+# --------- AGENT THREAD END CONFIG ---------
 ```
 
 ## Plugin-Based Architecture
