@@ -160,7 +160,10 @@ This design enables developers to create custom implementations while maintainin
 
 ```mermaid
 graph TD 
-A[Plugin System] --> B[Event Feeds] A --> C[Event Sinks] A --> D[Services] A --> E[Event Handlers]
+A[Plugin System] --> B[Event Feeds] 
+A --> C[Event Sinks] 
+A --> D[Services] 
+A --> E[Event Handlers]
 
 subgraph "Configuration"
     F[YAML Config]
