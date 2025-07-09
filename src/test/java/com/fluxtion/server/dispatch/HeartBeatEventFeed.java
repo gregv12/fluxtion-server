@@ -33,7 +33,7 @@ public class HeartBeatEventFeed extends AbstractAgentHostedEventSourceService<He
     @Override
     public int doWork() throws Exception {
         long currentNanoTime = System.nanoTime();
-        if (currentNanoTime - publishTime > 450) {
+        if (currentNanoTime - publishTime > 750) {
             publishTime = currentNanoTime;
             heartbeatEvent.setTimestamp(System.nanoTime());
             output.publish(heartbeatEvent);

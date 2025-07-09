@@ -23,30 +23,29 @@ events from multiple sources through configurable processing pipelines to variou
 - **Configurability**: YAML-based configuration
 - **Error Handling**: Built-in error management and logging
 - **Scheduling**: Deadline-based task scheduling
-- **Modularity**: Service-oriented architecture
+- **Modularity**: Service-oriented plugin-based architecture
 
 ### Key Features
 
 1. **Group-Based Processing**
-   - Handlers are organized into named groups
-   - Each group operates independently
-   - Allows for logical separation of concerns
+    - Handlers are organized into named groups
+    - Each group operates independently
+    - Allows for logical separation of concerns
 
 2. **Configuration Control**
-   - Log levels can be set per group or handler
-   - Idle strategies are configurable
-   - Supports runtime configuration updates
+    - Log levels can be set per group or handler
+    - Idle strategies are configurable
+    - Supports runtime configuration updates
 
 3. **Performance Optimization**
-   - Agent-based concurrent execution
-   - Configurable idle strategies
-   - Group-based threading model
+    - Agent-based concurrent execution
+    - Configurable idle strategies
+    - Group-based threading model
 
 4. **Dynamic Management**
-   - Handlers can be added/removed at runtime
-   - Support for hot configuration updates
-   - Dynamic service registration
-
+    - Handlers can be added/removed at runtime
+    - Support for hot configuration updates
+    - Dynamic service registration
 
 ## Event Processing Architecture
 
@@ -128,29 +127,176 @@ EH --> ESK[Event Sinks]
 ## Configuration
 
 Fluxtion Server uses YAML configuration files for setup. Configure using the system property:
+
+```shell
 java -Dfluxtionserver.config.file=path/to/config.yaml
-
-```yaml
-eventFeeds:
-  - name: marketDataFeed
-    agent: true
-    # source configuration
-
-eventHandlers:
-  - agentName: processingGroup1
-    logLevel: INFO
-    idleStrategy: BUSY_SPIN
-    eventHandlers:
-    handler1:
-    # handler specific config
-    handler2:
-    # handler specific config
-
-eventSinks:
-  - name: databaseWriter
-    agent: true
-    # sink configuration
 ```
+Sample yaml 
+```yaml
+# --------- EVENT INPUT FEEDS BEGIN CONFIG ---------
+eventFeeds:
+  - instance: !!com.fluxtion.server.dispatch.HeartBeatEventFeed { }
+    name: heartBeater
+    agentName: heartBeatPublisher-thread
+    broadcast: true
+# --------- EVENT INPUT FEEDS END CONFIG ---------
+
+# --------- EVENT HANDLERS BEGIN CONFIG ---------
+eventHandlers:
+  - agentName: heartBeatProcessor-thread
+    eventHandlers:
+       # handler specific config
+        heartBeatProcessor_1:
+        eventHandler: !!com.fluxtion.server.dispatch.HeartBeatExampleProcessor {
+        logLevel: DEBUG
+      # handler specific config
+        heartBeatProcessor_2:
+        eventHandler: !!com.fluxtion.server.dispatch.HeartBeatExampleProcessor {
+        logLevel: DEBUG
+# --------- EVENT HANDLERS END CONFIG ---------
+        
+# --------- AGENT THREAD BEGIN CONFIG ---------
+agentThreads:
+  - agentName: heartBeatPublisher-thread
+    idleStrategy: !!com.fluxtion.agrona.concurrent.BusySpinIdleStrategy { }
+  - agentName: heartBeatProcessor-thread
+    idleStrategy: !!com.fluxtion.agrona.concurrent.BusySpinIdleStrategy { }
+# --------- AGENT THREAD END CONFIG ---------
+```
+
+To run the sample app execute [MultiEvenProcessor](src/test/java/com/fluxtion/server/dispatch/HeartBeatEventFeed.java)
+
+The server tries to publish just over 1 million messages per second from the [HeartBeatEventFeed](src/test/java/com/fluxtion/server/dispatch/HeartBeatEventFeed.java)
+to two separate event handlers, [HeartBeatExampleProcessor](src/test/java/com/fluxtion/server/dispatch/HeartBeatExampleProcessor.java),
+each receiving callbacks on their own thread.
+
+## Plugin-Based Architecture
+
+Fluxtion Server implements a flexible plugin-based architecture that allows for easy extension of all major components.
+This design enables developers to create custom implementations while maintaining consistency and reliability.
+
+### Component Types
+
+```mermaid
+graph TD 
+A[Plugin System] --> B[Event Feeds] 
+A --> C[Event Sinks] 
+A --> D[Services] 
+A --> E[Event Handlers]
+
+subgraph "Configuration"
+    F[YAML Config]
+    G[Thread Config]
+    H[Idle Strategy]
+end
+
+F --> A
+
+```
+
+### 1. Event Feeds
+
+- **Purpose**: Source of events into the system
+- **Extension Points**:
+    - Custom data source integration
+    - Protocol implementations
+    - Input format handlers
+    - Data transformation
+  
+### 2. Event Sinks
+
+- **Purpose**: Output handlers for processed events
+- **Extension Points**:
+    - Custom output formats
+    - External system integration
+    - Data transformation
+
+### 3. Services
+- **Purpose**: Provide business logic and functionality
+- **Extension Points**:
+   - Custom business logic
+   - Integration services
+   - Utility services
+
+### 4. Event Handlers
+- **Purpose**: Process and transform events
+- **Extension Points**:
+   - Custom event processing logic
+   - Event transformation
+   - Business rules implementation
+
+### Idle Strategies
+- BUSY_SPIN
+- YIELDING
+- SLEEPING
+- CUSTOM
+
+## Plugin Lifecycle
+
+1. **Registration**
+   - Plugins are registered through configuration
+   - Dynamic loading at runtime
+   - Validation of plugin configuration
+
+2. **Initialization**
+   - Configuration injection
+   - Resource allocation
+   - Connection establishment
+
+3. **Execution**
+   - Plugin execution in configured thread context
+   - Event processing
+   - Service provision
+
+4. **Shutdown**
+   - Resource cleanup
+   - Connection termination
+   - State persistence
+
+## Best Practices
+
+1. **Plugin Development**
+   - Implement necessary interfaces
+   - Follow thread-safety guidelines
+   - Handle errors appropriately
+   - Document configuration requirements
+
+2. **Configuration Management**
+   - Use clear naming conventions
+   - Document plugin configurations
+   - Version plugin implementations
+   - Test configurations before deployment
+
+3. **Performance Considerations**
+   - Choose appropriate idle strategies
+   - Monitor plugin performance
+   - Optimize resource usage
+
+4. **Error Handling**
+   - Implement proper error handling
+   - Provide meaningful error messages
+   - Consider fallback strategies
+   - Log relevant information
+
+## Testing Plugins
+
+1. **Unit Testing**
+   - Test plugin logic
+   - Verify configuration handling
+   - Check error scenarios
+
+2. **Integration Testing**
+   - Test plugin interaction
+   - Verify event flow
+   - Check resource management
+
+3. **Performance Testing**
+   - Measure throughput
+   - Check resource usage
+   - Verify scaling capabilities
+
+This plugin architecture provides a flexible and extensible system for adding new functionality to Fluxtion Server 
+while maintaining consistency and reliability across all components.
 
 ## Server Lifecycle
 
@@ -177,8 +323,6 @@ eventSinks:
     - Monitoring of handler performance
     - Dynamic updates to configuration
     - Addition or removal of handlers
-
-
 
 ## Usage
 
