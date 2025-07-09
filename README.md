@@ -164,7 +164,7 @@ agentThreads:
 # --------- AGENT THREAD END CONFIG ---------
 ```
 
-To run the sample app execute [MultiEvenProcessor](src/test/java/com/fluxtion/server/dispatch/HeartBeatEventFeed.java)
+To run the sample app execute [MultiEvenProcessor](src/test/java/com/fluxtion/server/dispatch/MultiEvenProcessor.java)
 
 The server tries to publish just over 1 million messages per second from the [HeartBeatEventFeed](src/test/java/com/fluxtion/server/dispatch/HeartBeatEventFeed.java)
 to two separate event handlers, [HeartBeatExampleProcessor](src/test/java/com/fluxtion/server/dispatch/HeartBeatExampleProcessor.java),
