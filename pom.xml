@@ -21,7 +21,7 @@
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <fluxtion.version>9.7.13</fluxtion.version>
+        <fluxtion.version>9.7.14</fluxtion.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
