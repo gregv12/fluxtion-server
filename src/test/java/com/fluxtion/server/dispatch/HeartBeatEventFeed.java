@@ -1,15 +1,18 @@
+/*
+ * SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 package com.fluxtion.server.dispatch;
 
 import com.fluxtion.runtime.annotations.Start;
 import com.fluxtion.server.service.AbstractAgentHostedEventSourceService;
 
-import java.time.Duration;
-import java.util.concurrent.atomic.AtomicLong;
-
 public class HeartBeatEventFeed extends AbstractAgentHostedEventSourceService<HeartbeatEvent> {
+    public static final int PUBLISH_INTERVAL = 750;//1_000_000_000
     private HeartbeatEvent heartbeatEvent = new HeartbeatEvent();
     private long publishTime = -1;
-    
+
     // Add counters for message rate tracking
     private int messageCount = 0;
     private long lastPrintTime = System.currentTimeMillis();
@@ -33,7 +36,8 @@ public class HeartBeatEventFeed extends AbstractAgentHostedEventSourceService<He
     @Override
     public int doWork() throws Exception {
         long currentNanoTime = System.nanoTime();
-        if (currentNanoTime - publishTime > 750) {
+        if (currentNanoTime - publishTime > PUBLISH_INTERVAL) {
+        if (currentNanoTime - publishTime > 1_000_000_000) {
             publishTime = currentNanoTime;
             heartbeatEvent.setTimestamp(System.nanoTime());
             output.publish(heartbeatEvent);

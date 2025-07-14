@@ -59,4 +59,33 @@ public class MultiEvenProcessor {
                 idleStrategy: !!com.fluxtion.agrona.concurrent.BusySpinIdleStrategy { }
             # --------- AGENT THREAD END CONFIG ---------
             """;
+
+    private static String configWrapHandler = """            
+            # --------- EVENT INPUT FEEDS BEGIN CONFIG ---------
+            eventFeeds:
+            #  - instance: !!com.fluxtion.server.dispatch.HeartBeatEventFeed { }
+              - instance: !!com.fluxtion.server.dispatch.HeartBeatEventFeed { }
+                name: heartBeater
+                agentName: heartBeatPublisher-thread
+                broadcast: true
+            # --------- EVENT INPUT FEEDS END CONFIG ---------
+            
+            
+            # --------- EVENT HANDLERS BEGIN CONFIG ---------
+            eventHandlers:
+              - agentName: heartBeatProcessor-thread
+                eventHandlers:
+                  heartBeatProcessor_1:
+                    eventHandler: !!com.fluxtion.runtime.DefaultEventProcessor { }
+                    logLevel: DEBUG
+            # --------- EVENT HANDLERS END CONFIG ---------
+            
+            # --------- AGENT THREAD BEGIN CONFIG ---------
+            agentThreads:
+              - agentName: heartBeatPublisher-thread
+                idleStrategy: !!com.fluxtion.agrona.concurrent.BusySpinIdleStrategy { }
+              - agentName: heartBeatProcessor-thread
+                idleStrategy: !!com.fluxtion.agrona.concurrent.BusySpinIdleStrategy { }
+            # --------- AGENT THREAD END CONFIG ---------
+            """;
 }
