@@ -7,10 +7,15 @@ package com.fluxtion.server.dispatch;
 
 import com.fluxtion.runtime.annotations.Start;
 import com.fluxtion.server.service.AbstractAgentHostedEventSourceService;
+import lombok.Getter;
+import lombok.Setter;
 
 public class HeartBeatEventFeed extends AbstractAgentHostedEventSourceService<HeartbeatEvent> {
-    public static final int PUBLISH_INTERVAL = 750;//1_000_000_000
-    private HeartbeatEvent heartbeatEvent = new HeartbeatEvent();
+    //    public static final int PUBLISH_INTERVAL = 750;
+    @Getter
+    @Setter
+    private int publishIntervalNanos = 500_000_000;
+    private final HeartbeatEvent heartbeatEvent = new HeartbeatEvent();
     private long publishTime = -1;
 
     // Add counters for message rate tracking
@@ -36,8 +41,7 @@ public class HeartBeatEventFeed extends AbstractAgentHostedEventSourceService<He
     @Override
     public int doWork() throws Exception {
         long currentNanoTime = System.nanoTime();
-        if (currentNanoTime - publishTime > PUBLISH_INTERVAL) {
-        if (currentNanoTime - publishTime > 1_000_000_000) {
+        if (currentNanoTime - publishTime > publishIntervalNanos) {
             publishTime = currentNanoTime;
             heartbeatEvent.setTimestamp(System.nanoTime());
             output.publish(heartbeatEvent);
