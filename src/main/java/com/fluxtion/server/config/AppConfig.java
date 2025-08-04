@@ -28,6 +28,8 @@ public class AppConfig {
     //agent thread config
     private List<ThreadConfig> agentThreads;
 
+    private IdleStrategy idleStrategy = new YieldingIdleStrategy();
+
     /**
      * Return an {@link IdleStrategy}, looking up from config if the supplied strategy is null
      *
@@ -36,7 +38,9 @@ public class AppConfig {
      * @return An IdleStrategy
      */
     public IdleStrategy lookupIdleStrategyWhenNull(IdleStrategy preferredIdeIdleStrategy, String agentName) {
-        if (preferredIdeIdleStrategy == null) {
+        if (preferredIdeIdleStrategy == null && agentThreads == null) {
+            return idleStrategy;
+        } else if (preferredIdeIdleStrategy == null) {
             return agentThreads.stream().filter(cfg -> cfg.getAgentName().equals(agentName))
                     .findFirst()
                     .map(ThreadConfig::getIdleStrategy)
