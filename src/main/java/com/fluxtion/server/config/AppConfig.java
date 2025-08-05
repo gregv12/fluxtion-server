@@ -55,6 +55,9 @@ public class AppConfig {
      * @return An IdleStrategy
      */
     public IdleStrategy getIdleStrategyOrDefault(String agentName, IdleStrategy defaultIdeIdleStrategy) {
+        if (agentThreads == null) {
+            return defaultIdeIdleStrategy;
+        }
         var idleStrategy = agentThreads.stream().filter(cfg -> cfg.getAgentName().equals(agentName))
                 .findFirst()
                 .map(ThreadConfig::getIdleStrategy)
