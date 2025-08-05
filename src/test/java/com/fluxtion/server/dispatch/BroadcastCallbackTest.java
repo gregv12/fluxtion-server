@@ -9,6 +9,10 @@ import com.fluxtion.server.FluxtionServer;
 import com.fluxtion.server.config.AppConfig;
 import com.fluxtion.server.config.EventProcessorConfig;
 import com.fluxtion.server.config.EventProcessorGroupConfig;
+import com.fluxtion.server.config.ServiceConfig;
+import com.fluxtion.server.service.admin.AdminCommandRegistry;
+import com.fluxtion.server.service.admin.impl.AdminCommandProcessor;
+import com.fluxtion.server.service.admin.impl.CliAdminCommandProcessor;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -29,10 +33,18 @@ public class BroadcastCallbackTest {
         eventProcessorGroupConfig.setAgentName("testHandler");
         eventProcessorGroupConfig.setEventHandlers(handlerConfigMap);
 
+        //admin service
+        ServiceConfig<AdminCommandRegistry> adminRegistryConfig = new ServiceConfig<>(new AdminCommandProcessor(), AdminCommandRegistry.class, "adminService");
+        ServiceConfig<?> adminCli = new ServiceConfig<>()
+                .service(new CliAdminCommandProcessor())
+                .name("adminCli");
 
+        //whole config
         AppConfig appConfig = new AppConfig();
         appConfig.setEventHandlers(List.of(eventProcessorGroupConfig));
+        appConfig.setServices(List.of(adminRegistryConfig));
 
+        //boot the server
         FluxtionServer.bootServer(appConfig, System.out::println);
 
         Thread.sleep(1_000_000);
