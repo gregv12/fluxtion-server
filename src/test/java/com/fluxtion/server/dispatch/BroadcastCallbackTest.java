@@ -50,4 +50,30 @@ public class BroadcastCallbackTest {
         Thread.sleep(1_000_000);
 
     }
+
+    public static void main(String[] args) {
+        EventProcessorConfig<?> eventProcessorConfig = new EventProcessorConfig<>();
+        eventProcessorConfig.setCustomHandler(new MyCustomEventHandler());
+
+        Map<String, EventProcessorConfig<?>> handlerConfigMap = new HashMap<>();
+        handlerConfigMap.put("customHandler", eventProcessorConfig);
+
+        EventProcessorGroupConfig eventProcessorGroupConfig = new EventProcessorGroupConfig();
+        eventProcessorGroupConfig.setAgentName("testHandler");
+        eventProcessorGroupConfig.setEventHandlers(handlerConfigMap);
+
+        //admin service
+        ServiceConfig<AdminCommandRegistry> adminRegistryConfig = new ServiceConfig<>(new AdminCommandProcessor(), AdminCommandRegistry.class, "adminService");
+        ServiceConfig<?> adminCli = new ServiceConfig<>()
+                .service(new CliAdminCommandProcessor())
+                .name("adminCli");
+
+        //whole config
+        AppConfig appConfig = new AppConfig();
+        appConfig.setEventHandlers(List.of(eventProcessorGroupConfig));
+        appConfig.setServices(List.of(adminRegistryConfig, adminCli));
+
+        //boot the server
+        FluxtionServer.bootServer(appConfig, System.out::println);
+    }
 }
