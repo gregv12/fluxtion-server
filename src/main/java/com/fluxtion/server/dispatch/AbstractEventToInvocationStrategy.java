@@ -32,18 +32,26 @@ public abstract class AbstractEventToInvocationStrategy implements EventToInvoke
     protected static final Map<StaticEventProcessor, AtomicLong> syntheticClocks = new ConcurrentHashMap<>();
     protected static final AtomicLong syntheticClock = new AtomicLong();
     private final long id;
+    private final boolean fineLogEnabled;
 
     public AbstractEventToInvocationStrategy() {
         this.id = syntheticClock.incrementAndGet();
-        log.fine(() -> "AbstractEventToInvocationStrategy created with id: " + id);
+        fineLogEnabled = log.isLoggable(java.util.logging.Level.FINE);
+        if( fineLogEnabled){
+            log.fine(() -> "AbstractEventToInvocationStrategy created with id: " + id);
+        }
     }
 
     @Override
     public void processEvent(Object event) {
-        log.fine(() -> "invokerId: " + id + " processEvent: " + event + " to " + eventProcessorSinks.size() + " processors");
+        if( fineLogEnabled){
+            log.fine(() -> "invokerId: " + id + " processEvent: " + event + " to " + eventProcessorSinks.size() + " processors");
+        }
         for (int i = 0, targetQueuesSize = eventProcessorSinks.size(); i < targetQueuesSize; i++) {
             StaticEventProcessor eventProcessor = eventProcessorSinks.get(i);
-            log.fine(() -> "invokerId: " + id + " dispatchEvent to " + eventProcessor);
+            if( fineLogEnabled){
+                log.fine(() -> "invokerId: " + id + " dispatchEvent to " + eventProcessor);
+            }
             com.fluxtion.server.dispatch.EventFlowManager.setCurrentProcessor(eventProcessor);
             dispatchEvent(event, eventProcessor);
             EventFlowManager.removeCurrentProcessor();
