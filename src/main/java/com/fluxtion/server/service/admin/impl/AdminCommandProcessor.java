@@ -129,8 +129,7 @@ public class AdminCommandProcessor implements EventFlowService, AdminCommandRegi
 
         com.fluxtion.server.dispatch.EventSubscriptionKey<?> subscriptionKey = new com.fluxtion.server.dispatch.EventSubscriptionKey<>(
                 new com.fluxtion.server.dispatch.EventSourceKey<>(queueKey),
-                AdminCallbackType.class,
-                queueKey
+                AdminCallbackType.class
         );
 
         staticEventProcessor.getSubscriptionManager().subscribe(subscriptionKey);

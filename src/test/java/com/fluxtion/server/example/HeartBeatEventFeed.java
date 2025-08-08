@@ -3,10 +3,11 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-package com.fluxtion.server.dispatch;
+package com.fluxtion.server.example;
 
 import com.fluxtion.runtime.annotations.Start;
 import com.fluxtion.server.service.AbstractAgentHostedEventSourceService;
+import com.fluxtion.server.test.HeartbeatEvent;
 import lombok.Getter;
 import lombok.Setter;
 
