@@ -3,10 +3,11 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-package com.fluxtion.server.dispatch;
+package com.fluxtion.server.example;
 
 import com.fluxtion.runtime.annotations.OnEventHandler;
 import com.fluxtion.runtime.audit.EventLogNode;
+import com.fluxtion.server.test.HeartbeatEvent;
 
 public class HeartBeatNode extends EventLogNode {
 

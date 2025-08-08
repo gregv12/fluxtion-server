@@ -8,6 +8,7 @@ package com.fluxtion.server.dispatch;
 
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.feature.Experimental;
+import lombok.extern.java.Log;
 
 import java.util.List;
 import java.util.Map;
@@ -24,15 +25,25 @@ import java.util.concurrent.atomic.AtomicLong;
  * </ul>
  */
 @Experimental
+@Log
 public abstract class AbstractEventToInvocationStrategy implements EventToInvokeStrategy {
 
     protected final List<StaticEventProcessor> eventProcessorSinks = new CopyOnWriteArrayList<>();
     protected static final Map<StaticEventProcessor, AtomicLong> syntheticClocks = new ConcurrentHashMap<>();
+    protected static final AtomicLong syntheticClock = new AtomicLong();
+    private final long id;
+
+    public AbstractEventToInvocationStrategy() {
+        this.id = syntheticClock.incrementAndGet();
+        log.fine(() -> "AbstractEventToInvocationStrategy created with id: " + id);
+    }
 
     @Override
     public void processEvent(Object event) {
+        log.fine(() -> "invokerId: " + id + " processEvent: " + event + " to " + eventProcessorSinks.size() + " processors");
         for (int i = 0, targetQueuesSize = eventProcessorSinks.size(); i < targetQueuesSize; i++) {
             StaticEventProcessor eventProcessor = eventProcessorSinks.get(i);
+            log.fine(() -> "invokerId: " + id + " dispatchEvent to " + eventProcessor);
             com.fluxtion.server.dispatch.EventFlowManager.setCurrentProcessor(eventProcessor);
             dispatchEvent(event, eventProcessor);
             EventFlowManager.removeCurrentProcessor();
@@ -65,6 +76,9 @@ public abstract class AbstractEventToInvocationStrategy implements EventToInvoke
     public void registerProcessor(StaticEventProcessor eventProcessor) {
         if (isValidTarget(eventProcessor) && !eventProcessorSinks.contains(eventProcessor)) {
             eventProcessorSinks.add(eventProcessor);
+            log.fine(() -> "invokerId: " + id + " registerProcessor: " + eventProcessor + " added to " + eventProcessorSinks.size() + " processors");
+        } else {
+            log.warning("invokerId: " + id + " registerProcessor: " + eventProcessor + " is not a valid target");
         }
     }
 

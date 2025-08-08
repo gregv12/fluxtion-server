@@ -66,8 +66,7 @@ public abstract class AbstractEventSourceService<T>
         output.setDataMapper(dataMapper);
         subscriptionKey = new EventSubscriptionKey<>(
                 new EventSourceKey<>(serviceName),
-                eventToInvokeType,
-                name
+                eventToInvokeType
         );
 
         if (eventToInokeStrategySupplier != null) {
