@@ -10,6 +10,7 @@ import com.fluxtion.server.config.AppConfig;
 import com.fluxtion.server.config.EventProcessorConfig;
 import com.fluxtion.server.config.EventProcessorGroupConfig;
 import com.fluxtion.server.config.ServiceConfig;
+import com.fluxtion.server.example.MyCustomEventHandler;
 import com.fluxtion.server.service.admin.AdminCommandRegistry;
 import com.fluxtion.server.service.admin.impl.AdminCommandProcessor;
 import com.fluxtion.server.service.admin.impl.CliAdminCommandProcessor;
