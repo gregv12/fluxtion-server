@@ -48,7 +48,7 @@ public class BroadcastCallbackTest {
         //boot the server
         FluxtionServer.bootServer(appConfig, System.out::println);
 
-        Thread.sleep(1_000_000);
+//        Thread.sleep(1_000_000);
 
     }
 
