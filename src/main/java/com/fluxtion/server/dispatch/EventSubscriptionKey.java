@@ -25,4 +25,15 @@ public class EventSubscriptionKey<T> {
         this.eventSourceKey = eventSourceKey;
         this.callBackType = callBackType;
     }
+
+    /**
+     * Create a subscription key for a specific event source and call back type.
+     * @param eventSourceKey
+     * @param callBackType
+     * @param qualifier - IGNORED for non breaking backward compatibility
+     */
+    public EventSubscriptionKey(EventSourceKey<T> eventSourceKey, CallBackType callBackType, Object qualifier) {
+        this.eventSourceKey = eventSourceKey;
+        this.callBackType = callBackType;
+    }
 }
