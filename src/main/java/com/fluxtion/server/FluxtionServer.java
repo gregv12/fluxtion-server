@@ -127,7 +127,8 @@ public class FluxtionServer implements FluxtionServerController {
             appConfig.getEventHandlers().forEach(cfg -> {
                 final EventLogControlEvent.LogLevel defaultLogLevel = cfg.getLogLevel() == null ? EventLogControlEvent.LogLevel.INFO : cfg.getLogLevel();
                 String groupName = cfg.getAgentName();
-                IdleStrategy idleStrategy = appConfig.lookupIdleStrategyWhenNull(cfg.getIdleStrategy(), cfg.getAgentName());
+                IdleStrategy idleStrategy1 = cfg.getIdleStrategy();
+                IdleStrategy idleStrategy = appConfig.lookupIdleStrategyWhenNull(idleStrategy1, cfg.getAgentName());
                 cfg.getEventHandlers().entrySet().forEach(handlerEntry -> {
                     String name = handlerEntry.getKey();
                     try {
