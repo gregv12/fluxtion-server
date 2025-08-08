@@ -19,7 +19,7 @@
 *
 <http://www.mongodb.com/licensing/server-side-public-license>.
 */
-package com.fluxtion.server.dispatch;
+package com.fluxtion.server.example;
 
 import com.fluxtion.runtime.EventProcessor;
 import com.fluxtion.runtime.StaticEventProcessor;
@@ -45,6 +45,7 @@ import com.fluxtion.runtime.service.ServiceListener;
 import com.fluxtion.runtime.service.ServiceRegistryNode;
 import com.fluxtion.runtime.time.Clock;
 import com.fluxtion.runtime.time.ClockStrategy.ClockStrategyEvent;
+import com.fluxtion.server.test.HeartbeatEvent;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
