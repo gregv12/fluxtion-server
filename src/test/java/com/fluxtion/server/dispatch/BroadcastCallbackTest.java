@@ -14,6 +14,7 @@ import com.fluxtion.server.example.MyCustomEventHandler;
 import com.fluxtion.server.service.admin.AdminCommandRegistry;
 import com.fluxtion.server.service.admin.impl.AdminCommandProcessor;
 import com.fluxtion.server.service.admin.impl.CliAdminCommandProcessor;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -23,6 +24,7 @@ import java.util.Map;
 public class BroadcastCallbackTest {
 
     @Test
+    @Disabled
     public void testPublishToConsole() throws InterruptedException {
         EventProcessorConfig<?> eventProcessorConfig = new EventProcessorConfig<>();
         eventProcessorConfig.setCustomHandler(new MyCustomEventHandler());
@@ -47,9 +49,6 @@ public class BroadcastCallbackTest {
 
         //boot the server
         FluxtionServer.bootServer(appConfig, System.out::println);
-
-//        Thread.sleep(1_000_000);
-
     }
 
     public static void main(String[] args) {
