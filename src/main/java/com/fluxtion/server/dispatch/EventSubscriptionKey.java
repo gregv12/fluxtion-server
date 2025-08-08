@@ -14,19 +14,26 @@ import lombok.Value;
 public class EventSubscriptionKey<T> {
     com.fluxtion.server.dispatch.EventSourceKey<T> eventSourceKey;
     com.fluxtion.server.dispatch.CallBackType callBackType;
-    Object subscriptionQualifier;
 
     public EventSubscriptionKey(EventSourceKey<T> eventSourceKey,
-                                Class<?> callBackClass,
-                                Object subscriptionQualifier) {
+                                Class<?> callBackClass) {
         this.eventSourceKey = eventSourceKey;
         this.callBackType = CallBackType.forClass(callBackClass);
-        this.subscriptionQualifier = subscriptionQualifier;
     }
 
-    public EventSubscriptionKey(EventSourceKey<T> eventSourceKey, CallBackType callBackType, Object subscriptionQualifier) {
+    public EventSubscriptionKey(EventSourceKey<T> eventSourceKey, CallBackType callBackType) {
         this.eventSourceKey = eventSourceKey;
         this.callBackType = callBackType;
-        this.subscriptionQualifier = subscriptionQualifier;
+    }
+
+    /**
+     * Create a subscription key for a specific event source and call back type.
+     * @param eventSourceKey
+     * @param callBackType
+     * @param qualifier - IGNORED for non breaking backward compatibility
+     */
+    public EventSubscriptionKey(EventSourceKey<T> eventSourceKey, CallBackType callBackType, Object qualifier) {
+        this.eventSourceKey = eventSourceKey;
+        this.callBackType = callBackType;
     }
 }

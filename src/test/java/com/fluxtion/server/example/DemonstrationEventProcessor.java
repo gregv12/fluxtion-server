@@ -3,22 +3,25 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-package com.fluxtion.server.dispatch;
+package com.fluxtion.server.example;
 
 import com.fluxtion.server.FluxtionServer;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.StringReader;
 
-public class MultiEvenProcessor {
+public class DemonstrationEventProcessor {
 
     @Test
+    @Disabled
     public void customHandlerTest() throws InterruptedException {
         FluxtionServer.bootServer(new StringReader(configWrapHandler), System.out::println);
         Thread.sleep(1_000_000);
     }
 
     @Test
+    @Disabled
     public void performanceTest() throws InterruptedException {
         FluxtionServer.bootServer(new StringReader(configPerformance), System.out::println);
         Thread.sleep(1_000_000);
@@ -27,7 +30,7 @@ public class MultiEvenProcessor {
     private final static String configPerformance = """            
             # --------- EVENT INPUT FEEDS BEGIN CONFIG ---------
             eventFeeds:
-              - instance: !!com.fluxtion.server.dispatch.HeartBeatEventFeed
+              - instance: !!com.fluxtion.server.example.HeartBeatEventFeed
                   publishIntervalNanos: 750
                 name: heartBeater
                 agentName: heartBeatPublisher-thread
@@ -40,10 +43,10 @@ public class MultiEvenProcessor {
               - agentName: heartBeatProcessor-thread
                 eventHandlers:
                   heartBeatProcessor_1:
-                    eventHandler: !!com.fluxtion.server.dispatch.HeartBeatExampleProcessor { }
+                    eventHandler: !!com.fluxtion.server.example.HeartBeatExampleProcessor { }
                     logLevel: DEBUG
                   heartBeatProcessor_2:
-                    eventHandler: !!com.fluxtion.server.dispatch.HeartBeatExampleProcessor { }
+                    eventHandler: !!com.fluxtion.server.example.HeartBeatExampleProcessor { }
                     logLevel: DEBUG
             # --------- EVENT HANDLERS END CONFIG ---------
             
@@ -59,7 +62,7 @@ public class MultiEvenProcessor {
     private final static String configWrapHandler = """            
             # --------- EVENT INPUT FEEDS BEGIN CONFIG ---------
             eventFeeds:
-              - instance: !!com.fluxtion.server.dispatch.HeartBeatEventFeed
+              - instance: !!com.fluxtion.server.example.HeartBeatEventFeed
                   publishIntervalNanos: 200_000_000
                 name: heartBeater
                 agentName: heartBeatPublisher-thread
@@ -72,7 +75,7 @@ public class MultiEvenProcessor {
               - agentName: heartBeatProcessor-thread
                 eventHandlers:
                   heartBeatProcessor_1:
-                    customHandler: !!com.fluxtion.server.dispatch.MyCustomEventHandler { }
+                    customHandler: !!com.fluxtion.server.example.MyCustomEventHandler { }
                     logLevel: DEBUG
             # --------- EVENT HANDLERS END CONFIG ---------
             

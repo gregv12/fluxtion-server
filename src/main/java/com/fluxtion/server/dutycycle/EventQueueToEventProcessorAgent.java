@@ -74,6 +74,7 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
     public int registerProcessor(StaticEventProcessor eventProcessor) {
         logger.info("registerProcessor: " + eventProcessor);
         eventToInvokeStrategy.registerProcessor(eventProcessor);
+        logger.info("listener count:" + listenerCount());
         return listenerCount();
     }
 

@@ -3,14 +3,19 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-package com.fluxtion.server.dispatch;
+package com.fluxtion.server.test;
 
 import com.fluxtion.runtime.node.ObjectEventHandlerNode;
+import lombok.Getter;
 
-public class MyCustomEventHandler extends ObjectEventHandlerNode {
+public class NoSubscriptionEventHandler extends ObjectEventHandlerNode {
+
+    @Getter
+    private boolean invoked = false;
+
     @Override
     protected boolean handleEvent(Object event) {
-        System.out.println("MyProcessor received event " + event);
+        invoked = true;
         return super.handleEvent(event);
     }
 }
