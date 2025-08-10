@@ -61,7 +61,7 @@ public class AppConfig {
         var idleStrategy = agentThreads.stream().filter(cfg -> cfg.getAgentName().equals(agentName))
                 .findFirst()
                 .map(ThreadConfig::getIdleStrategy)
-                .orElse(new YieldingIdleStrategy());
+                .orElse(defaultIdeIdleStrategy);
         return idleStrategy == null ? defaultIdeIdleStrategy : idleStrategy;
     }
 }
