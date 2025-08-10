@@ -135,7 +135,7 @@ Sample yaml
 ```yaml
 # --------- EVENT INPUT FEEDS BEGIN CONFIG ---------
 eventFeeds:
-  - instance: !!com.fluxtion.server.dispatch.HeartBeatEventFeed { }
+  - instance: !!com.fluxtion.server.example.HeartBeatEventFeed { }
     name: heartBeater
     agentName: heartBeatPublisher-thread
     broadcast: true
@@ -147,11 +147,11 @@ eventHandlers:
     eventHandlers:
        # handler specific config
         heartBeatProcessor_1:
-        eventHandler: !!com.fluxtion.server.dispatch.HeartBeatExampleProcessor {
+        eventHandler: !!com.fluxtion.server.example.HeartBeatExampleProcessor {
         logLevel: DEBUG
       # handler specific config
         heartBeatProcessor_2:
-        eventHandler: !!com.fluxtion.server.dispatch.HeartBeatExampleProcessor {
+        eventHandler: !!com.fluxtion.server.example.HeartBeatExampleProcessor {
         logLevel: DEBUG
 # --------- EVENT HANDLERS END CONFIG ---------
         
