@@ -2,11 +2,14 @@
 
 ## Introduction
 
-Fluxtion Server is an event-driven application framework designed to process events from various sources, route them to appropriate handlers, and manage the lifecycle of event processors and services. This document provides a comprehensive overview of the Fluxtion Server architecture, including component diagrams and descriptions of key components.
+Fluxtion Server is an event-driven application framework designed to process events from various sources, route them to
+appropriate handlers, and manage the lifecycle of event processors and services. This document provides a comprehensive
+overview of the Fluxtion Server architecture, including component diagrams and descriptions of key components.
 
 ## High-Level Architecture
 
-Fluxtion Server follows an event-driven architecture pattern where events flow from sources to processors through a managed event flow system. The architecture consists of the following main components:
+Fluxtion Server follows an event-driven architecture pattern where events flow from sources to processors through a
+managed event flow system. The architecture consists of the following main components:
 
 1. **FluxtionServer** - The main server class that bootstraps and manages the entire system
 2. **EventFlowManager** - Manages the flow of events between sources and processors
@@ -18,11 +21,11 @@ Fluxtion Server follows an event-driven architecture pattern where events flow f
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                         Fluxtion Server                              │
+│                         Fluxtion Server                             │
 │                                                                     │
 │  ┌───────────────┐       ┌───────────────┐      ┌───────────────┐   │
-│  │  Event Sources │──────▶│ Event Flow    │─────▶│ Event         │   │
-│  │                │       │ Manager       │      │ Processors    │   │
+│  │  Event Sources│──────▶│ Event Flow    │─────▶│ Event         │   │
+│  │               │       │ Manager       │      │ Processors    │   │
 │  └───────────────┘       └───────────────┘      └───────────────┘   │
 │          ▲                       │                      │           │
 │          │                       │                      │           │
@@ -65,7 +68,8 @@ Event sources are components that generate events. They implement the EventSourc
 
 ### Event Processors
 
-Event processors consume and process events. They are managed by the ComposingEventProcessorAgent and are responsible for:
+Event processors consume and process events. They are managed by the ComposingEventProcessorAgent and are responsible
+for:
 
 - Subscribing to event sources
 - Processing events according to business logic
@@ -93,15 +97,15 @@ The event flow in Fluxtion Server follows this pattern:
 
 ```
 ┌───────────────┐     ┌───────────────┐     ┌───────────────┐
-│  Event Source  │────▶│  Event Queue  │────▶│ Event         │
-│                │     │               │     │ Processor     │
+│  Event Source │────▶│  Event Queue  │────▶│ Event         │
+│               │     │               │     │ Processor     │
 └───────────────┘     └───────────────┘     └───────────────┘
                                                     │
                                                     │
                                                     ▼
 ┌───────────────┐     ┌───────────────┐     ┌───────────────┐
-│  Event Source  │◀────│  Event Queue  │◀────│ New Event     │
-│  (Output)      │     │  (Output)     │     │ Generation    │
+│  Event Source │◀────│  Event Queue  │◀────│ New Event     │
+│  (Output)     │     │  (Output)     │     │ Generation    │
 └───────────────┘     └───────────────┘     └───────────────┘
 ```
 
@@ -134,4 +138,6 @@ Fluxtion Server uses a threading model based on agents:
 
 ## Conclusion
 
-The Fluxtion Server architecture provides a flexible and scalable framework for building event-driven applications. Its component-based design allows for easy extension and customization, while the event flow management system ensures efficient routing and processing of events.
+The Fluxtion Server architecture provides a flexible and scalable framework for building event-driven applications. Its
+component-based design allows for easy extension and customization, while the event flow management system ensures
+efficient routing and processing of events.
