@@ -55,6 +55,9 @@ public class AppConfig {
      * @return An IdleStrategy
      */
     public IdleStrategy getIdleStrategyOrDefault(String agentName, IdleStrategy defaultIdeIdleStrategy) {
+        if (defaultIdeIdleStrategy == null && agentThreads == null) {
+            return idleStrategy;
+        }
         if (agentThreads == null) {
             return defaultIdeIdleStrategy;
         }

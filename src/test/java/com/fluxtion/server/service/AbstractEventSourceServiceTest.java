@@ -138,10 +138,9 @@ public class AbstractEventSourceServiceTest {
         // Arrange
         testService.setEventFlowManager(testEventFlowManager, "testServiceName");
         TestEventFlowManager.setCurrentProcessor(testEventProcessor);
-        TestEventSubscription testEventSubscription = new TestEventSubscription();
 
         // Act
-        testService.subscribe(testEventProcessor, testEventSubscription);
+        testService.subscribe();
 
         // Assert
         assertTrue(testSubscriptionManager.getSubscriptions().contains(testService.getSubscriptionKey()),
@@ -153,11 +152,10 @@ public class AbstractEventSourceServiceTest {
         // Arrange
         testService.setEventFlowManager(testEventFlowManager, "testServiceName");
         TestEventFlowManager.setCurrentProcessor(testEventProcessor);
-        TestEventSubscription testEventSubscription = new TestEventSubscription();
         testSubscriptionManager.subscribe(testService.getSubscriptionKey());
 
         // Act
-        testService.unSubscribe(testEventProcessor, testEventSubscription);
+        testSubscriptionManager.unSubscribe(testService.getSubscriptionKey());
 
         // Assert
         assertFalse(testSubscriptionManager.getSubscriptions().contains(testService.getSubscriptionKey()),
@@ -378,20 +376,6 @@ public class AbstractEventSourceServiceTest {
         }
     }
 
-    private static class TestEventSubscription extends EventSubscription<String> {
-        public TestEventSubscription() {
-            super(-1, "", String.class);
-        }
-
-        public TestEventSubscription(String feedName) {
-            super(feedName, 1, "", String.class);
-        }
-
-        @Override
-        public Class<String> eventClass() {
-            return String.class;
-        }
-    }
 
     private static class TestEventToInvokeStrategy implements EventToInvokeStrategy {
         @Override
