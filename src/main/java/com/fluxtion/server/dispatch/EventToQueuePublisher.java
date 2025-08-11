@@ -187,7 +187,7 @@ public class EventToQueuePublisher<T> {
         }
         if(now > 1){
             long delta = System.nanoTime() - now;
-            log.warning("spin wait took " + (delta / 1_000_000) + "ms queue:" + namedQueue.getName() + " size:" + targetQueue.size() );
+//            log.warning("spin wait took " + (delta / 1_000_000) + "ms queue:" + namedQueue.getName() + " size:" + targetQueue.size() );
         }
     }
 
