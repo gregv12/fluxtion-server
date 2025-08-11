@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.LongSummaryStatistics;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -45,7 +44,7 @@ public class EventProcessingBenchmark {
 
     // Benchmark parameters
     private static final int WARMUP_COUNT = 100_000;
-    private static final int BENCHMARK_COUNT = 1_000_000;
+    private static final int BENCHMARK_COUNT = 20_000_000;
     private static final int BATCH_SIZE = 100;
 
     @BeforeEach
@@ -56,8 +55,11 @@ public class EventProcessingBenchmark {
         // Create a minimal app config
         AppConfig appConfig = new AppConfig();
 
+        // Create a countdown latch to wait for all events to be processed
+        eventProcessedLatch = new CountDownLatch(1);
+
         // Create an event processor
-        eventProcessor = new TestEventProcessor();
+        eventProcessor = new TestEventProcessor(eventProcessedLatch);
         appConfig.addProcessor(eventProcessor, "testHandler");
 
         // Create an event source
@@ -94,7 +96,7 @@ public class EventProcessingBenchmark {
         }
 
         eventSource.publishEvent("reset");
-        Thread.sleep(100);
+        System.out.println("------------------------------");
 
         // Benchmark
         System.out.println("Running benchmark with " + BENCHMARK_COUNT + " events");
@@ -108,84 +110,13 @@ public class EventProcessingBenchmark {
 
         eventSource.publishEvent("publishResults");
         long endTime = System.nanoTime();
-        Thread.sleep(100);
+        eventProcessedLatch.await();
 
         // Verify that the benchmark completed successfully
         assertTrue(eventProcessor.getProcessedCount() >= BENCHMARK_COUNT,
                 "Not all events were processed processCount: " + eventProcessor.getProcessedCount() + "");
 
-        System.out.println("Total time: " + (endTime - now) / 1_000_000 + " ms");
-
-
-        // Calculate statistics
-//        List<Long> latencies = eventProcessor.latencies;
-        var firstEvent = eventCache[0];
-        var lastEvent = eventCache[BENCHMARK_COUNT - 1];
-
-        System.out.println("Full latency: " + (lastEvent.processedTime - firstEvent.getPublishTime()) / 1_000_000 + " ms");
     }
-
-//    @Test
-//    void benchmarkBatchEventProcessing() throws Exception {
-//        System.out.println("Running batch event processing benchmark");
-//
-//        // Warm up
-//        System.out.println("Warming up with " + WARMUP_COUNT + " events in batches of " + BATCH_SIZE);
-//        for (int i = 0; i < WARMUP_COUNT / BATCH_SIZE; i++) {
-//            final int batchIndex = i;
-//            List<TestEvent> batch = IntStream.range(0, BATCH_SIZE)
-//                    .mapToObj(j -> new TestEvent("Warmup " + (batchIndex * BATCH_SIZE + j)))
-//                    .collect(Collectors.toList());
-//
-//            for (TestEvent event : batch) {
-//                eventSource.publishEvent(event);
-//            }
-//        }
-//
-//        // Benchmark
-//        System.out.println("Running benchmark with " + BENCHMARK_COUNT + " events in batches of " + BATCH_SIZE);
-//        List<Long> batchLatencies = new ArrayList<>(BENCHMARK_COUNT / BATCH_SIZE);
-//
-//        for (int i = 0; i < BENCHMARK_COUNT / BATCH_SIZE; i++) {
-//            final int batchIndex = i;
-//            List<TestEvent> batch = IntStream.range(0, BATCH_SIZE)
-//                    .mapToObj(j -> new TestEvent("Benchmark " + (batchIndex * BATCH_SIZE + j)))
-//                    .collect(Collectors.toList());
-//
-//            long startTime = System.nanoTime();
-//            for (TestEvent event : batch) {
-//                eventSource.publishEvent(event);
-//            }
-//            long endTime = System.nanoTime();
-//            batchLatencies.add(endTime - startTime);
-//
-//            // Add a small delay between batches
-////            if (i % 10 == 0) {
-////                Thread.sleep(10);
-////            }
-//        }
-//
-//        // Calculate statistics
-//        LongSummaryStatistics batchStats = batchLatencies.stream().collect(Collectors.summarizingLong(Long::longValue));
-//        double avgBatchLatencyMicros = batchStats.getAverage() / 1000.0;
-//        double avgEventLatencyMicros = avgBatchLatencyMicros / BATCH_SIZE;
-//        double batchThroughputPerSecond = 1_000_000_000.0 / batchStats.getAverage();
-//        double eventThroughputPerSecond = batchThroughputPerSecond * BATCH_SIZE;
-//
-//        System.out.println("Batch Event Processing Results:");
-//        System.out.println("Total batches: " + (BENCHMARK_COUNT / BATCH_SIZE));
-//        System.out.println("Total events: " + BENCHMARK_COUNT);
-//        System.out.println("Min batch latency: " + batchStats.getMin() / 1000.0 + " µs");
-//        System.out.println("Max batch latency: " + batchStats.getMax() / 1000.0 + " µs");
-//        System.out.println("Avg batch latency: " + avgBatchLatencyMicros + " µs");
-//        System.out.println("Avg event latency: " + avgEventLatencyMicros + " µs");
-//        System.out.println("Batch throughput: " + String.format("%.2f", batchThroughputPerSecond) + " batches/second");
-//        System.out.println("Event throughput: " + String.format("%.2f", eventThroughputPerSecond) + " events/second");
-//
-//        // Verify that the benchmark completed successfully
-//        assertTrue(eventProcessor.getProcessedCount() >= BENCHMARK_COUNT,
-//                "Not all events were processed");
-//    }
 
     /**
      * A simple event class for testing.
@@ -244,59 +175,72 @@ public class EventProcessingBenchmark {
      */
     private static class TestEventProcessor implements StaticEventProcessor, EventProcessor<TestEventProcessor> {
         private final List<TestEvent> processedEvents = new ArrayList<>(BENCHMARK_COUNT);
+        private final CountDownLatch eventProcessedLatch;
         private volatile int processedCount = 0;
-        private List<EventFeed> eventFeeds = new ArrayList<>();
-        private List<Long> latencies = new ArrayList<>(BENCHMARK_COUNT);
+        private List<EventFeed<Object>> eventFeeds = new ArrayList<>();
+        private final List<Long> latencies = new ArrayList<>(BENCHMARK_COUNT);
+        private TestEvent previousEvent;
+
+        public TestEventProcessor(CountDownLatch eventProcessedLatch) {
+            this.eventProcessedLatch = eventProcessedLatch;
+        }
 
         public void handleTestEvent(TestEvent event) {
             long endTime = System.nanoTime();
             event.setProcessedTime(endTime);
-            long delta = endTime - event.publishTime;
-            if (delta < 0) {
-                System.out.println("Warning: Negative latency detected: " + delta + " ns");
-            }
 
-            latencies.add(delta);
+            if (previousEvent != null) {
+                long expectedDelta = event.publishTime - previousEvent.publishTime;
+                long actualDelta = event.processedTime - previousEvent.processedTime;
+                long delta = actualDelta - expectedDelta;
+                if (delta <= 0) {
+                    latencies.add(1L);
+                } else {
+                    latencies.add(delta);
+                }
+                previousEvent = event;
+            } else {
+                previousEvent = event;
+                return;
+            }
             processedCount++;
+
             // Only store a subset of events to avoid memory issues
-            if (processedCount % 10000 == 0 | (processedCount< 970000 & processedCount>969900)) {
+            if (processedCount % 10000 == 0) {
                 processedEvents.add(event);
-                System.out.println("Processed " + processedCount + " events" + " " + event.toString());
             }
         }
 
         public void handleReset(String command) {
             System.out.println("Received reset command: " + command);
-
-
             processedEvents.clear();
             processedCount = 0;
             latencies.clear();
         }
 
         public void printResults() {
-
+            eventProcessedLatch.countDown();
             var firstEvent = processedEvents.getFirst();
             var lastEvent = processedEvents.getLast();
 
-            double latencyFull = (lastEvent.processedTime - firstEvent.getPublishTime()) / 1_000_000.0;
+            double latencyFull = (lastEvent.processedTime - firstEvent.getPublishTime()) / 1_000.0;
             double count = lastEvent.getId() - firstEvent.getId();
-            double avgLatencyMillis = latencyFull / count;
+            double avgSendLatencyMicros = latencyFull / count;
+            double throughputPerSecondSend = 1_000_000.0 / avgSendLatencyMicros;
 
-            System.out.println("Full latency: " + latencyFull + " ms");
-            System.out.println("Event count: " + count);
-            System.out.printf("Avg latency: %.8f ms%n", avgLatencyMillis);
-
+            System.out.println("Full send end to end latency: " + latencyFull + " µs");
+            System.out.printf("Avg send latency: %.3f µs%n", avgSendLatencyMicros);
+            System.out.println("Throughput send: " + String.format("%.2f", throughputPerSecondSend) + " events/second");
 
             LongSummaryStatistics stats = latencies.stream().collect(Collectors.summarizingLong(Long::longValue));
             double avgLatencyMicros = stats.getAverage() / 1000.0;
             double throughputPerSecond = 1_000_000_000.0 / stats.getAverage();
 
-            System.out.println("Single Event Processing Results:");
+            System.out.println("Received event processing results:");
             System.out.println("Total events: " + stats.getCount());
-            System.out.println("Total time: " + stats.getSum());
             System.out.println("Min latency: " + stats.getMin() / 1000.0 + " µs");
             System.out.println("Max latency: " + stats.getMax() / 1000.0 + " µs");
+            System.out.println("Total latency: " + stats.getSum() / 1000.0 + " µs");
             System.out.println("Avg latency: " + avgLatencyMicros + " µs");
             System.out.println("Throughput: " + String.format("%.2f", throughputPerSecond) + " events/second");
         }
@@ -313,14 +257,12 @@ public class EventProcessingBenchmark {
         public void onEvent(Object event) {
             if (event instanceof TestEvent) {
                 handleTestEvent((TestEvent) event);
+                long start = System.nanoTime();
             } else if (event instanceof String) {
-
                 switch ((String) event) {
                     case "reset" -> handleReset((String) event);
                     case "publishResults" -> printResults();
-
                 }
-
             }
         }
 
