@@ -160,11 +160,11 @@ public class EventToQueuePublisher<T> {
             switch (eventWrapStrategy) {
                 case SUBSCRIPTION_NOWRAP, BROADCAST_NOWRAP -> writeToQueue(namedQueue, mappedItem);
                 case SUBSCRIPTION_NAMED_EVENT, BROADCAST_NAMED_EVENT -> {
-                    //TODO reduce memory pressure by using copy
+                    //TODO reduce memory pressure by using copy or a recyclable wrapper if needed
                     NamedFeedEventImpl<Object> namedFeedEvent = new NamedFeedEventImpl<>(name)
                             .data(mappedItem)
                             .sequenceNumber(sequenceNumber);
-                    writeToQueue(namedQueue, mappedItem);
+                    writeToQueue(namedQueue, namedFeedEvent);
                 }
             }
             if (log.isLoggable(Level.FINE)) {
@@ -186,9 +186,9 @@ public class EventToQueuePublisher<T> {
                 java.lang.Thread.onSpinWait();
             }
         }
-        if(logInfo & now > 1){
+        if (logInfo && now > 1) {
             long delta = System.nanoTime() - now;
-            log.warning("spin wait took " + (delta / 1_000_000) + "ms queue:" + namedQueue.getName() + " size:" + targetQueue.size() );
+            log.warning("spin wait took " + (delta / 1_000_000) + "ms queue:" + namedQueue.getName() + " size:" + targetQueue.size());
         }
     }
 
