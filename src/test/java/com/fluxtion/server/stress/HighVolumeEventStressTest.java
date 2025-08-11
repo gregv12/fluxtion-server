@@ -129,12 +129,13 @@ public class HighVolumeEventStressTest {
         System.out.println("Running sustained high event rate stress test");
         System.out.println("Total events to process: " + TOTAL_EVENTS);
 
+
         // Start monitoring
         startMonitoring();
 
         // Start the server
-        // Create the server
         server = FluxtionServer.bootServer(appConfig, logRecordListener);
+        // Create the server
 //        server.init();
 //        server.start();
 

@@ -47,6 +47,7 @@ public class EventToQueuePublisher<T> {
     @Setter
     private Function<T, ?> dataMapper = Function.identity();
     private int cacheReadPointer = 0;
+    private final boolean logInfo = log.isLoggable(Level.FINE);
 
     public void addTargetQueue(OneToOneConcurrentArrayQueue<Object> targetQueue, String name) {
         NamedQueue namedQueue = new NamedQueue(name, targetQueue);
@@ -185,7 +186,7 @@ public class EventToQueuePublisher<T> {
                 java.lang.Thread.onSpinWait();
             }
         }
-        if(now > 1){
+        if(logInfo & now > 1){
             long delta = System.nanoTime() - now;
             log.warning("spin wait took " + (delta / 1_000_000) + "ms queue:" + namedQueue.getName() + " size:" + targetQueue.size() );
         }

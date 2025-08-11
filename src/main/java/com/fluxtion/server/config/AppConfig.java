@@ -5,6 +5,7 @@
 
 package com.fluxtion.server.config;
 
+import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
 import com.fluxtion.agrona.concurrent.IdleStrategy;
 import com.fluxtion.agrona.concurrent.YieldingIdleStrategy;
 import com.fluxtion.runtime.EventProcessor;
@@ -117,6 +118,7 @@ public class AppConfig {
             defaultHandlerGroupConfig = new EventProcessorGroupConfig();
             defaultHandlerGroupConfig.setAgentName("defaultHandlerGroup");
             defaultHandlerGroupConfig.setEventHandlers(new HashMap<>());
+            defaultHandlerGroupConfig.setIdleStrategy(new BusySpinIdleStrategy());
         }
 
         EventProcessorConfig<T> processorConfig = new EventProcessorConfig<>();
