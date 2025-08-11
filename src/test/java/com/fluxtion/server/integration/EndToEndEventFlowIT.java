@@ -12,9 +12,6 @@ import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.input.EventFeed;
 import com.fluxtion.server.FluxtionServer;
 import com.fluxtion.server.config.AppConfig;
-import com.fluxtion.server.config.EventFeedConfig;
-import com.fluxtion.server.config.EventProcessorConfig;
-import com.fluxtion.server.config.EventProcessorGroupConfig;
 import com.fluxtion.server.dispatch.CallBackType;
 import com.fluxtion.server.dispatch.EventSourceKey;
 import com.fluxtion.server.dispatch.EventSubscriptionKey;
@@ -26,7 +23,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -58,24 +54,14 @@ public class EndToEndEventFlowIT {
 
         // Create an event processor
         eventProcessor = new TestEventProcessor(eventProcessedLatch);
-        EventProcessorGroupConfig eventProcessorGroupConfig = new EventProcessorGroupConfig();
-        eventProcessorGroupConfig.setAgentName("testHandler");
-        EventProcessorConfig<TestEventProcessor> cfg = new EventProcessorConfig<>();
-        cfg.setEventHandler(eventProcessor);
-        eventProcessorGroupConfig.setEventHandlers(Map.of("testHandlerGroup", cfg));
-        appConfig.setEventHandlers(List.of(eventProcessorGroupConfig));
+        appConfig.addProcessor(eventProcessor, "testHandler");
 
         // Create an event source
         eventSource = new TestEventSource("testSource");
-        EventFeedConfig<TestEventSource> eventFeedConfig = new EventFeedConfig<>();
-        eventFeedConfig.setInstance(eventSource);
-        eventFeedConfig.setName("testEventSourceFeed");
-        eventFeedConfig.setBroadcast(true);
-
-        appConfig.setEventFeeds(List.of(eventFeedConfig));
+        appConfig.addEventSource(eventSource, "testEventSourceFeed", true);
 
         // Create the server
-        server = server.bootServer(appConfig, logRecordListener);
+        server = FluxtionServer.bootServer(appConfig, logRecordListener);
     }
 
     @AfterEach
@@ -99,7 +85,7 @@ public class EndToEndEventFlowIT {
         // Verify that the event was processed
         assertTrue(processed, "Event should be processed within timeout");
         assertEquals(testEvent, eventProcessor.getLastProcessedEvent(), "Processor should receive the published event");
-        
+
         server.stop();
     }
 
@@ -195,7 +181,6 @@ public class EndToEndEventFlowIT {
             eventFeeds.forEach(feed -> {
                 feed.subscribe(this, subscriptionKey);
             });
-//            getContext().getSubscriptionManager().subscribe(subscriptionKey);
         }
     }
 
