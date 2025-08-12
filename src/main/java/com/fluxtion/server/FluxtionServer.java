@@ -27,6 +27,7 @@ import com.fluxtion.server.service.servercontrol.FluxtionServerController;
 import lombok.SneakyThrows;
 import lombok.Value;
 import lombok.extern.java.Log;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
@@ -58,7 +59,9 @@ public class FluxtionServer implements FluxtionServerController {
 
     public static FluxtionServer bootServer(Reader reader, LogRecordListener logRecordListener) {
         log.info("booting server loading config from reader");
-        Yaml yaml = new Yaml();
+        LoaderOptions loaderOptions = new LoaderOptions();
+        loaderOptions.setTagInspector(tag -> true);
+        Yaml yaml = new Yaml(loaderOptions);
         AppConfig appConfig = yaml.loadAs(reader, AppConfig.class);
         log.info("successfully loaded config from reader");
 
@@ -124,7 +127,8 @@ public class FluxtionServer implements FluxtionServerController {
             appConfig.getEventHandlers().forEach(cfg -> {
                 final EventLogControlEvent.LogLevel defaultLogLevel = cfg.getLogLevel() == null ? EventLogControlEvent.LogLevel.INFO : cfg.getLogLevel();
                 String groupName = cfg.getAgentName();
-                IdleStrategy idleStrategy = appConfig.getIdleStrategy(cfg.getAgentName(), cfg.getIdleStrategy());
+                IdleStrategy idleStrategy1 = cfg.getIdleStrategy();
+                IdleStrategy idleStrategy = appConfig.lookupIdleStrategyWhenNull(idleStrategy1, cfg.getAgentName());
                 cfg.getEventHandlers().entrySet().forEach(handlerEntry -> {
                     String name = handlerEntry.getKey();
                     try {
@@ -201,7 +205,7 @@ public class FluxtionServer implements FluxtionServerController {
 
     public void registerWorkerService(ServiceAgent<?> service) {
         String agentGroup = service.getAgentGroup();
-        IdleStrategy idleStrategy = appConfig.getIdleStrategy(service.getAgentGroup(), service.getIdleStrategy());
+        IdleStrategy idleStrategy = appConfig.lookupIdleStrategyWhenNull(service.getIdleStrategy(), service.getAgentGroup());
         log.info("registerWorkerService:" + service + " agentGroup:" + agentGroup + " idleStrategy:" + idleStrategy);
         ComposingWorkerServiceAgentRunner composingAgentRunner = composingServiceAgents.computeIfAbsent(
                 agentGroup,

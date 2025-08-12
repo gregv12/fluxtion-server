@@ -36,7 +36,7 @@ import java.util.logging.Level;
 @Getter
 public class EventToQueuePublisher<T> {
 
-    private final List<NamedQueue<T>> targetQueues = new CopyOnWriteArrayList<>();
+    private final List<NamedQueue> targetQueues = new CopyOnWriteArrayList<>();
     private final List<NamedFeedEvent<?>> eventLog = new ArrayList<>();
     private final String name;
     @Setter
@@ -48,8 +48,8 @@ public class EventToQueuePublisher<T> {
     private Function<T, ?> dataMapper = Function.identity();
     private int cacheReadPointer = 0;
 
-    public void addTargetQueue(OneToOneConcurrentArrayQueue<T> targetQueue, String name) {
-        NamedQueue<T> namedQueue = new NamedQueue<>(name, targetQueue);
+    public void addTargetQueue(OneToOneConcurrentArrayQueue<Object> targetQueue, String name) {
+        NamedQueue namedQueue = new NamedQueue(name, targetQueue);
         if (log.isLoggable(Level.FINE)) {
             log.fine("adding a publisher queue:" + namedQueue);
         }
@@ -124,8 +124,8 @@ public class EventToQueuePublisher<T> {
         }
 
         for (int i = 0, targetQueuesSize = targetQueues.size(); i < targetQueuesSize; i++) {
-            NamedQueue<T> namedQueue = targetQueues.get(i);
-            OneToOneConcurrentArrayQueue<Object> targetQueue = (OneToOneConcurrentArrayQueue<Object>) namedQueue.getTargetQueue();
+            NamedQueue namedQueue = targetQueues.get(i);
+            OneToOneConcurrentArrayQueue<Object> targetQueue = namedQueue.getTargetQueue();
             targetQueue.offer(record);
             if (log.isLoggable(Level.FINE)) {
                 log.fine("queue:" + namedQueue.getName() + " size:" + targetQueue.size());
@@ -154,16 +154,16 @@ public class EventToQueuePublisher<T> {
 
     private void dispatch(Object mappedItem) {
         for (int i = 0, targetQueuesSize = targetQueues.size(); i < targetQueuesSize; i++) {
-            NamedQueue<T> namedQueue = targetQueues.get(i);
-            OneToOneConcurrentArrayQueue<Object> targetQueue = (OneToOneConcurrentArrayQueue<Object>) namedQueue.getTargetQueue();
+            NamedQueue namedQueue = targetQueues.get(i);
+            OneToOneConcurrentArrayQueue<Object> targetQueue = namedQueue.getTargetQueue();
             switch (eventWrapStrategy) {
-                case SUBSCRIPTION_NOWRAP, BROADCAST_NOWRAP -> targetQueue.offer(mappedItem);
+                case SUBSCRIPTION_NOWRAP, BROADCAST_NOWRAP -> writeToQueue(namedQueue, mappedItem);
                 case SUBSCRIPTION_NAMED_EVENT, BROADCAST_NAMED_EVENT -> {
                     //TODO reduce memory pressure by using copy
                     NamedFeedEventImpl<Object> namedFeedEvent = new NamedFeedEventImpl<>(name)
                             .data(mappedItem)
                             .sequenceNumber(sequenceNumber);
-                    targetQueue.offer(namedFeedEvent);
+                    writeToQueue(namedQueue, mappedItem);
                 }
             }
             if (log.isLoggable(Level.FINE)) {
@@ -172,9 +172,28 @@ public class EventToQueuePublisher<T> {
         }
     }
 
+    private void writeToQueue(NamedQueue namedQueue, Object itemToPublish) {
+        OneToOneConcurrentArrayQueue<Object> targetQueue = namedQueue.getTargetQueue();
+        boolean eventNotificationNotReceived = false;
+        long now = -1;
+        while (!eventNotificationNotReceived) {
+            eventNotificationNotReceived = targetQueue.offer(itemToPublish);
+            if (!eventNotificationNotReceived) {
+                if (now < 0) {
+                    now = System.nanoTime();
+                }
+                java.lang.Thread.onSpinWait();
+            }
+        }
+        if(now > 1){
+            long delta = System.nanoTime() - now;
+            log.warning("spin wait took " + (delta / 1_000_000) + "ms queue:" + namedQueue.getName() + " size:" + targetQueue.size() );
+        }
+    }
+
     @Value
-    public static class NamedQueue<T> {
+    public static class NamedQueue {
         String name;
-        OneToOneConcurrentArrayQueue<T> targetQueue;
+        OneToOneConcurrentArrayQueue<Object> targetQueue;
     }
 }

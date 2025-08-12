@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
+ * SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -37,6 +37,7 @@ public abstract class AbstractEventSourceService<T>
     protected EventSubscriptionKey<T> subscriptionKey;
     protected SchedulerService scheduler;
     private EventWrapStrategy eventWrapStrategy = EventWrapStrategy.SUBSCRIPTION_NOWRAP;
+    private EventSource.SlowConsumerStrategy slowConsumerStrategy = SlowConsumerStrategy.BACKOFF;
     @Getter(AccessLevel.PROTECTED)
     private Function<T, ?> dataMapper = Function.identity();
 
@@ -65,8 +66,7 @@ public abstract class AbstractEventSourceService<T>
         output.setDataMapper(dataMapper);
         subscriptionKey = new EventSubscriptionKey<>(
                 new EventSourceKey<>(serviceName),
-                eventToInvokeType,
-                name
+                eventToInvokeType
         );
 
         if (eventToInokeStrategySupplier != null) {
@@ -120,6 +120,11 @@ public abstract class AbstractEventSourceService<T>
     @Override
     public void setEventWrapStrategy(EventWrapStrategy eventWrapStrategy) {
         this.eventWrapStrategy = eventWrapStrategy;
+    }
+
+    @Override
+    public void setSlowConsumerStrategy(SlowConsumerStrategy slowConsumerStrategy) {
+        this.slowConsumerStrategy = slowConsumerStrategy;
     }
 
     @Override

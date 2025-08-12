@@ -1,7 +1,6 @@
 /*
- * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
+ * SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
- *
  */
 
 package com.fluxtion.server.dispatch;
@@ -18,6 +17,7 @@ import lombok.Value;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 
@@ -36,18 +36,31 @@ public class EventFlowManager {
     private final ConcurrentHashMap<EventSinkKey<?>, ManyToOneConcurrentArrayQueue<?>> eventSinkToQueueMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<com.fluxtion.server.dispatch.CallBackType, Supplier<EventToInvokeStrategy>> eventToInvokerFactoryMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<EventSourceKey_Subscriber<?>, OneToOneConcurrentArrayQueue<?>> subscriberKeyToQueueMap = new ConcurrentHashMap<>();
-    private final static ThreadLocal<StaticEventProcessor> currentProcessor = new ThreadLocal<>();
+    private final static ThreadLocal<AtomicReference<StaticEventProcessor>> currentProcessor = new ThreadLocal<>();
 
     public static void setCurrentProcessor(StaticEventProcessor eventProcessor) {
-        currentProcessor.set(eventProcessor);
+        AtomicReference<StaticEventProcessor> ref = currentProcessor.get();
+        if (ref == null) {
+            ref = new AtomicReference<>(eventProcessor);
+            currentProcessor.set(ref);
+        }
+        ref.set(eventProcessor);
     }
 
     public static void removeCurrentProcessor() {
-        currentProcessor.remove();
+        AtomicReference<StaticEventProcessor> ref = currentProcessor.get();
+        if (ref != null) {
+            ref.set(null);
+        }
     }
 
     public static StaticEventProcessor currentProcessor() {
-        return currentProcessor.get();
+        AtomicReference<StaticEventProcessor> ref = currentProcessor.get();
+        StaticEventProcessor processor = null;
+        if (ref != null) {
+            processor = ref.get();
+        }
+        return processor;
     }
 
     public EventFlowManager() {
@@ -169,7 +182,7 @@ public class EventFlowManager {
                         com.fluxtion.server.dispatch.EventToQueuePublisher<?> queue = value.getQueuePublisher();
                         appendable.append("eventSource:").append(key.getSourceName())
                                 .append("\n\treadQueues:\n");
-                        for (com.fluxtion.server.dispatch.EventToQueuePublisher.NamedQueue<?> q : queue.getTargetQueues()) {
+                        for (com.fluxtion.server.dispatch.EventToQueuePublisher.NamedQueue q : queue.getTargetQueues()) {
                             appendable.append("\t\t").append(q.getName()).append(" -> ").append(q.getTargetQueue().toString()).append("\n");
                         }
                     } catch (IOException ex) {
