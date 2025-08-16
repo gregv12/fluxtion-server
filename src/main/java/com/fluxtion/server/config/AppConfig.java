@@ -183,4 +183,34 @@ public class AppConfig {
         services.add(cfg);
         return this;
     }
+
+    // -------- Builder API --------
+    public static Builder builder() { return new Builder(); }
+
+    public static final class Builder {
+        private final List<EventProcessorGroupConfig> eventHandlers = new ArrayList<>();
+        private final List<EventFeedConfig<?>> eventFeeds = new ArrayList<>();
+        private final List<EventSinkConfig<?>> eventSinks = new ArrayList<>();
+        private final List<ServiceConfig<?>> services = new ArrayList<>();
+        private final List<ThreadConfig> agentThreads = new ArrayList<>();
+        private IdleStrategy idleStrategy;
+
+        private Builder() {}
+        public Builder idleStrategy(IdleStrategy idleStrategy) { this.idleStrategy = idleStrategy; return this; }
+        public Builder addGroup(EventProcessorGroupConfig group) { this.eventHandlers.add(group); return this; }
+        public Builder addEventFeed(EventFeedConfig<?> feed) { this.eventFeeds.add(feed); return this; }
+        public Builder addEventSink(EventSinkConfig<?> sink) { this.eventSinks.add(sink); return this; }
+        public Builder addService(ServiceConfig<?> svc) { this.services.add(svc); return this; }
+        public Builder addThread(ThreadConfig thread) { this.agentThreads.add(thread); return this; }
+        public AppConfig build() {
+            AppConfig cfg = new AppConfig();
+            if (!eventHandlers.isEmpty()) cfg.setEventHandlers(new ArrayList<>(eventHandlers));
+            if (!eventFeeds.isEmpty()) cfg.setEventFeeds(new ArrayList<>(eventFeeds));
+            if (!eventSinks.isEmpty()) cfg.setEventSinks(new ArrayList<>(eventSinks));
+            if (!services.isEmpty()) cfg.setServices(new ArrayList<>(services));
+            if (!agentThreads.isEmpty()) cfg.setAgentThreads(new ArrayList<>(agentThreads));
+            if (idleStrategy != null) cfg.setIdleStrategy(idleStrategy);
+            return cfg;
+        }
+    }
 }

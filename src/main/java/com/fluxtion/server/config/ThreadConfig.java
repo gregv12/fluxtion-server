@@ -13,4 +13,21 @@ import lombok.Data;
 public class ThreadConfig {
     private String agentName;
     private IdleStrategy idleStrategy = new YieldingIdleStrategy();
+
+    public static Builder builder() { return new Builder(); }
+
+    public static final class Builder {
+        private String agentName;
+        private IdleStrategy idleStrategy;
+
+        private Builder() {}
+        public Builder agentName(String agentName) { this.agentName = agentName; return this; }
+        public Builder idleStrategy(IdleStrategy idleStrategy) { this.idleStrategy = idleStrategy; return this; }
+        public ThreadConfig build() {
+            ThreadConfig cfg = new ThreadConfig();
+            cfg.setAgentName(agentName);
+            if (idleStrategy != null) cfg.setIdleStrategy(idleStrategy);
+            return cfg;
+        }
+    }
 }
