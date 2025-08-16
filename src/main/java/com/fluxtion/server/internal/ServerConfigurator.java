@@ -10,7 +10,6 @@ import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.service.Service;
 import com.fluxtion.server.FluxtionServer;
 import com.fluxtion.server.config.AppConfig;
-import com.fluxtion.server.config.EventProcessorConfig;
 import com.fluxtion.server.config.ServiceConfig;
 import com.fluxtion.server.dutycycle.GlobalErrorHandler;
 import com.fluxtion.server.service.servercontrol.FluxtionServerController;
