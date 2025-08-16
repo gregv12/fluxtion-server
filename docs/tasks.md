@@ -65,10 +65,10 @@ logically ordered and cover both architectural and code-level improvements.
 
 ### Dependency Management
 
-- [ ] Review and update external dependencies
-- [ ] Reduce coupling between components
-- [ ] Implement proper dependency injection
-- [ ] Create clear boundaries between modules
+- [x] Review and update external dependencies
+- [x] Reduce coupling between components
+- [x] Implement proper dependency injection
+- [x] Create clear boundaries between modules
 
 ### Security
 

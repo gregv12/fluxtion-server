@@ -75,7 +75,7 @@ public class AdminCommandProcessor implements EventFlowService, AdminCommandRegi
     @Override
     @SuppressWarnings("unchecked")
     public <OUT, ERR> void registerCommand(String name, AdminFunction<OUT, ERR> command) {
-        if (EventFlowManager.currentProcessor() == null) {
+        if (com.fluxtion.server.dispatch.ProcessorContext.currentProcessor() == null) {
             registeredCommandMap.put(name, new AdminCommand((AdminFunction<Object, Object>) command));
         } else {
             String queueKey = "adminCommand." + name;
@@ -122,7 +122,7 @@ public class AdminCommandProcessor implements EventFlowService, AdminCommandRegi
     }
 
     private void addCommand(String name, String queueKey, AdminCommand adminCommand) {
-        StaticEventProcessor staticEventProcessor = EventFlowManager.currentProcessor();
+        StaticEventProcessor staticEventProcessor = com.fluxtion.server.dispatch.ProcessorContext.currentProcessor();
         log.info("registered command:" + name + " queue:" + queueKey + " processor:" + staticEventProcessor);
 
         registeredCommandMap.put(name, adminCommand);

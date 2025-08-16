@@ -193,6 +193,15 @@ public class FluxtionServer implements FluxtionServerController {
             if (instance instanceof com.fluxtion.server.dispatch.EventFlowService) {
                 ((EventFlowService) instance).setEventFlowManager(flowManager, serviceName);
             }
+            // Dependency injection: inject other registered services into this instance
+            com.fluxtion.server.service.ServiceInjector.inject(instance, registeredServices.values());
+            // Also inject the newly registered service into existing services (single-target injection)
+            for (Service<?> existing : registeredServices.values()) {
+                Object existingInstance = existing.instance();
+                if (existingInstance != instance) {
+                    com.fluxtion.server.service.ServiceInjector.inject(existingInstance, java.util.Collections.singleton(service));
+                }
+            }
         }
     }
 

@@ -52,9 +52,9 @@ public abstract class AbstractEventToInvocationStrategy implements EventToInvoke
             if( fineLogEnabled){
                 log.fine(() -> "invokerId: " + id + " dispatchEvent to " + eventProcessor);
             }
-            com.fluxtion.server.dispatch.EventFlowManager.setCurrentProcessor(eventProcessor);
+            ProcessorContext.setCurrentProcessor(eventProcessor);
             dispatchEvent(event, eventProcessor);
-            EventFlowManager.removeCurrentProcessor();
+            ProcessorContext.removeCurrentProcessor();
         }
     }
 
