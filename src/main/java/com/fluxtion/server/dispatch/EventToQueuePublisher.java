@@ -71,6 +71,11 @@ public class EventToQueuePublisher<T> {
             mappedItem = dataMapper.apply(itemToPublish);
         } catch (Throwable t) {
             log.severe("data mapping failed: publisher=" + name + ", sequenceNumber=" + (sequenceNumber + 1) + ", item=" + String.valueOf(itemToPublish) + ", error=" + t);
+            com.fluxtion.server.service.error.ErrorReporting.report(
+                    "EventToQueuePublisher:" + name,
+                    "data mapping failed for publish: seq=" + (sequenceNumber + 1) + ", item=" + String.valueOf(itemToPublish),
+                    t,
+                    com.fluxtion.server.service.error.ErrorEvent.Severity.ERROR);
             return;
         }
         if (mappedItem == null) {
@@ -107,6 +112,11 @@ public class EventToQueuePublisher<T> {
             mappedItem = dataMapper.apply(itemToCache);
         } catch (Throwable t) {
             log.severe("data mapping (cache) failed: publisher=" + name + ", nextSequenceNumber=" + (sequenceNumber + 1) + ", item=" + String.valueOf(itemToCache) + ", error=" + t);
+            com.fluxtion.server.service.error.ErrorReporting.report(
+                    "EventToQueuePublisher:" + name,
+                    "data mapping failed for cache: nextSeq=" + (sequenceNumber + 1) + ", item=" + String.valueOf(itemToCache),
+                    t,
+                    com.fluxtion.server.service.error.ErrorEvent.Severity.ERROR);
             return;
         }
         if (mappedItem == null) {
@@ -201,6 +211,11 @@ public class EventToQueuePublisher<T> {
             }
         } catch (Throwable t) {
             log.severe("queue write failed: publisher=" + name + ", queue=" + namedQueue.getName() + ", seq=" + sequenceNumber + ", item=" + String.valueOf(itemToPublish) + ", error=" + t);
+            com.fluxtion.server.service.error.ErrorReporting.report(
+                    "EventToQueuePublisher:" + name,
+                    "queue write failed: queue=" + namedQueue.getName() + ", seq=" + sequenceNumber + ", item=" + String.valueOf(itemToPublish),
+                    t,
+                    com.fluxtion.server.service.error.ErrorEvent.Severity.CRITICAL);
             throw t;
         }
         if (logInfo && now > 1) {

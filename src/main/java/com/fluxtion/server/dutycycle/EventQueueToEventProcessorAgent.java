@@ -74,6 +74,11 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
                             ", event=" + String.valueOf(event) +
                             ", error=" + t.toString();
                     logger.warning(warnMsg);
+                    com.fluxtion.server.service.error.ErrorReporting.report(
+                            "EventQueueToEventProcessorAgent:" + name,
+                            warnMsg,
+                            t,
+                            com.fluxtion.server.service.error.ErrorEvent.Severity.WARNING);
                     if (!retryPolicy.shouldRetry(t, attempt)) {
                         String errMsg = "dropping event after retries: agent=" + name +
                                 ", attempts=" + attempt +
@@ -81,6 +86,11 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
                                 ", event=" + String.valueOf(event) +
                                 ", lastError=" + t.toString();
                         logger.severe(errMsg);
+                        com.fluxtion.server.service.error.ErrorReporting.report(
+                                "EventQueueToEventProcessorAgent:" + name,
+                                errMsg,
+                                t,
+                                com.fluxtion.server.service.error.ErrorEvent.Severity.ERROR);
                         break;
                     }
                     retryPolicy.backoff(attempt);
