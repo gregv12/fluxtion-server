@@ -84,7 +84,7 @@ logically ordered and cover both architectural and code-level improvements.
 - [x] Remove experimental annotations where implementation is stable
 - [x] Fix raw type usage in generics
 - [x] Address compiler warnings
-- [ ] Remove unused code and dead code paths
+- [x] Remove unused code and dead code paths
 
 ### Refactoring
 
