@@ -24,6 +24,7 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
     private final EventToInvokeStrategy eventToInvokeStrategy;
     private final String name;
     private final Logger logger;
+    private com.fluxtion.server.dispatch.RetryPolicy retryPolicy = com.fluxtion.server.dispatch.RetryPolicy.defaultProcessingPolicy();
 
 
     //TODO add an unsubscribe action that is called when there are no more listeners registered
@@ -51,13 +52,41 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
         final int batchLimit = 64;
         Object event;
         while (processed < batchLimit && (event = inputQueue.poll()) != null) {
-            if (event instanceof ReplayRecord replayRecord) {
-                eventToInvokeStrategy.processEvent(replayRecord.getEvent(), replayRecord.getWallClockTime());
-            } else if (event instanceof BroadcastEvent broadcastEvent) {
-                eventToInvokeStrategy.processEvent(broadcastEvent.getEvent());
-            } else {
-                eventToInvokeStrategy.processEvent(event);
+            int attempt = 0;
+            boolean done = false;
+            Throwable lastError = null;
+            while (!done) {
+                try {
+                    if (event instanceof ReplayRecord replayRecord) {
+                        eventToInvokeStrategy.processEvent(replayRecord.getEvent(), replayRecord.getWallClockTime());
+                    } else if (event instanceof BroadcastEvent broadcastEvent) {
+                        eventToInvokeStrategy.processEvent(broadcastEvent.getEvent());
+                    } else {
+                        eventToInvokeStrategy.processEvent(event);
+                    }
+                    done = true;
+                } catch (Throwable t) {
+                    lastError = t;
+                    attempt++;
+                    String warnMsg = "event processing failed: agent=" + name +
+                            ", attempt=" + attempt +
+                            ", eventClass=" + (event == null ? "null" : event.getClass().getName()) +
+                            ", event=" + String.valueOf(event) +
+                            ", error=" + t.toString();
+                    logger.warning(warnMsg);
+                    if (!retryPolicy.shouldRetry(t, attempt)) {
+                        String errMsg = "dropping event after retries: agent=" + name +
+                                ", attempts=" + attempt +
+                                ", eventClass=" + (event == null ? "null" : event.getClass().getName()) +
+                                ", event=" + String.valueOf(event) +
+                                ", lastError=" + t.toString();
+                        logger.severe(errMsg);
+                        break;
+                    }
+                    retryPolicy.backoff(attempt);
+                }
             }
+            // Count it as processed even if dropped to avoid infinite loops
             processed++;
         }
         return processed;
@@ -71,6 +100,14 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
     @Override
     public String roleName() {
         return name;
+    }
+
+    /** Configure the retry policy for processing events. */
+    public EventQueueToEventProcessorAgent withRetryPolicy(com.fluxtion.server.dispatch.RetryPolicy retryPolicy) {
+        if (retryPolicy != null) {
+            this.retryPolicy = retryPolicy;
+        }
+        return this;
     }
 
     @Override
