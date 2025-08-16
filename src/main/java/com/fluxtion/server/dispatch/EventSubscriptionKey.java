@@ -6,10 +6,8 @@
 
 package com.fluxtion.server.dispatch;
 
-import com.fluxtion.runtime.annotations.feature.Experimental;
 import lombok.Value;
 
-@Experimental
 @Value
 public class EventSubscriptionKey<T> {
     com.fluxtion.server.dispatch.EventSourceKey<T> eventSourceKey;

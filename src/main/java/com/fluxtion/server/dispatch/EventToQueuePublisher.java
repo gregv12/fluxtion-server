@@ -6,7 +6,6 @@
 package com.fluxtion.server.dispatch;
 
 import com.fluxtion.agrona.concurrent.OneToOneConcurrentArrayQueue;
-import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.event.NamedFeedEvent;
 import com.fluxtion.runtime.event.NamedFeedEventImpl;
 import com.fluxtion.runtime.event.ReplayRecord;
@@ -29,7 +28,6 @@ import java.util.logging.Level;
  *
  * @param <T>
  */
-@Experimental
 @RequiredArgsConstructor
 @ToString
 @Log
@@ -59,16 +57,14 @@ public class EventToQueuePublisher<T> {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public void publish(T itemToPublish) {
         if (itemToPublish == null) {
             log.fine("itemToPublish is null");
             return;
         }
 
-        var mappedItem = dataMapper.apply(itemToPublish);
+        Object mappedItem = mapItemSafely(itemToPublish, "publish");
         if (mappedItem == null) {
-            log.fine("mappedItem is null");
             return;
         }
 
@@ -96,9 +92,8 @@ public class EventToQueuePublisher<T> {
             return;
         }
 
-        var mappedItem = dataMapper.apply(itemToCache);
+        Object mappedItem = mapItemSafely(itemToCache, "cache");
         if (mappedItem == null) {
-            log.fine("mappedItem is null");
             return;
         }
 
@@ -114,7 +109,6 @@ public class EventToQueuePublisher<T> {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public void publishReplay(ReplayRecord record) {
         if (record == null) {
             log.fine("itemToPublish is null");
@@ -153,6 +147,24 @@ public class EventToQueuePublisher<T> {
         return cacheEventLog ? eventLog : Collections.emptyList();
     }
 
+    private Object mapItemSafely(T item, String context) {
+        try {
+            Object mapped = dataMapper.apply(item);
+            if (mapped == null) {
+                log.fine("mappedItem is null");
+            }
+            return mapped;
+        } catch (Throwable t) {
+            log.severe("data mapping (" + context + ") failed: publisher=" + name + ", nextSequenceNumber=" + (sequenceNumber + 1) + ", item=" + String.valueOf(item) + ", error=" + t);
+            com.fluxtion.server.service.error.ErrorReporting.report(
+                    "EventToQueuePublisher:" + name,
+                    "data mapping failed for " + context + ": nextSeq=" + (sequenceNumber + 1) + ", item=" + String.valueOf(item),
+                    t,
+                    com.fluxtion.server.service.error.ErrorEvent.Severity.ERROR);
+            return null;
+        }
+    }
+
     private void dispatch(Object mappedItem) {
         for (int i = 0, targetQueuesSize = targetQueues.size(); i < targetQueuesSize; i++) {
             NamedQueue namedQueue = targetQueues.get(i);
@@ -177,14 +189,24 @@ public class EventToQueuePublisher<T> {
         OneToOneConcurrentArrayQueue<Object> targetQueue = namedQueue.getTargetQueue();
         boolean eventNotificationNotReceived = false;
         long now = -1;
-        while (!eventNotificationNotReceived) {
-            eventNotificationNotReceived = targetQueue.offer(itemToPublish);
-            if (!eventNotificationNotReceived) {
-                if (now < 0) {
-                    now = System.nanoTime();
+        try {
+            while (!eventNotificationNotReceived) {
+                eventNotificationNotReceived = targetQueue.offer(itemToPublish);
+                if (!eventNotificationNotReceived) {
+                    if (now < 0) {
+                        now = System.nanoTime();
+                    }
+                    java.lang.Thread.onSpinWait();
                 }
-                java.lang.Thread.onSpinWait();
             }
+        } catch (Throwable t) {
+            log.severe("queue write failed: publisher=" + name + ", queue=" + namedQueue.getName() + ", seq=" + sequenceNumber + ", item=" + String.valueOf(itemToPublish) + ", error=" + t);
+            com.fluxtion.server.service.error.ErrorReporting.report(
+                    "EventToQueuePublisher:" + name,
+                    "queue write failed: queue=" + namedQueue.getName() + ", seq=" + sequenceNumber + ", item=" + String.valueOf(itemToPublish),
+                    t,
+                    com.fluxtion.server.service.error.ErrorEvent.Severity.CRITICAL);
+            throw t;
         }
         if (logInfo && now > 1) {
             long delta = System.nanoTime() - now;
@@ -196,5 +218,12 @@ public class EventToQueuePublisher<T> {
     public static class NamedQueue {
         String name;
         OneToOneConcurrentArrayQueue<Object> targetQueue;
+    }
+
+    public void removeTargetQueueByName(String queueName) {
+        if (queueName == null) {
+            return;
+        }
+        targetQueues.removeIf(q -> queueName.equals(q.getName()));
     }
 }

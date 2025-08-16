@@ -19,11 +19,13 @@ public class ConfigMap {
     }
 
     // Legacy string-based accessors (kept for backward compatibility)
+    @Deprecated
     @SuppressWarnings({"unchecked"})
     public <T> T get(String key) {
         return (T) configMap.get(key);
     }
 
+    @Deprecated
     @SuppressWarnings({"unchecked"})
     public <T> T getOrDefault(String key, T defaultValue) {
         return (T) configMap.getOrDefault(key, defaultValue);
