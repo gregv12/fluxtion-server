@@ -51,10 +51,10 @@ logically ordered and cover both architectural and code-level improvements.
 
 ### Code Quality
 
-- [ ] Fix SuppressWarnings usage (replace with proper type safety)
-- [ ] Address TODO comments in the codebase
+- [x] Fix SuppressWarnings usage (replace with proper type safety)
+- [x] Address TODO comments in the codebase
 - [ ] Implement consistent naming conventions
-- [ ] Reduce code duplication in event handling logic
+- [x] Reduce code duplication in event handling logic
 
 ### API Improvements
 

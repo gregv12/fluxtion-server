@@ -25,10 +25,8 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
     private final String name;
     private final Logger logger;
     private com.fluxtion.server.dispatch.RetryPolicy retryPolicy = com.fluxtion.server.dispatch.RetryPolicy.defaultProcessingPolicy();
+    private Runnable unsubscribeAction;
 
-
-    //TODO add an unsubscribe action that is called when there are no more listeners registered
-    // should remove from the EventFLowManager
     public EventQueueToEventProcessorAgent(
             OneToOneConcurrentArrayQueue<?> inputQueue,
             EventToInvokeStrategy eventToInvokeStrategy,
@@ -120,6 +118,12 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
         return this;
     }
 
+    /** Provide an unsubscribe action to be called when listenerCount() drops to zero. */
+    public EventQueueToEventProcessorAgent withUnsubscribeAction(Runnable unsubscribeAction) {
+        this.unsubscribeAction = unsubscribeAction;
+        return this;
+    }
+
     @Override
     public int registerProcessor(StaticEventProcessor eventProcessor) {
         logger.info("registerProcessor: " + eventProcessor);
@@ -132,8 +136,15 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
     public int deregisterProcessor(StaticEventProcessor eventProcessor) {
         logger.info("deregisterProcessor: " + eventProcessor);
         eventToInvokeStrategy.deregisterProcessor(eventProcessor);
-        //TODO when the listener count is < 1 then run the unsubscribe action
-        return listenerCount();
+        int listeners = listenerCount();
+        if (listeners < 1 && unsubscribeAction != null) {
+            try {
+                unsubscribeAction.run();
+            } catch (Throwable t) {
+                logger.severe("error running unsubscribe action for agent=" + name + ": " + t);
+            }
+        }
+        return listeners;
     }
 
     @Override

@@ -160,7 +160,14 @@ public class EventFlowManager {
         String name = subscriber.roleName() + "/" + eventSourceKey.getSourceName() + "/" + type.name();
         eventSourceQueuePublisher.getQueuePublisher().addTargetQueue(eventQueue, name);
 
-        return new EventQueueToEventProcessorAgent(eventQueue, eventMapperSupplier.get(), name);
+        Runnable unsubscribe = () -> {
+            // remove target queue and cached mapping for this subscriber
+            eventSourceQueuePublisher.getQueuePublisher().removeTargetQueueByName(name);
+            subscriberKeyToQueueMap.remove(keySubscriber);
+        };
+
+        return new EventQueueToEventProcessorAgent(eventQueue, eventMapperSupplier.get(), name)
+                .withUnsubscribeAction(unsubscribe);
     }
 
     public <T> EventQueueToEventProcessor getMappingAgent(EventSubscriptionKey<T> subscriptionKey, Agent subscriber) {
