@@ -366,7 +366,10 @@ public class FluxtionServer implements FluxtionServerController {
         log.info("waiting for event processor agents to start");
         while (waiting) {
             waiting = composingEventProcessorAgents.values().stream()
-                    .anyMatch(f -> f.group.status() != DynamicCompositeAgent.Status.ACTIVE);
+                    .anyMatch(f -> {
+                        DynamicCompositeAgent.Status status = f.group.status();
+                        return status != DynamicCompositeAgent.Status.ACTIVE;
+                    });
             Thread.sleep(10);
             log.finer("checking all processor agents are started");
         }
@@ -392,6 +395,50 @@ public class FluxtionServer implements FluxtionServerController {
         return Collections.unmodifiableCollection(registeredServices.values());
     }
 
+    /**
+     * Stops the server and all its components.
+     * This method stops all event processor agents, agent hosted services, the flowManager, and all registered services.
+     * It should be called when the server is no longer needed to free up resources.
+     */
+    public void stop() {
+        log.info("stopping server");
+
+        if (!started) {
+            log.info("server not started, nothing to stop");
+            return;
+        }
+
+        log.info("stopping event processor agents");
+        composingEventProcessorAgents.forEach((k, v) -> {
+            log.info("stopping composing event processor agent " + k);
+            AgentRunner groupRunner = v.getGroupRunner();
+            if (groupRunner.thread() != null) {
+                groupRunner.close();
+            }
+        });
+
+        log.info("stopping agent hosted services");
+        composingServiceAgents.forEach((k, v) -> {
+            log.info("stopping composing service agent " + k);
+            AgentRunner groupRunner = v.getGroupRunner();
+            if (groupRunner.thread() != null) {
+                groupRunner.close();
+            }
+        });
+
+        log.info("stopping flowManager");
+        // No explicit stop method in flowManager, but we can stop all services
+
+        log.info("stopping registered services");
+        for (Service<?> service : registeredServices.values()) {
+            if (!(service.instance() instanceof com.fluxtion.server.dispatch.LifeCycleEventSource)) {
+                service.stop();
+            }
+        }
+
+        started = false;
+        log.info("server stopped");
+    }
 
     @ServiceRegistered
     public void adminClient(AdminCommandRegistry adminCommandRegistry, String name) {

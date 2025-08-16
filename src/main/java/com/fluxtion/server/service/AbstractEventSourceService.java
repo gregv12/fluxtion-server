@@ -120,6 +120,9 @@ public abstract class AbstractEventSourceService<T>
     @Override
     public void setEventWrapStrategy(EventWrapStrategy eventWrapStrategy) {
         this.eventWrapStrategy = eventWrapStrategy;
+        if (output != null) {
+            output.setEventWrapStrategy(eventWrapStrategy);
+        }
     }
 
     @Override
@@ -130,5 +133,8 @@ public abstract class AbstractEventSourceService<T>
     @Override
     public void setDataMapper(Function<T, ?> dataMapper) {
         this.dataMapper = dataMapper;
+        if (output != null) {
+            output.setDataMapper(dataMapper);
+        }
     }
 }
