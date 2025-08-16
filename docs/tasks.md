@@ -59,7 +59,7 @@ logically ordered and cover both architectural and code-level improvements.
 ### API Improvements
 
 - [x] Create a more fluent API for event subscription
-- [ ] Improve service registration API
+- [x] Improve service registration API
 - [ ] Add builder patterns for complex configurations
 - [ ] Create a more consistent exception hierarchy
 

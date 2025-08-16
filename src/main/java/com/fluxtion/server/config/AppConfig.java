@@ -127,4 +127,60 @@ public class AppConfig {
 
         return defaultHandlerGroupConfig;
     }
+
+    // ---- Improved service registration API ----
+
+    /**
+     * Add a simple service by instance and name. The service interface is inferred from the instance class.
+     */
+    public <T> AppConfig addService(T service, String name) {
+        if (services == null) {
+            services = new ArrayList<>();
+        }
+        @SuppressWarnings("unchecked") Class<T> clazz = (Class<T>) service.getClass();
+        ServiceConfig<T> cfg = new ServiceConfig<>(service, clazz, name);
+        services.add(cfg);
+        return this;
+    }
+
+    /**
+     * Add a service by instance, explicit service interface class, and name.
+     */
+    public <T> AppConfig addService(T service, Class<T> serviceClass, String name) {
+        if (services == null) {
+            services = new ArrayList<>();
+        }
+        ServiceConfig<T> cfg = new ServiceConfig<>(service, serviceClass, name);
+        services.add(cfg);
+        return this;
+    }
+
+    /**
+     * Add a worker (agent-backed) service supplying the agent group and optional idle strategy.
+     */
+    public <T> AppConfig addWorkerService(T service, Class<T> serviceClass, String name, String agentGroup, IdleStrategy idleStrategy) {
+        if (services == null) {
+            services = new ArrayList<>();
+        }
+        ServiceConfig<T> cfg = new ServiceConfig<>(service, serviceClass, name);
+        cfg.setAgentGroup(agentGroup);
+        cfg.setIdleStrategy(idleStrategy);
+        services.add(cfg);
+        return this;
+    }
+
+    /**
+     * Add a worker (agent-backed) service inferring service class.
+     */
+    public <T> AppConfig addWorkerService(T service, String name, String agentGroup, IdleStrategy idleStrategy) {
+        if (services == null) {
+            services = new ArrayList<>();
+        }
+        @SuppressWarnings("unchecked") Class<T> clazz = (Class<T>) service.getClass();
+        ServiceConfig<T> cfg = new ServiceConfig<>(service, clazz, name);
+        cfg.setAgentGroup(agentGroup);
+        cfg.setIdleStrategy(idleStrategy);
+        services.add(cfg);
+        return this;
+    }
 }
