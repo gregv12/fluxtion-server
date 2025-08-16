@@ -12,7 +12,6 @@ import com.fluxtion.agrona.concurrent.IdleStrategy;
 import com.fluxtion.agrona.concurrent.UnsafeBuffer;
 import com.fluxtion.agrona.concurrent.status.AtomicCounter;
 import com.fluxtion.runtime.StaticEventProcessor;
-import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.annotations.runtime.ServiceRegistered;
 import com.fluxtion.runtime.audit.EventLogControlEvent;
 import com.fluxtion.runtime.audit.LogRecordListener;
@@ -37,7 +36,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-@Experimental
 @Log
 public class FluxtionServer implements FluxtionServerController {
 

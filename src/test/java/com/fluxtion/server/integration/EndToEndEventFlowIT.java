@@ -113,8 +113,6 @@ public class EndToEndEventFlowIT {
      * A test event source that can publish events.
      */
     private static class TestEventSource extends AbstractEventSourceService<TestEvent> {
-        private EventToQueuePublisher<TestEvent> publisher;
-
         public TestEventSource(String name) {
             super(name);
         }

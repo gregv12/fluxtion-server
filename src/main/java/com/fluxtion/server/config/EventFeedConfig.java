@@ -42,8 +42,7 @@ public class EventFeedConfig<T> {
     }
 
     @SneakyThrows
-    @SuppressWarnings({"unchecked", "all"})
-    public Service<T> toService() {
+    public Service<NamedFeed> toService() {
         if (instance instanceof EventSource<?> eventSource) {
             if (wrapWithNamedEvent & broadcast) {
                 eventWrapStrategy = EventSource.EventWrapStrategy.BROADCAST_NAMED_EVENT;
@@ -54,19 +53,21 @@ public class EventFeedConfig<T> {
             } else {
                 eventWrapStrategy = EventSource.EventWrapStrategy.SUBSCRIPTION_NOWRAP;
             }
-            EventSource<T> eventSource_t = (EventSource<T>) eventSource;
+            @SuppressWarnings("unchecked") EventSource<T> eventSource_t = (EventSource<T>) eventSource;
             eventSource_t.setEventWrapStrategy(eventWrapStrategy);
             eventSource_t.setSlowConsumerStrategy(slowConsumerStrategy);
             eventSource_t.setDataMapper(valueMapper);
         }
-        Service svc = new Service(instance, NamedFeed.class, name);
+        Service<NamedFeed> svc = new Service<>((NamedFeed) instance, NamedFeed.class, name);
         return svc;
     }
 
     @SneakyThrows
-    @SuppressWarnings({"unchecked", "all"})
-    public <A extends Agent> ServiceAgent<A> toServiceAgent() {
-        Service svc = toService();
-        return new ServiceAgent<>(agentName, idleStrategy, svc, (A) instance);
+    public ServiceAgent<NamedFeed> toServiceAgent() {
+        Service<NamedFeed> svc = toService();
+        if (!(instance instanceof Agent a)) {
+            throw new IllegalArgumentException("Configured instance is not an Agent: " + instance);
+        }
+        return new ServiceAgent<>(agentName, idleStrategy, svc, a);
     }
 }

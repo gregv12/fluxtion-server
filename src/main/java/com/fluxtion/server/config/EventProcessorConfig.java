@@ -25,7 +25,7 @@ public class EventProcessorConfig<T extends EventProcessor<?>> {
     private ObjectEventHandlerNode customHandler;
     private Supplier<T> eventHandlerBuilder;
     private EventLogControlEvent.LogLevel logLevel;
-    @Getter(AccessLevel.NONE)
+    @Getter(AccessLevel.PRIVATE)
     @Setter(AccessLevel.NONE)
     private Map<String, Object> configMap = new HashMap<>();
 
@@ -36,16 +36,6 @@ public class EventProcessorConfig<T extends EventProcessor<?>> {
             eventHandler = (T) wrappingProcessor;
         }
         return eventHandler;
-    }
-
-    @SuppressWarnings({"raw"})
-    public Map<String, Object> getConfigMap() {
-        return configMap;
-    }
-
-    @SuppressWarnings({"raw"})
-    public void setConfigMap(Map<String, Object> configMap) {
-        this.configMap = configMap;
     }
 
     public ConfigMap getConfig() {
