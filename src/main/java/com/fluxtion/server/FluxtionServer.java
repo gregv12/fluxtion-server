@@ -185,7 +185,7 @@ public class FluxtionServer implements FluxtionServerController {
             String serviceName = service.serviceName();
             log.info("registerService:" + service);
             if (registeredServices.containsKey(serviceName)) {
-                throw new IllegalArgumentException("cannot register service name is already assigned:" + serviceName);
+                throw new com.fluxtion.server.exception.ServiceRegistrationException("cannot register service name is already assigned:" + serviceName);
             }
             registeredServices.put(serviceName, service);
             Object instance = service.instance();

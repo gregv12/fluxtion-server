@@ -61,7 +61,7 @@ logically ordered and cover both architectural and code-level improvements.
 - [x] Create a more fluent API for event subscription
 - [x] Improve service registration API
 - [x] Add builder patterns for complex configurations
-- [ ] Create a more consistent exception hierarchy
+- [x] Create a more consistent exception hierarchy
 
 ### Dependency Management
 
