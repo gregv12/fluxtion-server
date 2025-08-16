@@ -53,7 +53,7 @@ public class HeartBeatEventFeed extends AbstractAgentHostedEventSourceService<He
             // Print rate every second
             long currentTime = System.currentTimeMillis();
             if (currentTime - lastPrintTime >= 1000) {  // Check if 1 second has passed
-                System.out.printf("Heartbeat messages per second: %d%n", messageCount);
+//                System.out.printf("Heartbeat messages per second: %d%n", messageCount);
                 messageCount = 0;
                 lastPrintTime = currentTime;
             }

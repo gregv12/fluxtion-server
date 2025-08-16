@@ -16,6 +16,8 @@ import com.fluxtion.server.dispatch.EventSource;
 import com.fluxtion.server.service.admin.AdminCommandRegistry;
 import com.fluxtion.server.service.admin.AdminCommandRequest;
 import com.fluxtion.server.service.admin.AdminFunction;
+import com.fluxtion.server.service.metrics.EventProcessingMetrics;
+import com.fluxtion.server.service.metrics.MetricsRegistry;
 import lombok.extern.java.Log;
 
 import java.util.HashMap;
@@ -38,6 +40,9 @@ public class AdminCommandProcessor implements EventFlowService, AdminCommandRegi
             help/?       - this message
             commands     - registered service commands
             eventSources - list event sources
+            metrics      - show event processing metrics (optional filter: metrics <substring>)
+            metrics_on   - metrics recording on
+            metrics_off  - metrics recording off
             """;
 
     @Override
@@ -58,6 +63,9 @@ public class AdminCommandProcessor implements EventFlowService, AdminCommandRegi
         registerCommand("?", this::printHelp);
         registerCommand("eventSources", this::printQueues);
         registerCommand("commands", this::registeredCommands);
+        registerCommand("metrics", this::printMetrics);
+        registerCommand("metrics_on", this::metricsOn);
+        registerCommand("metrics_off", this::metricsOff);
     }
 
     @Override
@@ -119,6 +127,64 @@ public class AdminCommandProcessor implements EventFlowService, AdminCommandRegi
                         "Service commands:\n---------------------------\n",
                         "\n"));
         out.accept(commandsString);
+    }
+
+    private void printMetrics(List<String> args, Consumer<String> out, Consumer<String> err) {
+        Map<String, EventProcessingMetrics> all = MetricsRegistry.all();
+        if (all.isEmpty()) {
+            out.accept("No metrics available\n");
+            return;
+        }
+        String filter = null;
+        if (args != null && args.size() > 1) {
+            // args[0] is the command name, args[1] optional filter substring
+            filter = args.get(1).toLowerCase();
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("Metrics:\n");
+        sb.append("---------------------------\n");
+        final String filterFinal = filter;
+        all.entrySet().stream()
+//                .filter(e -> e.getValue().getProcessedCount() > 0)
+                .filter(e -> e.getValue().isEnabled())
+                .filter(e -> filterFinal == null || e.getKey().toLowerCase().contains(filterFinal))
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(entry -> {
+                    EventProcessingMetrics m = entry.getValue();
+                    sb.append(entry.getKey()).append(':').append('\n');
+                    sb.append("  processed: ").append(m.getProcessedCount()).append('\n');
+                    sb.append("  failed: ").append(m.getFailedCount()).append('\n');
+                    sb.append("  lastLatencyNanos: ").append(m.getLastLatencyNanos()).append('\n');
+                    sb.append("  avgLatencyNanos: ").append(m.getAverageLatencyNanos()).append('\n');
+                    sb.append("  throughputEps: ")
+                            .append(String.format("%.2f", m.getThroughputEventsPerSecond()))
+                            .append('\n');
+                });
+        out.accept(sb.toString());
+    }
+
+    public void metricsOn(List<String> args, Consumer<String> out, Consumer<String> err) {
+        if (args != null && args.size() > 1) {
+            // args[0] is the command name, args[1] optional filter substring
+            String filter = args.get(1).toLowerCase();
+            eventFlowManager.metricsOn(filter);
+            out.accept("metrics on for queue:" + filter);
+        } else {
+            eventFlowManager.metricsOn(null);
+            out.accept("metrics on for all queue");
+        }
+    }
+
+    public void metricsOff(List<String> args, Consumer<String> out, Consumer<String> err) {
+        if (args != null && args.size() > 1) {
+            // args[0] is the command name, args[1] optional filter substring
+            String filter = args.get(1).toLowerCase();
+            eventFlowManager.metricsOff(filter);
+            out.accept("metrics off for queue:" + filter);
+        }else{
+            eventFlowManager.metricsOn(null);
+            out.accept("metricsOff off for all queue");
+        }
     }
 
     private void addCommand(String name, String queueKey, AdminCommand adminCommand) {

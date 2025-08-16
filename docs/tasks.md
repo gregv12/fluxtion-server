@@ -28,7 +28,7 @@ logically ordered and cover both architectural and code-level improvements.
 
 ### Monitoring and Observability
 
-- [ ] Implement metrics collection for event processing (throughput, latency)
+- [x] Implement metrics collection for event processing (throughput, latency)
 - [ ] Add health check endpoints
 - [ ] Enhance logging with structured logging format
 - [ ] Implement distributed tracing for event flows

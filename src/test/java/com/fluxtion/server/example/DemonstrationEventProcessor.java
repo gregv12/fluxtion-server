@@ -27,7 +27,20 @@ public class DemonstrationEventProcessor {
         Thread.sleep(1_000_000);
     }
 
-    private final static String configPerformance = """            
+    public static void main(String[] args) {
+        FluxtionServer.bootServer(new StringReader(configPerformance), System.out::println);
+    }
+
+    private final static String configPerformance = """  
+            # --------- SERVICES BEGIN CONFIG ---------
+            services:
+              # Admin command processor
+              - serviceClass: com.fluxtion.server.service.admin.AdminCommandRegistry
+                service: !!com.fluxtion.server.service.admin.impl.AdminCommandProcessor { }
+            
+              # Telnet Admin
+              - service: !!com.fluxtion.server.service.admin.impl.CliAdminCommandProcessor { }
+                            
             # --------- EVENT INPUT FEEDS BEGIN CONFIG ---------
             eventFeeds:
               - instance: !!com.fluxtion.server.example.HeartBeatEventFeed

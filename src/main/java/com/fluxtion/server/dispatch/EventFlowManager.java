@@ -36,6 +36,7 @@ public class EventFlowManager {
     private final ConcurrentHashMap<EventSinkKey<?>, ManyToOneConcurrentArrayQueue<?>> eventSinkToQueueMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<com.fluxtion.server.dispatch.CallBackType, Supplier<EventToInvokeStrategy>> eventToInvokerFactoryMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<EventSourceKey_Subscriber<?>, OneToOneConcurrentArrayQueue<?>> subscriberKeyToQueueMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, EventQueueToEventProcessor> processorEventQueueMap = new ConcurrentHashMap<>();
     private final static ThreadLocal<AtomicReference<StaticEventProcessor>> currentProcessor = new ThreadLocal<>();
 
     public static void setCurrentProcessor(StaticEventProcessor eventProcessor) {
@@ -160,7 +161,9 @@ public class EventFlowManager {
         String name = subscriber.roleName() + "/" + eventSourceKey.getSourceName() + "/" + type.name();
         eventSourceQueuePublisher.getQueuePublisher().addTargetQueue(eventQueue, name);
 
-        return new EventQueueToEventProcessorAgent(eventQueue, eventMapperSupplier.get(), name);
+        EventQueueToEventProcessorAgent eventQueueToEventProcessorAgent = new EventQueueToEventProcessorAgent(eventQueue, eventMapperSupplier.get(), name);
+        processorEventQueueMap.put(name, eventQueueToEventProcessorAgent);
+        return eventQueueToEventProcessorAgent;
     }
 
     public <T> EventQueueToEventProcessor getMappingAgent(EventSubscriptionKey<T> subscriptionKey, Agent subscriber) {
@@ -189,6 +192,20 @@ public class EventFlowManager {
                         System.err.println("problem logging event queues, exception:" + ex);
                     }
                 });
+    }
+
+    public void metricsOn(String filter) {
+        if (filter != null) {
+            processorEventQueueMap.values().stream()
+                    .filter(agent -> agent.roleName().contains(filter))
+                    .forEach(EventQueueToEventProcessor::metricsOn);
+        }else {
+            processorEventQueueMap.values().forEach(EventQueueToEventProcessor::metricsOn);
+        }
+    }
+
+    public void metricsOff(String filter) {
+        processorEventQueueMap.values().forEach(EventQueueToEventProcessor::metricsOff);
     }
 
     @Value

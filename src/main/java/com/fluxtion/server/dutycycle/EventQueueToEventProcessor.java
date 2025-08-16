@@ -22,4 +22,8 @@ public interface EventQueueToEventProcessor extends Agent {
     int deregisterProcessor(StaticEventProcessor eventProcessor);
 
     int listenerCount();
+
+    default void metricsOn(){}
+
+    default void metricsOff(){}
 }

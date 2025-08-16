@@ -11,8 +11,11 @@ import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.event.BroadcastEvent;
 import com.fluxtion.runtime.event.ReplayRecord;
 import com.fluxtion.server.dispatch.EventToInvokeStrategy;
+import com.fluxtion.server.service.metrics.EventProcessingMetrics;
+import com.fluxtion.server.service.metrics.MetricsRegistry;
 import lombok.extern.java.Log;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 
@@ -24,7 +27,8 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
     private final EventToInvokeStrategy eventToInvokeStrategy;
     private final String name;
     private final Logger logger;
-
+    private final EventProcessingMetrics metrics;
+    private final AtomicBoolean metricsEnabled = new AtomicBoolean(false);
 
     //TODO add an unsubscribe action that is called when there are no more listeners registered
     // should remove from the EventFLowManager
@@ -37,6 +41,7 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
         this.name = name;
 
         logger = Logger.getLogger("EventQueueToEventProcessorAgent." + name);
+        metrics = MetricsRegistry.getOrCreate(name);
     }
 
     @Override
@@ -51,12 +56,25 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
         final int batchLimit = 64;
         Object event;
         while (processed < batchLimit && (event = inputQueue.poll()) != null) {
-            if (event instanceof ReplayRecord replayRecord) {
-                eventToInvokeStrategy.processEvent(replayRecord.getEvent(), replayRecord.getWallClockTime());
-            } else if (event instanceof BroadcastEvent broadcastEvent) {
-                eventToInvokeStrategy.processEvent(broadcastEvent.getEvent());
-            } else {
-                eventToInvokeStrategy.processEvent(event);
+            final long start = System.nanoTime();
+            try {
+                if (event instanceof ReplayRecord replayRecord) {
+                    eventToInvokeStrategy.processEvent(replayRecord.getEvent(), replayRecord.getWallClockTime());
+                } else if (event instanceof BroadcastEvent broadcastEvent) {
+                    eventToInvokeStrategy.processEvent(broadcastEvent.getEvent());
+                } else {
+                    eventToInvokeStrategy.processEvent(event);
+                }
+            } catch (RuntimeException ex) {
+                if( metricsEnabled.getPlain()){
+                    metrics.recordFailure();
+                }
+                throw ex;
+            } finally {
+                if( metricsEnabled.getPlain()){
+                    final long duration = System.nanoTime() - start;
+                    metrics.recordLatencyNanos(duration);
+                }
             }
             processed++;
         }
@@ -92,5 +110,20 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
     @Override
     public int listenerCount() {
         return eventToInvokeStrategy.listenerCount();
+    }
+
+    public void metricsOn() {
+        metricsEnabled.set(true);
+    }
+
+    public void metricsOff() {
+        metricsEnabled.set(false);
+    }
+
+    /**
+     * Access metrics for this agent (throughput and latency).
+     */
+    public EventProcessingMetrics getMetrics() {
+        return metrics;
     }
 }
