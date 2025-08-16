@@ -7,7 +7,6 @@ package com.fluxtion.server;
 
 import com.fluxtion.agrona.ErrorHandler;
 import com.fluxtion.agrona.concurrent.AgentRunner;
-import com.fluxtion.agrona.concurrent.DynamicCompositeAgent;
 import com.fluxtion.agrona.concurrent.IdleStrategy;
 import com.fluxtion.agrona.concurrent.UnsafeBuffer;
 import com.fluxtion.agrona.concurrent.status.AtomicCounter;
@@ -16,9 +15,12 @@ import com.fluxtion.runtime.annotations.runtime.ServiceRegistered;
 import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.service.Service;
 import com.fluxtion.runtime.service.ServiceRegistryNode;
-import com.fluxtion.server.config.*;
+import com.fluxtion.server.config.AppConfig;
 import com.fluxtion.server.dispatch.EventFlowService;
-import com.fluxtion.server.dutycycle.*;
+import com.fluxtion.server.dutycycle.ComposingEventProcessorAgent;
+import com.fluxtion.server.dutycycle.ComposingServiceAgent;
+import com.fluxtion.server.dutycycle.NamedEventProcessor;
+import com.fluxtion.server.dutycycle.ServiceAgent;
 import com.fluxtion.server.service.admin.AdminCommandRegistry;
 import com.fluxtion.server.service.scheduler.DeadWheelScheduler;
 import com.fluxtion.server.service.servercontrol.FluxtionServerController;
@@ -48,6 +50,7 @@ public class FluxtionServer implements FluxtionServerController {
     private ErrorHandler errorHandler = m -> log.severe(m.getMessage());
     private final ServiceRegistryNode serviceRegistry = new ServiceRegistryNode();
     private volatile boolean started = false;
+    private final com.fluxtion.server.internal.LifecycleManager lifecycleManager = new com.fluxtion.server.internal.LifecycleManager(this);
 
     public FluxtionServer(AppConfig appConfig) {
         this.appConfig = appConfig;
@@ -232,86 +235,42 @@ public class FluxtionServer implements FluxtionServerController {
     }
 
     public void init() {
-        log.info("init");
-        registeredServices.values().forEach(svc -> {
-            if (!(svc.instance() instanceof com.fluxtion.server.dispatch.LifeCycleEventSource)) {
-                svc.init();
-            }
-        });
-
-        flowManager.init();
-
-        registeredServices.values().forEach(svc -> {
-            if (!(registeredAgentServices.contains(svc))) {
-                serviceRegistry.nodeRegistered(svc.instance(), svc.serviceName());
-                servicesRegistered().forEach(serviceRegistry::registerService);
-            }
-        });
-
+        lifecycleManager.init(registeredServices, registeredAgentServices, flowManager, serviceRegistry);
     }
 
     @SneakyThrows
     public void start() {
-        log.info("start");
-
-        log.info("start registered services");
-        registeredServices.values().forEach(svc -> {
-            if (!(svc.instance() instanceof com.fluxtion.server.dispatch.LifeCycleEventSource)) {
-                svc.start();
+        java.util.concurrent.ConcurrentHashMap<String, com.fluxtion.server.internal.LifecycleManager.GroupRunner> serviceGroups = new java.util.concurrent.ConcurrentHashMap<>();
+        composingServiceAgents.forEach((k, v) -> serviceGroups.put(k, new com.fluxtion.server.internal.LifecycleManager.GroupRunner() {
+            @Override
+            public com.fluxtion.agrona.concurrent.AgentRunner getGroupRunner() {
+                return v.getGroupRunner();
             }
-        });
 
-        log.info("start flowManager");
-        flowManager.start();
-
-        log.info("start agent hosted services");
-        composingServiceAgents.forEach((k, v) -> {
-            log.info("starting composing service agent " + k);
-            AgentRunner.startOnThread(v.getGroupRunner());
-        });
-
-        boolean waiting = true;
-        log.info("waiting for agent hosted services to start");
-        while (waiting) {
-            waiting = composingServiceAgents.values().stream()
-                    .anyMatch(f -> f.getGroup().status() != DynamicCompositeAgent.Status.ACTIVE);
-            Thread.sleep(10);
-            log.finer("checking all service agents are started");
-        }
-
-        log.info("start event processor agent workers");
-        composingEventProcessorAgents.forEach((k, v) -> {
-            log.info("starting composing event processor agent " + k);
-            AgentRunner.startOnThread(v.getGroupRunner());
-        });
-
-        waiting = true;
-        log.info("waiting for event processor agents to start");
-        while (waiting) {
-            waiting = composingEventProcessorAgents.values().stream()
-                    .anyMatch(f -> {
-                        DynamicCompositeAgent.Status status = f.getGroup().status();
-                        return status != DynamicCompositeAgent.Status.ACTIVE;
-                    });
-            Thread.sleep(10);
-            log.finer("checking all processor agents are started");
-        }
-
-        log.info("calling startup complete on services");
-        for (Service<?> service : registeredServices.values()) {
-            if (!registeredAgentServices.contains(service)) {
-                service.startComplete();
+            @Override
+            public com.fluxtion.agrona.concurrent.DynamicCompositeAgent getGroup() {
+                return v.getGroup();
             }
-        }
 
-        log.info("calling startup complete on agent hosted services");
-        composingServiceAgents.values()
-                .stream()
-                .map(ComposingWorkerServiceAgentRunner::getGroup)
-                .forEach(ComposingServiceAgent::startComplete);
+            @Override
+            public void startCompleteIfSupported() {
+                v.getGroup().startComplete();
+            }
+        }));
+        java.util.concurrent.ConcurrentHashMap<String, com.fluxtion.server.internal.LifecycleManager.GroupRunner> processorGroups = new java.util.concurrent.ConcurrentHashMap<>();
+        composingEventProcessorAgents.forEach((k, v) -> processorGroups.put(k, new com.fluxtion.server.internal.LifecycleManager.GroupRunner() {
+            @Override
+            public com.fluxtion.agrona.concurrent.AgentRunner getGroupRunner() {
+                return v.getGroupRunner();
+            }
 
+            @Override
+            public com.fluxtion.agrona.concurrent.DynamicCompositeAgent getGroup() {
+                return v.getGroup();
+            }
+        }));
+        lifecycleManager.start(registeredServices, serviceGroups, processorGroups, flowManager, registeredAgentServices);
         started = true;
-        log.info("start complete");
     }
 
     public Collection<Service<?>> servicesRegistered() {
@@ -324,43 +283,45 @@ public class FluxtionServer implements FluxtionServerController {
      * It should be called when the server is no longer needed to free up resources.
      */
     public void stop() {
-        log.info("stopping server");
-
-        if (!started) {
-            log.info("server not started, nothing to stop");
-            return;
-        }
-
-        log.info("stopping event processor agents");
-        composingEventProcessorAgents.forEach((k, v) -> {
-            log.info("stopping composing event processor agent " + k);
-            AgentRunner groupRunner = v.getGroupRunner();
-            if (groupRunner.thread() != null) {
-                groupRunner.close();
-            }
-        });
-
-        log.info("stopping agent hosted services");
-        composingServiceAgents.forEach((k, v) -> {
-            log.info("stopping composing service agent " + k);
-            AgentRunner groupRunner = v.getGroupRunner();
-            if (groupRunner.thread() != null) {
-                groupRunner.close();
-            }
-        });
-
-        log.info("stopping flowManager");
-        // No explicit stop method in flowManager, but we can stop all services
-
-        log.info("stopping registered services");
-        for (Service<?> service : registeredServices.values()) {
-            if (!(service.instance() instanceof com.fluxtion.server.dispatch.LifeCycleEventSource)) {
-                service.stop();
-            }
-        }
-
+        lifecycleManager.stop(started, toGroupRunnerMap(composingEventProcessorAgents), toGroupRunnerMap(composingServiceAgents), registeredServices);
         started = false;
-        log.info("server stopped");
+    }
+
+    private java.util.concurrent.ConcurrentHashMap<String, com.fluxtion.server.internal.LifecycleManager.GroupRunner> toGroupRunnerMap(java.util.concurrent.ConcurrentHashMap<String, ? extends Object> source) {
+        java.util.concurrent.ConcurrentHashMap<String, com.fluxtion.server.internal.LifecycleManager.GroupRunner> map = new java.util.concurrent.ConcurrentHashMap<>();
+        source.forEach((k, v) -> {
+            if (v instanceof ComposingEventProcessorAgentRunner cep) {
+                map.put(k, new com.fluxtion.server.internal.LifecycleManager.GroupRunner() {
+                    @Override
+                    public com.fluxtion.agrona.concurrent.AgentRunner getGroupRunner() {
+                        return cep.getGroupRunner();
+                    }
+
+                    @Override
+                    public com.fluxtion.agrona.concurrent.DynamicCompositeAgent getGroup() {
+                        return cep.getGroup();
+                    }
+                });
+            } else if (v instanceof ComposingWorkerServiceAgentRunner cws) {
+                map.put(k, new com.fluxtion.server.internal.LifecycleManager.GroupRunner() {
+                    @Override
+                    public com.fluxtion.agrona.concurrent.AgentRunner getGroupRunner() {
+                        return cws.getGroupRunner();
+                    }
+
+                    @Override
+                    public com.fluxtion.agrona.concurrent.DynamicCompositeAgent getGroup() {
+                        return cws.getGroup();
+                    }
+
+                    @Override
+                    public void startCompleteIfSupported() {
+                        cws.getGroup().startComplete();
+                    }
+                });
+            }
+        });
+        return map;
     }
 
     @ServiceRegistered
