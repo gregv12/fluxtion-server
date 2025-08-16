@@ -81,89 +81,7 @@ public class FluxtionServer implements FluxtionServerController {
         FluxtionServer.logRecordListener = logRecordListener;
         log.info("booting fluxtion server");
         log.fine("config:" + appConfig);
-        FluxtionServer fluxtionServer = new FluxtionServer(appConfig);
-        fluxtionServer.setDefaultErrorHandler(new GlobalErrorHandler());
-
-        //root server controller
-        fluxtionServer.registerService(new Service<>(fluxtionServer, FluxtionServerController.class, FluxtionServerController.SERVICE_NAME));
-
-        //event sources
-        if (appConfig.getEventFeeds() != null) {
-            appConfig.getEventFeeds().forEach(server -> {
-                if (server.isAgent()) {
-                    fluxtionServer.registerWorkerService(server.toServiceAgent());
-                } else {
-                    fluxtionServer.registerService(server.toService());
-                }
-            });
-        }
-
-        //event sinks eventSinks
-        if (appConfig.getEventSinks() != null) {
-            appConfig.getEventSinks().forEach(server -> {
-                if (server.isAgent()) {
-                    fluxtionServer.registerWorkerService(server.toServiceAgent());
-                } else {
-                    fluxtionServer.registerService(server.toService());
-                }
-            });
-        }
-
-        //service
-        if (appConfig.getServices() != null) {
-            for (ServiceConfig<?> serviceConfig : appConfig.getServices()) {
-                if (serviceConfig.isAgent()) {
-                    fluxtionServer.registerWorkerService(serviceConfig.toServiceAgent());
-                } else {
-                    fluxtionServer.registerService(serviceConfig.toService());
-                }
-            }
-        }
-
-        //add market maker processors
-        if (appConfig.getEventHandlers() != null) {
-            appConfig.getEventHandlers().forEach(cfg -> {
-                final EventLogControlEvent.LogLevel defaultLogLevel = cfg.getLogLevel() == null ? EventLogControlEvent.LogLevel.INFO : cfg.getLogLevel();
-                String groupName = cfg.getAgentName();
-                IdleStrategy idleStrategy1 = cfg.getIdleStrategy();
-                IdleStrategy idleStrategy = appConfig.lookupIdleStrategyWhenNull(idleStrategy1, cfg.getAgentName());
-                cfg.getEventHandlers().entrySet().forEach(handlerEntry -> {
-                    String name = handlerEntry.getKey();
-                    try {
-                        fluxtionServer.addEventProcessor(
-                                name,
-                                groupName,
-                                idleStrategy,
-                                () -> {
-                                    log.info("adding eventProcessor:" + name + " to group:" + groupName + ", idleStrategy:" + idleStrategy);
-                                    EventProcessorConfig<?> eventProcessorConfig = handlerEntry.getValue();
-                                    var eventProcessor = eventProcessorConfig.getEventHandler() == null
-                                            ? eventProcessorConfig.getEventHandlerBuilder().get()
-                                            : eventProcessorConfig.getEventHandler();
-                                    var logLevel = eventProcessorConfig.getLogLevel() == null ? defaultLogLevel : eventProcessorConfig.getLogLevel();
-                                    @SuppressWarnings("unckecked")
-                                    ConfigMap configMap = eventProcessorConfig.getConfig();
-
-                                    eventProcessor.setAuditLogProcessor(logRecordListener);
-                                    eventProcessor.setAuditLogLevel(logLevel);
-                                    eventProcessor.init();
-
-                                    eventProcessor.consumeServiceIfExported(ConfigListener.class, l -> l.initialConfig(configMap));
-                                    return eventProcessor;
-                                });
-                    } catch (Exception e) {
-                        log.warning("could not add eventProcessor:" + name + " to group:" + groupName + " error:" + e.getMessage());
-                    }
-                });
-            });
-        }
-
-        //start
-        fluxtionServer.init();
-        fluxtionServer.start();
-
-        //success
-        return fluxtionServer;
+        return com.fluxtion.server.internal.ServerConfigurator.bootFromConfig(appConfig, logRecordListener);
     }
 
     public void setDefaultErrorHandler(ErrorHandler errorHandler) {
@@ -358,7 +276,7 @@ public class FluxtionServer implements FluxtionServerController {
         log.info("waiting for agent hosted services to start");
         while (waiting) {
             waiting = composingServiceAgents.values().stream()
-                    .anyMatch(f -> f.group.status() != DynamicCompositeAgent.Status.ACTIVE);
+                    .anyMatch(f -> f.getGroup().status() != DynamicCompositeAgent.Status.ACTIVE);
             Thread.sleep(10);
             log.finer("checking all service agents are started");
         }
@@ -374,7 +292,7 @@ public class FluxtionServer implements FluxtionServerController {
         while (waiting) {
             waiting = composingEventProcessorAgents.values().stream()
                     .anyMatch(f -> {
-                        DynamicCompositeAgent.Status status = f.group.status();
+                        DynamicCompositeAgent.Status status = f.getGroup().status();
                         return status != DynamicCompositeAgent.Status.ACTIVE;
                     });
             Thread.sleep(10);
@@ -450,17 +368,5 @@ public class FluxtionServer implements FluxtionServerController {
     @ServiceRegistered
     public void adminClient(AdminCommandRegistry adminCommandRegistry, String name) {
         log.info("adminCommandRegistry registered:" + name);
-    }
-
-    @Value
-    private static class ComposingEventProcessorAgentRunner {
-        ComposingEventProcessorAgent group;
-        AgentRunner groupRunner;
-    }
-
-    @Value
-    private static class ComposingWorkerServiceAgentRunner {
-        ComposingServiceAgent group;
-        AgentRunner groupRunner;
     }
 }
