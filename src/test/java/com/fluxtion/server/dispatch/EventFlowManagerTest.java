@@ -317,17 +317,17 @@ public class EventFlowManagerTest {
     @Test
     void testCurrentProcessor() {
         // Act - Set current processor
-        EventFlowManager.setCurrentProcessor(testEventProcessor);
+        ProcessorContext.setCurrentProcessor(testEventProcessor);
 
         // Assert
-        assertSame(testEventProcessor, EventFlowManager.currentProcessor(),
+        assertSame(testEventProcessor, ProcessorContext.currentProcessor(),
                 "Current processor should be the one we set");
 
         // Act - Remove current processor
-        EventFlowManager.removeCurrentProcessor();
+        ProcessorContext.removeCurrentProcessor();
 
         // Assert
-        assertNull(EventFlowManager.currentProcessor(),
+        assertNull(ProcessorContext.currentProcessor(),
                 "Current processor should be null after removal");
     }
 

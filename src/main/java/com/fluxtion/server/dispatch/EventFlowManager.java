@@ -8,7 +8,6 @@ package com.fluxtion.server.dispatch;
 import com.fluxtion.agrona.concurrent.Agent;
 import com.fluxtion.agrona.concurrent.ManyToOneConcurrentArrayQueue;
 import com.fluxtion.agrona.concurrent.OneToOneConcurrentArrayQueue;
-import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.server.dutycycle.EventQueueToEventProcessor;
 import com.fluxtion.server.dutycycle.EventQueueToEventProcessorAgent;
 import lombok.Value;
@@ -16,7 +15,6 @@ import lombok.Value;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 
@@ -34,32 +32,6 @@ public class EventFlowManager {
     private final ConcurrentHashMap<EventSinkKey<?>, ManyToOneConcurrentArrayQueue<?>> eventSinkToQueueMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<com.fluxtion.server.dispatch.CallBackType, Supplier<EventToInvokeStrategy>> eventToInvokerFactoryMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<EventSourceKey_Subscriber<?>, OneToOneConcurrentArrayQueue<Object>> subscriberKeyToQueueMap = new ConcurrentHashMap<>();
-    private final static ThreadLocal<AtomicReference<StaticEventProcessor>> currentProcessor = new ThreadLocal<>();
-
-    public static void setCurrentProcessor(StaticEventProcessor eventProcessor) {
-        AtomicReference<StaticEventProcessor> ref = currentProcessor.get();
-        if (ref == null) {
-            ref = new AtomicReference<>(eventProcessor);
-            currentProcessor.set(ref);
-        }
-        ref.set(eventProcessor);
-    }
-
-    public static void removeCurrentProcessor() {
-        AtomicReference<StaticEventProcessor> ref = currentProcessor.get();
-        if (ref != null) {
-            ref.set(null);
-        }
-    }
-
-    public static StaticEventProcessor currentProcessor() {
-        AtomicReference<StaticEventProcessor> ref = currentProcessor.get();
-        StaticEventProcessor processor = null;
-        if (ref != null) {
-            processor = ref.get();
-        }
-        return processor;
-    }
 
     public EventFlowManager() {
         eventToInvokerFactoryMap.put(CallBackType.ON_EVENT_CALL_BACK, EventToOnEventInvokeStrategy::new);
