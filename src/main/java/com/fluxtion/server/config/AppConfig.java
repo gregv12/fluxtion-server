@@ -127,4 +127,90 @@ public class AppConfig {
 
         return defaultHandlerGroupConfig;
     }
+
+    // ---- Improved service registration API ----
+
+    /**
+     * Add a simple service by instance and name. The service interface is inferred from the instance class.
+     */
+    public <T> AppConfig addService(T service, String name) {
+        if (services == null) {
+            services = new ArrayList<>();
+        }
+        @SuppressWarnings("unchecked") Class<T> clazz = (Class<T>) service.getClass();
+        ServiceConfig<T> cfg = new ServiceConfig<>(service, clazz, name);
+        services.add(cfg);
+        return this;
+    }
+
+    /**
+     * Add a service by instance, explicit service interface class, and name.
+     */
+    public <T> AppConfig addService(T service, Class<T> serviceClass, String name) {
+        if (services == null) {
+            services = new ArrayList<>();
+        }
+        ServiceConfig<T> cfg = new ServiceConfig<>(service, serviceClass, name);
+        services.add(cfg);
+        return this;
+    }
+
+    /**
+     * Add a worker (agent-backed) service supplying the agent group and optional idle strategy.
+     */
+    public <T> AppConfig addWorkerService(T service, Class<T> serviceClass, String name, String agentGroup, IdleStrategy idleStrategy) {
+        if (services == null) {
+            services = new ArrayList<>();
+        }
+        ServiceConfig<T> cfg = new ServiceConfig<>(service, serviceClass, name);
+        cfg.setAgentGroup(agentGroup);
+        cfg.setIdleStrategy(idleStrategy);
+        services.add(cfg);
+        return this;
+    }
+
+    /**
+     * Add a worker (agent-backed) service inferring service class.
+     */
+    public <T> AppConfig addWorkerService(T service, String name, String agentGroup, IdleStrategy idleStrategy) {
+        if (services == null) {
+            services = new ArrayList<>();
+        }
+        @SuppressWarnings("unchecked") Class<T> clazz = (Class<T>) service.getClass();
+        ServiceConfig<T> cfg = new ServiceConfig<>(service, clazz, name);
+        cfg.setAgentGroup(agentGroup);
+        cfg.setIdleStrategy(idleStrategy);
+        services.add(cfg);
+        return this;
+    }
+
+    // -------- Builder API --------
+    public static Builder builder() { return new Builder(); }
+
+    public static final class Builder {
+        private final List<EventProcessorGroupConfig> eventHandlers = new ArrayList<>();
+        private final List<EventFeedConfig<?>> eventFeeds = new ArrayList<>();
+        private final List<EventSinkConfig<?>> eventSinks = new ArrayList<>();
+        private final List<ServiceConfig<?>> services = new ArrayList<>();
+        private final List<ThreadConfig> agentThreads = new ArrayList<>();
+        private IdleStrategy idleStrategy;
+
+        private Builder() {}
+        public Builder idleStrategy(IdleStrategy idleStrategy) { this.idleStrategy = idleStrategy; return this; }
+        public Builder addGroup(EventProcessorGroupConfig group) { this.eventHandlers.add(group); return this; }
+        public Builder addEventFeed(EventFeedConfig<?> feed) { this.eventFeeds.add(feed); return this; }
+        public Builder addEventSink(EventSinkConfig<?> sink) { this.eventSinks.add(sink); return this; }
+        public Builder addService(ServiceConfig<?> svc) { this.services.add(svc); return this; }
+        public Builder addThread(ThreadConfig thread) { this.agentThreads.add(thread); return this; }
+        public AppConfig build() {
+            AppConfig cfg = new AppConfig();
+            if (!eventHandlers.isEmpty()) cfg.setEventHandlers(new ArrayList<>(eventHandlers));
+            if (!eventFeeds.isEmpty()) cfg.setEventFeeds(new ArrayList<>(eventFeeds));
+            if (!eventSinks.isEmpty()) cfg.setEventSinks(new ArrayList<>(eventSinks));
+            if (!services.isEmpty()) cfg.setServices(new ArrayList<>(services));
+            if (!agentThreads.isEmpty()) cfg.setAgentThreads(new ArrayList<>(agentThreads));
+            if (idleStrategy != null) cfg.setIdleStrategy(idleStrategy);
+            return cfg;
+        }
+    }
 }

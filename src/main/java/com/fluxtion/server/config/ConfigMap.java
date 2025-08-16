@@ -18,13 +18,53 @@ public class ConfigMap {
         this.configMap = configMap;
     }
 
-    @SuppressWarnings({"raw", "unchecked"})
+    // Legacy string-based accessors (kept for backward compatibility)
+    @Deprecated
+    @SuppressWarnings({"unchecked"})
     public <T> T get(String key) {
         return (T) configMap.get(key);
     }
 
-    @SuppressWarnings({"raw", "unchecked"})
+    @Deprecated
+    @SuppressWarnings({"unchecked"})
     public <T> T getOrDefault(String key, T defaultValue) {
         return (T) configMap.getOrDefault(key, defaultValue);
+    }
+
+    // Type-safe accessors using ConfigKey
+    public <T> T get(ConfigKey<T> key) {
+        Object value = configMap.get(key.name());
+        if (value == null) {
+            return null;
+        }
+        if (!key.type().isInstance(value)) {
+            throw new ClassCastException("Configuration value for '" + key.name() + "' is of type "
+                    + value.getClass().getName() + ", expected " + key.type().getName());
+        }
+        return key.type().cast(value);
+    }
+
+    public <T> T getOrDefault(ConfigKey<T> key, T defaultValue) {
+        Object value = configMap.get(key.name());
+        if (value == null) {
+            return defaultValue;
+        }
+        if (!key.type().isInstance(value)) {
+            throw new ClassCastException("Configuration value for '" + key.name() + "' is of type "
+                    + value.getClass().getName() + ", expected " + key.type().getName());
+        }
+        return key.type().cast(value);
+    }
+
+    public <T> T require(ConfigKey<T> key) {
+        Object value = configMap.get(key.name());
+        if (value == null) {
+            throw new com.fluxtion.server.exception.ConfigurationException("Required configuration missing: '" + key.name() + "'");
+        }
+        if (!key.type().isInstance(value)) {
+            throw new com.fluxtion.server.exception.ConfigurationException("Configuration value for '" + key.name() + "' is of type "
+                    + value.getClass().getName() + ", expected " + key.type().getName());
+        }
+        return key.type().cast(value);
     }
 }

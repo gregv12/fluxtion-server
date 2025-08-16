@@ -86,7 +86,12 @@ public abstract class AbstractEventSourceService<T>
 
     public void subscribe() {
         log.info("subscribe request");
-        SubscriptionManager subscriptionManager = EventFlowManager.currentProcessor().getSubscriptionManager();
+        var current = com.fluxtion.server.dispatch.ProcessorContext.currentProcessor();
+        if (current == null) {
+            log.warning("subscribe called with no current processor in context; skipping subscription for service '" + serviceName + "'");
+            return;
+        }
+        SubscriptionManager subscriptionManager = current.getSubscriptionManager();
         subscriptionManager.subscribe(subscriptionKey);
     }
 
@@ -97,7 +102,7 @@ public abstract class AbstractEventSourceService<T>
 
     @Override
     public void registerSubscriber(StaticEventProcessor subscriber) {
-        if (eventWrapStrategy == EventWrapStrategy.BROADCAST_NOWRAP | eventWrapStrategy == EventWrapStrategy.BROADCAST_NAMED_EVENT) {
+        if (eventWrapStrategy == EventWrapStrategy.BROADCAST_NOWRAP || eventWrapStrategy == EventWrapStrategy.BROADCAST_NAMED_EVENT) {
             subscribe();
         }
     }

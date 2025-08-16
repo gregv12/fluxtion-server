@@ -6,11 +6,16 @@
 
 package com.fluxtion.server.dispatch;
 
-import com.fluxtion.runtime.annotations.feature.Experimental;
 import lombok.Value;
 
-@Experimental
 @Value
 public class EventSourceKey<T> {
     String sourceName;
+
+    /**
+     * Fluent: create a key from a source name.
+     */
+    public static <T> EventSourceKey<T> of(String sourceName) {
+        return new EventSourceKey<>(sourceName);
+    }
 }

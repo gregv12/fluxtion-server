@@ -24,10 +24,9 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
     private final EventToInvokeStrategy eventToInvokeStrategy;
     private final String name;
     private final Logger logger;
+    private com.fluxtion.server.dispatch.RetryPolicy retryPolicy = com.fluxtion.server.dispatch.RetryPolicy.defaultProcessingPolicy();
+    private Runnable unsubscribeAction;
 
-
-    //TODO add an unsubscribe action that is called when there are no more listeners registered
-    // should remove from the EventFLowManager
     public EventQueueToEventProcessorAgent(
             OneToOneConcurrentArrayQueue<?> inputQueue,
             EventToInvokeStrategy eventToInvokeStrategy,
@@ -46,18 +45,59 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
 
     @Override
     public int doWork() {
-        Object event = inputQueue.poll();
-        if (event != null) {
-            if (event instanceof ReplayRecord replayRecord) {
-                eventToInvokeStrategy.processEvent(replayRecord.getEvent(), replayRecord.getWallClockTime());
-            } else if (event instanceof BroadcastEvent broadcastEvent) {
-                eventToInvokeStrategy.processEvent(broadcastEvent.getEvent());
-            } else {
-                eventToInvokeStrategy.processEvent(event);
+        int processed = 0;
+        // Batch up to a fixed number of events per tick to reduce per-event overhead
+        final int batchLimit = 64;
+        Object event;
+        while (processed < batchLimit && (event = inputQueue.poll()) != null) {
+            int attempt = 0;
+            boolean done = false;
+            Throwable lastError = null;
+            while (!done) {
+                try {
+                    if (event instanceof ReplayRecord replayRecord) {
+                        eventToInvokeStrategy.processEvent(replayRecord.getEvent(), replayRecord.getWallClockTime());
+                    } else if (event instanceof BroadcastEvent broadcastEvent) {
+                        eventToInvokeStrategy.processEvent(broadcastEvent.getEvent());
+                    } else {
+                        eventToInvokeStrategy.processEvent(event);
+                    }
+                    done = true;
+                } catch (Throwable t) {
+                    lastError = t;
+                    attempt++;
+                    String warnMsg = "event processing failed: agent=" + name +
+                            ", attempt=" + attempt +
+                            ", eventClass=" + (event == null ? "null" : event.getClass().getName()) +
+                            ", event=" + String.valueOf(event) +
+                            ", error=" + t.toString();
+                    logger.warning(warnMsg);
+                    com.fluxtion.server.service.error.ErrorReporting.report(
+                            "EventQueueToEventProcessorAgent:" + name,
+                            warnMsg,
+                            t,
+                            com.fluxtion.server.service.error.ErrorEvent.Severity.WARNING);
+                    if (!retryPolicy.shouldRetry(t, attempt)) {
+                        String errMsg = "dropping event after retries: agent=" + name +
+                                ", attempts=" + attempt +
+                                ", eventClass=" + (event == null ? "null" : event.getClass().getName()) +
+                                ", event=" + String.valueOf(event) +
+                                ", lastError=" + t.toString();
+                        logger.severe(errMsg);
+                        com.fluxtion.server.service.error.ErrorReporting.report(
+                                "EventQueueToEventProcessorAgent:" + name,
+                                errMsg,
+                                t,
+                                com.fluxtion.server.service.error.ErrorEvent.Severity.ERROR);
+                        break;
+                    }
+                    retryPolicy.backoff(attempt);
+                }
             }
-            return 1;
+            // Count it as processed even if dropped to avoid infinite loops
+            processed++;
         }
-        return 0;
+        return processed;
     }
 
     @Override
@@ -68,6 +108,20 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
     @Override
     public String roleName() {
         return name;
+    }
+
+    /** Configure the retry policy for processing events. */
+    public EventQueueToEventProcessorAgent withRetryPolicy(com.fluxtion.server.dispatch.RetryPolicy retryPolicy) {
+        if (retryPolicy != null) {
+            this.retryPolicy = retryPolicy;
+        }
+        return this;
+    }
+
+    /** Provide an unsubscribe action to be called when listenerCount() drops to zero. */
+    public EventQueueToEventProcessorAgent withUnsubscribeAction(Runnable unsubscribeAction) {
+        this.unsubscribeAction = unsubscribeAction;
+        return this;
     }
 
     @Override
@@ -82,8 +136,15 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
     public int deregisterProcessor(StaticEventProcessor eventProcessor) {
         logger.info("deregisterProcessor: " + eventProcessor);
         eventToInvokeStrategy.deregisterProcessor(eventProcessor);
-        //TODO when the listener count is < 1 then run the unsubscribe action
-        return listenerCount();
+        int listeners = listenerCount();
+        if (listeners < 1 && unsubscribeAction != null) {
+            try {
+                unsubscribeAction.run();
+            } catch (Throwable t) {
+                logger.severe("error running unsubscribe action for agent=" + name + ": " + t);
+            }
+        }
+        return listeners;
     }
 
     @Override

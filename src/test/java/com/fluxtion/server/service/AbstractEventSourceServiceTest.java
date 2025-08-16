@@ -93,7 +93,7 @@ public class AbstractEventSourceServiceTest {
     void testSubscribe() {
         // Arrange
         testService.setEventFlowManager(testEventFlowManager, "testServiceName");
-        TestEventFlowManager.setCurrentProcessor(testEventProcessor);
+        ProcessorContext.setCurrentProcessor(testEventProcessor);
 
         // Act
         testService.subscribe();
@@ -108,7 +108,7 @@ public class AbstractEventSourceServiceTest {
         // Arrange
         testService.setEventFlowManager(testEventFlowManager, "testServiceName");
         testService.setEventWrapStrategy(EventSource.EventWrapStrategy.BROADCAST_NOWRAP);
-        TestEventFlowManager.setCurrentProcessor(testEventProcessor);
+        ProcessorContext.setCurrentProcessor(testEventProcessor);
 
         // Act
         testService.registerSubscriber(testEventProcessor);
@@ -123,7 +123,7 @@ public class AbstractEventSourceServiceTest {
         // Arrange
         testService.setEventFlowManager(testEventFlowManager, "testServiceName");
         testService.setEventWrapStrategy(EventSource.EventWrapStrategy.SUBSCRIPTION_NOWRAP);
-        TestEventFlowManager.setCurrentProcessor(testEventProcessor);
+        ProcessorContext.setCurrentProcessor(testEventProcessor);
 
         // Act
         testService.registerSubscriber(testEventProcessor);
@@ -137,7 +137,7 @@ public class AbstractEventSourceServiceTest {
     void testSubscribeWithEventSubscription() {
         // Arrange
         testService.setEventFlowManager(testEventFlowManager, "testServiceName");
-        TestEventFlowManager.setCurrentProcessor(testEventProcessor);
+        ProcessorContext.setCurrentProcessor(testEventProcessor);
 
         // Act
         testService.subscribe();
@@ -151,7 +151,7 @@ public class AbstractEventSourceServiceTest {
     void testUnSubscribeWithEventSubscription() {
         // Arrange
         testService.setEventFlowManager(testEventFlowManager, "testServiceName");
-        TestEventFlowManager.setCurrentProcessor(testEventProcessor);
+        ProcessorContext.setCurrentProcessor(testEventProcessor);
         testSubscriptionManager.subscribe(testService.getSubscriptionKey());
 
         // Act

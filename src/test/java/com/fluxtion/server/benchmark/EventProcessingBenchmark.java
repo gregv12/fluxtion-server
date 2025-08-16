@@ -100,7 +100,6 @@ public class EventProcessingBenchmark {
 
         // Benchmark
         System.out.println("Running benchmark with " + BENCHMARK_COUNT + " events");
-        long now = System.nanoTime();
 
         for (int i = 0; i < BENCHMARK_COUNT; i++) {
             TestEvent event = eventCache[i];
@@ -109,7 +108,6 @@ public class EventProcessingBenchmark {
         }
 
         eventSource.publishEvent("publishResults");
-        long endTime = System.nanoTime();
         eventProcessedLatch.await();
 
         // Verify that the benchmark completed successfully
@@ -220,8 +218,9 @@ public class EventProcessingBenchmark {
 
         public void printResults() {
             eventProcessedLatch.countDown();
-            var firstEvent = processedEvents.getFirst();
-            var lastEvent = processedEvents.getLast();
+
+            TestEvent firstEvent = processedEvents.get(0);
+            TestEvent lastEvent = processedEvents.get(processedEvents.size() - 1);
 
             double latencyFull = (lastEvent.processedTime - firstEvent.getPublishTime()) / 1_000.0;
             double count = lastEvent.getId() - firstEvent.getId();
@@ -257,7 +256,6 @@ public class EventProcessingBenchmark {
         public void onEvent(Object event) {
             if (event instanceof TestEvent) {
                 handleTestEvent((TestEvent) event);
-                long start = System.nanoTime();
             } else if (event instanceof String) {
                 switch ((String) event) {
                     case "reset" -> handleReset((String) event);

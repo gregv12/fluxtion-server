@@ -88,6 +88,10 @@ public class ComposingServiceAgent extends DynamicCompositeAgent {
                 serviceRegistry.nodeRegistered(exportedService.instance(), exportedService.serviceName());
                 serviceRegistry.registerService(schedulerService);
                 fluxtionServer.servicesRegistered().forEach(serviceRegistry::registerService);
+                // Inject dependencies into the agent-hosted service instance (scheduler + server services)
+                java.util.List<com.fluxtion.runtime.service.Service<?>> inj = new java.util.ArrayList<>(fluxtionServer.servicesRegistered());
+                inj.add(schedulerService);
+                com.fluxtion.server.service.ServiceInjector.inject(exportedService.instance(), inj);
                 fluxtionServer.registerAgentService(exportedService);
                 exportedService.start();
             });

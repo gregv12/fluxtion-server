@@ -137,7 +137,7 @@ public class ComposingEventProcessorAgent extends DynamicCompositeAgent implemen
                 NamedEventProcessor namedEventProcessor = init.get();
                 StaticEventProcessor eventProcessor = namedEventProcessor.eventProcessor();
                 registeredEventProcessors.put(namedEventProcessor.name(), namedEventProcessor);
-                com.fluxtion.server.dispatch.EventFlowManager.setCurrentProcessor(eventProcessor);
+                com.fluxtion.server.dispatch.ProcessorContext.setCurrentProcessor(eventProcessor);
                 eventProcessor.registerService(schedulerService);
                 registeredServices.values().forEach(eventProcessor::registerService);
                 eventProcessor.addEventFeed(this);
@@ -145,7 +145,7 @@ public class ComposingEventProcessorAgent extends DynamicCompositeAgent implemen
                     ((Lifecycle) eventProcessor).start();
                     ((Lifecycle) eventProcessor).startComplete();
                 }
-                EventFlowManager.removeCurrentProcessor();
+                com.fluxtion.server.dispatch.ProcessorContext.removeCurrentProcessor();
             });
         }
 
