@@ -66,7 +66,18 @@ public class EventToQueuePublisher<T> {
             return;
         }
 
-        var mappedItem = dataMapper.apply(itemToPublish);
+        Object mappedItem;
+        try {
+            mappedItem = dataMapper.apply(itemToPublish);
+        } catch (Throwable t) {
+            log.severe("data mapping failed: publisher=" + name + ", sequenceNumber=" + (sequenceNumber + 1) + ", item=" + String.valueOf(itemToPublish) + ", error=" + t);
+            com.fluxtion.server.service.error.ErrorReporting.report(
+                    "EventToQueuePublisher:" + name,
+                    "data mapping failed for publish: seq=" + (sequenceNumber + 1) + ", item=" + String.valueOf(itemToPublish),
+                    t,
+                    com.fluxtion.server.service.error.ErrorEvent.Severity.ERROR);
+            return;
+        }
         if (mappedItem == null) {
             log.fine("mappedItem is null");
             return;
@@ -96,7 +107,18 @@ public class EventToQueuePublisher<T> {
             return;
         }
 
-        var mappedItem = dataMapper.apply(itemToCache);
+        Object mappedItem;
+        try {
+            mappedItem = dataMapper.apply(itemToCache);
+        } catch (Throwable t) {
+            log.severe("data mapping (cache) failed: publisher=" + name + ", nextSequenceNumber=" + (sequenceNumber + 1) + ", item=" + String.valueOf(itemToCache) + ", error=" + t);
+            com.fluxtion.server.service.error.ErrorReporting.report(
+                    "EventToQueuePublisher:" + name,
+                    "data mapping failed for cache: nextSeq=" + (sequenceNumber + 1) + ", item=" + String.valueOf(itemToCache),
+                    t,
+                    com.fluxtion.server.service.error.ErrorEvent.Severity.ERROR);
+            return;
+        }
         if (mappedItem == null) {
             log.fine("mappedItem is null");
             return;
@@ -177,14 +199,24 @@ public class EventToQueuePublisher<T> {
         OneToOneConcurrentArrayQueue<Object> targetQueue = namedQueue.getTargetQueue();
         boolean eventNotificationNotReceived = false;
         long now = -1;
-        while (!eventNotificationNotReceived) {
-            eventNotificationNotReceived = targetQueue.offer(itemToPublish);
-            if (!eventNotificationNotReceived) {
-                if (now < 0) {
-                    now = System.nanoTime();
+        try {
+            while (!eventNotificationNotReceived) {
+                eventNotificationNotReceived = targetQueue.offer(itemToPublish);
+                if (!eventNotificationNotReceived) {
+                    if (now < 0) {
+                        now = System.nanoTime();
+                    }
+                    java.lang.Thread.onSpinWait();
                 }
-                java.lang.Thread.onSpinWait();
             }
+        } catch (Throwable t) {
+            log.severe("queue write failed: publisher=" + name + ", queue=" + namedQueue.getName() + ", seq=" + sequenceNumber + ", item=" + String.valueOf(itemToPublish) + ", error=" + t);
+            com.fluxtion.server.service.error.ErrorReporting.report(
+                    "EventToQueuePublisher:" + name,
+                    "queue write failed: queue=" + namedQueue.getName() + ", seq=" + sequenceNumber + ", item=" + String.valueOf(itemToPublish),
+                    t,
+                    com.fluxtion.server.service.error.ErrorEvent.Severity.CRITICAL);
+            throw t;
         }
         if (logInfo && now > 1) {
             long delta = System.nanoTime() - now;
