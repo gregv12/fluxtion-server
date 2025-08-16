@@ -81,9 +81,9 @@ logically ordered and cover both architectural and code-level improvements.
 
 ### Code Cleanup
 
-- [ ] Remove experimental annotations where implementation is stable
-- [ ] Fix raw type usage in generics
-- [ ] Address compiler warnings
+- [x] Remove experimental annotations where implementation is stable
+- [x] Fix raw type usage in generics
+- [x] Address compiler warnings
 - [ ] Remove unused code and dead code paths
 
 ### Refactoring

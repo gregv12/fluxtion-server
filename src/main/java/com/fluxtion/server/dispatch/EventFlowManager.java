@@ -9,7 +9,6 @@ import com.fluxtion.agrona.concurrent.Agent;
 import com.fluxtion.agrona.concurrent.ManyToOneConcurrentArrayQueue;
 import com.fluxtion.agrona.concurrent.OneToOneConcurrentArrayQueue;
 import com.fluxtion.runtime.StaticEventProcessor;
-import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.server.dutycycle.EventQueueToEventProcessor;
 import com.fluxtion.server.dutycycle.EventQueueToEventProcessorAgent;
 import lombok.Value;
@@ -29,13 +28,12 @@ import java.util.function.Supplier;
  *     <li>{@link EventToInvokeStrategy} - processed an event and map events to callbacks on the {@link com.fluxtion.runtime.StaticEventProcessor}</li>
  * </ul>
  */
-@Experimental
 public class EventFlowManager {
 
     private final ConcurrentHashMap<com.fluxtion.server.dispatch.EventSourceKey<?>, EventSource_QueuePublisher<?>> eventSourceToQueueMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<EventSinkKey<?>, ManyToOneConcurrentArrayQueue<?>> eventSinkToQueueMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<com.fluxtion.server.dispatch.CallBackType, Supplier<EventToInvokeStrategy>> eventToInvokerFactoryMap = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<EventSourceKey_Subscriber<?>, OneToOneConcurrentArrayQueue<?>> subscriberKeyToQueueMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<EventSourceKey_Subscriber<?>, OneToOneConcurrentArrayQueue<Object>> subscriberKeyToQueueMap = new ConcurrentHashMap<>();
     private final static ThreadLocal<AtomicReference<StaticEventProcessor>> currentProcessor = new ThreadLocal<>();
 
     public static void setCurrentProcessor(StaticEventProcessor eventProcessor) {
@@ -152,7 +150,7 @@ public class EventFlowManager {
 
         //create or re-use a target queue
         EventSourceKey_Subscriber<T> keySubscriber = new EventSourceKey_Subscriber<>(eventSourceKey, subscriber);
-        OneToOneConcurrentArrayQueue eventQueue = subscriberKeyToQueueMap.computeIfAbsent(
+        OneToOneConcurrentArrayQueue<Object> eventQueue = subscriberKeyToQueueMap.computeIfAbsent(
                 keySubscriber,
                 key -> new OneToOneConcurrentArrayQueue<>(1024));
 
