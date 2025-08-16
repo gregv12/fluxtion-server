@@ -21,7 +21,7 @@ import java.util.function.Function;
 import java.util.logging.Level;
 
 /**
- * Handles publishing events to internal dispatch queues, provides the functionality:
+ * Handles publishing events to dag dispatch queues, provides the functionality:
  * <ul>
  *     <li>Multiplexes a single event message to multiple queues</li>
  *     <li>Monitors and disconnects slow readers</li>
