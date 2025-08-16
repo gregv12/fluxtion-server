@@ -59,10 +59,10 @@ public class ConfigMap {
     public <T> T require(ConfigKey<T> key) {
         Object value = configMap.get(key.name());
         if (value == null) {
-            throw new IllegalStateException("Required configuration missing: '" + key.name() + "'");
+            throw new com.fluxtion.server.exception.ConfigurationException("Required configuration missing: '" + key.name() + "'");
         }
         if (!key.type().isInstance(value)) {
-            throw new ClassCastException("Configuration value for '" + key.name() + "' is of type "
+            throw new com.fluxtion.server.exception.ConfigurationException("Configuration value for '" + key.name() + "' is of type "
                     + value.getClass().getName() + ", expected " + key.type().getName());
         }
         return key.type().cast(value);

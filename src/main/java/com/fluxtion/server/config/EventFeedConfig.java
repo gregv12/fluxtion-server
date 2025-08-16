@@ -70,4 +70,39 @@ public class EventFeedConfig<T> {
         }
         return new ServiceAgent<>(agentName, idleStrategy, svc, a);
     }
+
+    // -------- Builder API --------
+    public static <T> Builder<T> builder() { return new Builder<>(); }
+
+    public static final class Builder<T> {
+        private T instance;
+        private String name;
+        private boolean broadcast;
+        private boolean wrapWithNamedEvent;
+        private EventSource.SlowConsumerStrategy slowConsumerStrategy;
+        private Function<T, ?> valueMapper;
+        private String agentName;
+        private IdleStrategy idleStrategy;
+
+        private Builder() {}
+        public Builder<T> instance(T instance) { this.instance = instance; return this; }
+        public Builder<T> name(String name) { this.name = name; return this; }
+        public Builder<T> broadcast(boolean broadcast) { this.broadcast = broadcast; return this; }
+        public Builder<T> wrapWithNamedEvent(boolean wrap) { this.wrapWithNamedEvent = wrap; return this; }
+        public Builder<T> slowConsumerStrategy(EventSource.SlowConsumerStrategy strategy) { this.slowConsumerStrategy = strategy; return this; }
+        public Builder<T> valueMapper(Function<T, ?> mapper) { this.valueMapper = mapper; return this; }
+        public Builder<T> agent(String agentName, IdleStrategy idleStrategy) { this.agentName = agentName; this.idleStrategy = idleStrategy; return this; }
+        public EventFeedConfig<T> build() {
+            EventFeedConfig<T> cfg = new EventFeedConfig<>();
+            cfg.setInstance(instance);
+            cfg.setName(name);
+            cfg.setBroadcast(broadcast);
+            cfg.setWrapWithNamedEvent(wrapWithNamedEvent);
+            if (slowConsumerStrategy != null) cfg.setSlowConsumerStrategy(slowConsumerStrategy);
+            if (valueMapper != null) cfg.setValueMapper(valueMapper);
+            cfg.setAgentName(agentName);
+            cfg.setIdleStrategy(idleStrategy);
+            return cfg;
+        }
+    }
 }

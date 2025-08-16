@@ -206,7 +206,7 @@ public class EventToQueuePublisher<T> {
                     "queue write failed: queue=" + namedQueue.getName() + ", seq=" + sequenceNumber + ", item=" + String.valueOf(itemToPublish),
                     t,
                     com.fluxtion.server.service.error.ErrorEvent.Severity.CRITICAL);
-            throw t;
+            throw new com.fluxtion.server.exception.QueuePublishException("Failed to write to queue '" + namedQueue.getName() + "' for publisher '" + name + "'", t);
         }
         if (logInfo && now > 1) {
             long delta = System.nanoTime() - now;

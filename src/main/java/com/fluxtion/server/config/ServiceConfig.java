@@ -90,4 +90,55 @@ public class ServiceConfig<T> {
         Service svc = toService();
         return new ServiceAgent<>(agentGroup, idleStrategy, svc, (A) service);
     }
+
+    // -------- Builder API --------
+    public static <T> Builder<T> builder() {
+        return new Builder<>();
+    }
+
+    public static final class Builder<T> {
+        private T service;
+        private String serviceClass;
+        private String name;
+        private String agentGroup;
+        private IdleStrategy idleStrategy;
+
+        private Builder() {}
+
+        public Builder<T> service(T service) {
+            this.service = service;
+            return this;
+        }
+
+        public Builder<T> serviceClass(Class<?> clazz) {
+            this.serviceClass = clazz == null ? null : clazz.getCanonicalName();
+            return this;
+        }
+
+        public Builder<T> serviceClassName(String className) {
+            this.serviceClass = className;
+            return this;
+        }
+
+        public Builder<T> name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder<T> agent(String agentGroup, IdleStrategy idleStrategy) {
+            this.agentGroup = agentGroup;
+            this.idleStrategy = idleStrategy;
+            return this;
+        }
+
+        public ServiceConfig<T> build() {
+            ServiceConfig<T> cfg = new ServiceConfig<>();
+            cfg.setService(service);
+            cfg.setServiceClass(serviceClass);
+            cfg.setName(name);
+            cfg.setAgentGroup(agentGroup);
+            cfg.setIdleStrategy(idleStrategy);
+            return cfg;
+        }
+    }
 }
