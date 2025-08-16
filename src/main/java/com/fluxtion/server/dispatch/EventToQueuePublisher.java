@@ -6,7 +6,6 @@
 package com.fluxtion.server.dispatch;
 
 import com.fluxtion.agrona.concurrent.OneToOneConcurrentArrayQueue;
-import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.event.NamedFeedEvent;
 import com.fluxtion.runtime.event.NamedFeedEventImpl;
 import com.fluxtion.runtime.event.ReplayRecord;
@@ -29,7 +28,6 @@ import java.util.logging.Level;
  *
  * @param <T>
  */
-@Experimental
 @RequiredArgsConstructor
 @ToString
 @Log

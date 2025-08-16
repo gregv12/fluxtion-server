@@ -7,7 +7,6 @@ package com.fluxtion.server.config;
 
 import com.fluxtion.agrona.concurrent.Agent;
 import com.fluxtion.agrona.concurrent.IdleStrategy;
-import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.service.Service;
 import com.fluxtion.server.dutycycle.ServiceAgent;
 import lombok.AllArgsConstructor;
@@ -16,7 +15,6 @@ import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 
-@Experimental
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
