@@ -42,8 +42,7 @@ public class EventFeedConfig<T> {
     }
 
     @SneakyThrows
-    @SuppressWarnings({"unchecked", "all"})
-    public Service<T> toService() {
+    public Service<NamedFeed> toService() {
         if (instance instanceof EventSource<?> eventSource) {
             if (wrapWithNamedEvent & broadcast) {
                 eventWrapStrategy = EventSource.EventWrapStrategy.BROADCAST_NAMED_EVENT;
@@ -54,19 +53,56 @@ public class EventFeedConfig<T> {
             } else {
                 eventWrapStrategy = EventSource.EventWrapStrategy.SUBSCRIPTION_NOWRAP;
             }
-            EventSource<T> eventSource_t = (EventSource<T>) eventSource;
+            @SuppressWarnings("unchecked") EventSource<T> eventSource_t = (EventSource<T>) eventSource;
             eventSource_t.setEventWrapStrategy(eventWrapStrategy);
             eventSource_t.setSlowConsumerStrategy(slowConsumerStrategy);
             eventSource_t.setDataMapper(valueMapper);
         }
-        Service svc = new Service(instance, NamedFeed.class, name);
+        Service<NamedFeed> svc = new Service<>((NamedFeed) instance, NamedFeed.class, name);
         return svc;
     }
 
     @SneakyThrows
-    @SuppressWarnings({"unchecked", "all"})
-    public <A extends Agent> ServiceAgent<A> toServiceAgent() {
-        Service svc = toService();
-        return new ServiceAgent<>(agentName, idleStrategy, svc, (A) instance);
+    public ServiceAgent<NamedFeed> toServiceAgent() {
+        Service<NamedFeed> svc = toService();
+        if (!(instance instanceof Agent a)) {
+            throw new IllegalArgumentException("Configured instance is not an Agent: " + instance);
+        }
+        return new ServiceAgent<>(agentName, idleStrategy, svc, a);
+    }
+
+    // -------- Builder API --------
+    public static <T> Builder<T> builder() { return new Builder<>(); }
+
+    public static final class Builder<T> {
+        private T instance;
+        private String name;
+        private boolean broadcast;
+        private boolean wrapWithNamedEvent;
+        private EventSource.SlowConsumerStrategy slowConsumerStrategy;
+        private Function<T, ?> valueMapper;
+        private String agentName;
+        private IdleStrategy idleStrategy;
+
+        private Builder() {}
+        public Builder<T> instance(T instance) { this.instance = instance; return this; }
+        public Builder<T> name(String name) { this.name = name; return this; }
+        public Builder<T> broadcast(boolean broadcast) { this.broadcast = broadcast; return this; }
+        public Builder<T> wrapWithNamedEvent(boolean wrap) { this.wrapWithNamedEvent = wrap; return this; }
+        public Builder<T> slowConsumerStrategy(EventSource.SlowConsumerStrategy strategy) { this.slowConsumerStrategy = strategy; return this; }
+        public Builder<T> valueMapper(Function<T, ?> mapper) { this.valueMapper = mapper; return this; }
+        public Builder<T> agent(String agentName, IdleStrategy idleStrategy) { this.agentName = agentName; this.idleStrategy = idleStrategy; return this; }
+        public EventFeedConfig<T> build() {
+            EventFeedConfig<T> cfg = new EventFeedConfig<>();
+            cfg.setInstance(instance);
+            cfg.setName(name);
+            cfg.setBroadcast(broadcast);
+            cfg.setWrapWithNamedEvent(wrapWithNamedEvent);
+            if (slowConsumerStrategy != null) cfg.setSlowConsumerStrategy(slowConsumerStrategy);
+            if (valueMapper != null) cfg.setValueMapper(valueMapper);
+            cfg.setAgentName(agentName);
+            cfg.setIdleStrategy(idleStrategy);
+            return cfg;
+        }
     }
 }

@@ -33,7 +33,7 @@ public class AdminCommandProcessor implements EventFlowService, AdminCommandRegi
     private final Map<String, AdminCommand> registeredCommandMap = new HashMap<>();
     private EventFlowManager eventFlowManager;
 
-    private static final String help = """
+    private static final String HELP_MESSAGE = """
             default commands:
             ---------------------------
             quit         - exit the console
@@ -83,7 +83,7 @@ public class AdminCommandProcessor implements EventFlowService, AdminCommandRegi
     @Override
     @SuppressWarnings("unchecked")
     public <OUT, ERR> void registerCommand(String name, AdminFunction<OUT, ERR> command) {
-        if (EventFlowManager.currentProcessor() == null) {
+        if (com.fluxtion.server.dispatch.ProcessorContext.currentProcessor() == null) {
             registeredCommandMap.put(name, new AdminCommand((AdminFunction<Object, Object>) command));
         } else {
             String queueKey = "adminCommand." + name;
@@ -110,7 +110,7 @@ public class AdminCommandProcessor implements EventFlowService, AdminCommandRegi
     }
 
     private void printHelp(List<String> args, Consumer<String> out, Consumer<String> err) {
-        out.accept(help);
+        out.accept(HELP_MESSAGE);
     }
 
     private void printQueues(List<String> args, Consumer<String> out, Consumer<String> err) {
@@ -188,7 +188,7 @@ public class AdminCommandProcessor implements EventFlowService, AdminCommandRegi
     }
 
     private void addCommand(String name, String queueKey, AdminCommand adminCommand) {
-        StaticEventProcessor staticEventProcessor = EventFlowManager.currentProcessor();
+        StaticEventProcessor staticEventProcessor = com.fluxtion.server.dispatch.ProcessorContext.currentProcessor();
         log.info("registered command:" + name + " queue:" + queueKey + " processor:" + staticEventProcessor);
 
         registeredCommandMap.put(name, adminCommand);

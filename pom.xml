@@ -10,7 +10,7 @@
 
     <groupId>com.fluxtion</groupId>
     <artifactId>server</artifactId>
-    <version>0.1.74-SNAPSHOT</version>
+    <version>0.1.75-SNAPSHOT</version>
     <name>fluxtion :: server</name>
 
     <description>
@@ -84,6 +84,28 @@
                     <autoVersionSubmodules>true</autoVersionSubmodules>
                     <tagNameFormat>v@{project.version}</tagNameFormat>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>enforce-java</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireJavaVersion>
+                                    <version>[17,)</version>
+                                </requireJavaVersion>
+                                <dependencyConvergence/>
+                            </rules>
+                            <fail>false</fail>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

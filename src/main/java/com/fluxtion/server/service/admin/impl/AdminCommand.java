@@ -74,7 +74,7 @@ public class AdminCommand {
                     output.accept("command is busy try again");
                 }
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                throw new com.fluxtion.server.exception.AdminCommandException("Interrupted while publishing admin command", e);
             }
         }
     }

@@ -49,4 +49,30 @@ public class EventSinkConfig<T extends MessageSink<T>> {
         Service svc = toService();
         return new ServiceAgent<>(agentName, idleStrategy, svc, (A) instance);
     }
+
+    // -------- Builder API --------
+    public static <T extends MessageSink<T>> Builder<T> builder() { return new Builder<>(); }
+
+    public static final class Builder<T extends MessageSink<T>> {
+        private T instance;
+        private String name;
+        private Function<? super T, ?> valueMapper;
+        private String agentName;
+        private IdleStrategy idleStrategy;
+
+        private Builder() {}
+        public Builder<T> instance(T instance) { this.instance = instance; return this; }
+        public Builder<T> name(String name) { this.name = name; return this; }
+        public Builder<T> valueMapper(Function<? super T, ?> mapper) { this.valueMapper = mapper; return this; }
+        public Builder<T> agent(String agentName, IdleStrategy idleStrategy) { this.agentName = agentName; this.idleStrategy = idleStrategy; return this; }
+        public EventSinkConfig<T> build() {
+            EventSinkConfig<T> cfg = new EventSinkConfig<>();
+            cfg.setInstance(instance);
+            cfg.setName(name);
+            if (valueMapper != null) cfg.setValueMapper(valueMapper);
+            cfg.setAgentName(agentName);
+            cfg.setIdleStrategy(idleStrategy);
+            return cfg;
+        }
+    }
 }
