@@ -220,8 +220,9 @@ public class EventProcessingBenchmark {
 
         public void printResults() {
             eventProcessedLatch.countDown();
-            var firstEvent = processedEvents.getFirst();
-            var lastEvent = processedEvents.getLast();
+
+            TestEvent firstEvent = processedEvents.get(0);
+            TestEvent lastEvent = processedEvents.get(processedEvents.size() - 1);
 
             double latencyFull = (lastEvent.processedTime - firstEvent.getPublishTime()) / 1_000.0;
             double count = lastEvent.getId() - firstEvent.getId();
