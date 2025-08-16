@@ -11,4 +11,11 @@ import lombok.Value;
 @Value
 public class EventSourceKey<T> {
     String sourceName;
+
+    /**
+     * Fluent: create a key from a source name.
+     */
+    public static <T> EventSourceKey<T> of(String sourceName) {
+        return new EventSourceKey<>(sourceName);
+    }
 }
