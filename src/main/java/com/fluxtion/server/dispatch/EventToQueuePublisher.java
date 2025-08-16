@@ -144,7 +144,12 @@ public class EventToQueuePublisher<T> {
     }
 
     public List<NamedFeedEvent<?>> getEventLog() {
-        return cacheEventLog ? eventLog : Collections.emptyList();
+        if (!cacheEventLog) {
+            return Collections.emptyList();
+        }
+        // Return a thread-safe snapshot for concurrent readers while maintaining
+        // single-writer performance characteristics for the underlying eventLog.
+        return Collections.unmodifiableList(new ArrayList<>(eventLog));
     }
 
     private Object mapItemSafely(T item, String context) {
@@ -187,14 +192,23 @@ public class EventToQueuePublisher<T> {
 
     private void writeToQueue(NamedQueue namedQueue, Object itemToPublish) {
         OneToOneConcurrentArrayQueue<Object> targetQueue = namedQueue.getTargetQueue();
-        boolean eventNotificationNotReceived = false;
-        long now = -1;
+        boolean offered = false;
+        long startNs = -1;
+        final long maxSpinNs = java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(2); // bound spin to avoid publisher timeouts under contention
         try {
-            while (!eventNotificationNotReceived) {
-                eventNotificationNotReceived = targetQueue.offer(itemToPublish);
-                if (!eventNotificationNotReceived) {
-                    if (now < 0) {
-                        now = System.nanoTime();
+            while (!offered) {
+                offered = targetQueue.offer(itemToPublish);
+                if (!offered) {
+                    if (startNs < 0) {
+                        startNs = System.nanoTime();
+                    } else if (System.nanoTime() - startNs > maxSpinNs) {
+                        // give up for this queue to avoid blocking publishers; event remains in eventLog
+                        if (logInfo) {
+                            log.warning("dropping publish to slow/contended queue: " + namedQueue.getName() + 
+                                    " after ~" + ((System.nanoTime() - startNs) / 1_000_000) + "ms seq:" + sequenceNumber + 
+                                    " queueSize:" + targetQueue.size());
+                        }
+                        return;
                     }
                     java.lang.Thread.onSpinWait();
                 }
@@ -208,8 +222,8 @@ public class EventToQueuePublisher<T> {
                     com.fluxtion.server.service.error.ErrorEvent.Severity.CRITICAL);
             throw new com.fluxtion.server.exception.QueuePublishException("Failed to write to queue '" + namedQueue.getName() + "' for publisher '" + name + "'", t);
         }
-        if (logInfo && now > 1) {
-            long delta = System.nanoTime() - now;
+        if (logInfo && startNs > 1) {
+            long delta = System.nanoTime() - startNs;
             log.warning("spin wait took " + (delta / 1_000_000) + "ms queue:" + namedQueue.getName() + " size:" + targetQueue.size());
         }
     }
