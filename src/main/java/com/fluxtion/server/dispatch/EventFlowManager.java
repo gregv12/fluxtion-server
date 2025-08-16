@@ -89,7 +89,7 @@ public class EventFlowManager {
         EventSinkKey<T> eventSinkKey = new EventSinkKey<>(sinkKey, sinkReader);
         return (ManyToOneConcurrentArrayQueue<T>) eventSinkToQueueMap.computeIfAbsent(
                 eventSinkKey,
-                key -> new ManyToOneConcurrentArrayQueue<T>(500));
+                key -> new ManyToOneConcurrentArrayQueue<T>(1024));
     }
 
     @SuppressWarnings("unchecked")
@@ -154,7 +154,7 @@ public class EventFlowManager {
         EventSourceKey_Subscriber<T> keySubscriber = new EventSourceKey_Subscriber<>(eventSourceKey, subscriber);
         OneToOneConcurrentArrayQueue eventQueue = subscriberKeyToQueueMap.computeIfAbsent(
                 keySubscriber,
-                key -> new OneToOneConcurrentArrayQueue<>(500));
+                key -> new OneToOneConcurrentArrayQueue<>(1024));
 
         //add as a target to the source
         String name = subscriber.roleName() + "/" + eventSourceKey.getSourceName() + "/" + type.name();

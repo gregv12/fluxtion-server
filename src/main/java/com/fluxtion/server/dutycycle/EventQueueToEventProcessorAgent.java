@@ -46,8 +46,11 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
 
     @Override
     public int doWork() {
-        Object event = inputQueue.poll();
-        if (event != null) {
+        int processed = 0;
+        // Batch up to a fixed number of events per tick to reduce per-event overhead
+        final int batchLimit = 64;
+        Object event;
+        while (processed < batchLimit && (event = inputQueue.poll()) != null) {
             if (event instanceof ReplayRecord replayRecord) {
                 eventToInvokeStrategy.processEvent(replayRecord.getEvent(), replayRecord.getWallClockTime());
             } else if (event instanceof BroadcastEvent broadcastEvent) {
@@ -55,9 +58,9 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
             } else {
                 eventToInvokeStrategy.processEvent(event);
             }
-            return 1;
+            processed++;
         }
-        return 0;
+        return processed;
     }
 
     @Override
