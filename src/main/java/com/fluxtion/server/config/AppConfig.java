@@ -48,6 +48,7 @@ public class AppConfig {
      */
     public AppConfig() {
     }
+
     /**
      * Event processor groups and their handler configurations.
      * Created lazily via {@link #getEventHandlers()} if accessed while {@code null}.
@@ -339,7 +340,7 @@ public class AppConfig {
          * @param group group configuration to add
          * @return this builder
          */
-        public Builder addGroup(EventProcessorGroupConfig group) {
+        public Builder addProcessorGroup(EventProcessorGroupConfig group) {
             this.eventHandlers.add(group);
             return this;
         }
