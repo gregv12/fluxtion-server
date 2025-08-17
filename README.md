@@ -23,8 +23,8 @@ can focus on business logic.
     - [event sink plugin](docs/guide/writing-a-message-sink-plugin.md)
     - [event source plugin](docs/guide/writing-an-event-source-plugin.md)
     - [service plugin](docs/guide/writing-a-service-plugin.md)
-    - [admin command](docs/guide/writing-an-admin-command.md)
 - How-to guides:
+    - [add an admin command](docs/guide/writing-an-admin-command.md)
     - [using the scheduler service](docs/guide/using-the-scheduler-service.md)
 - For internals see:
     - [Architecture docs](docs/architecture/index.md)
