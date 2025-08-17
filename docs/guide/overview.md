@@ -8,17 +8,21 @@ architecture, core components, configuration, plugin model, lifecycle, and examp
 ```mermaid
 graph LR
 ES[Event Sources] --> FM[Flow Manager]
-FM --> EH[Event Handlers]
-EH --> ESK[Event Sinks]
+FM --> EH1[Event Handlers]
+FM --> EH2[Event Handlers]
+FM --> EH3[Event Handlers]
+EH1 --> ESK[Event Sinks]
+EH2 --> ESK[Event Sinks]
+EH3 --> ESK[Event Sinks]
 
     subgraph "Agent thread group 1"
-        EH
+        EH1
     end
     subgraph "Agent thread group 2"
-        EH
+        EH2
     end
     subgraph "Agent thread group 3"
-        EH
+        EH3
     end
 ```
 
