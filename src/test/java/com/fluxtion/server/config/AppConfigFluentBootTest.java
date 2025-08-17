@@ -69,7 +69,7 @@ public class AppConfigFluentBootTest {
 
         // Build app config via fluent builder
         AppConfig appConfig = AppConfig.builder()
-                .addGroup(groupCfg)
+                .addProcessorGroup(groupCfg)
                 .addEventFeed(feedCfg)
                 .build();
 

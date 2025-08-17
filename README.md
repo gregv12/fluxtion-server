@@ -17,7 +17,8 @@ can focus on business logic.
 
 ## Quick start
 
-- Read the Detailed Overview for concepts, architecture, and examples: [overview](docs/guide/overview.md)
+- Read the Detailed Overview for concepts, architecture: [overview](docs/guide/overview.md)
+- For sample code see: [example](docs/guide/file-and-memory-feeds-example.md)
 - For internals see:
     - [Architecture docs](docs/architecture/index.md)
     - [Sequence diagrams](docs/architecture/sequence-diagrams/index.md)
@@ -25,13 +26,38 @@ can focus on business logic.
 Minimal bootstrap from code:
 
 ```java
+EventProcessorGroupConfig processorGroup = EventProcessorGroupConfig.builder()
+        .agentName("processor-agent")
+        .put("example-processor", new EventProcessorConfig(new BuilderApiExampleHandler()))
+        .build();
+
+EventFeedConfig<?> fileFeedCfg = EventFeedConfig.builder()
+        .instance(fileSource)
+        .name("fileFeed")
+        .broadcast(true)
+        .agent("file-source-agent", new BusySpinIdleStrategy())
+        .build();
+
+EventFeedConfig<?> memFeedCfg = EventFeedConfig.builder()
+        .instance(inMemSource)
+        .name("inMemFeed")
+        .broadcast(true)
+        .agent("memory-source-agent", new BusySpinIdleStrategy())
+        .build();
+
+EventSinkConfig<FileMessageSink> sinkCfg = EventSinkConfig.<FileMessageSink>builder()
+        .instance(fileSink)
+        .name("fileSink")
+        .build();
+
+AppConfig appConfig = AppConfig.builder()
+        .addProcessorGroup(processorGroup)
+        .addEventFeed(fileFeedCfg)
+        .addEventFeed(memFeedCfg)
+        .addEventSink(sinkCfg)
+        .build();
+
 FluxtionServer server = FluxtionServer.bootServer(appConfig, logRecordListener);
-```
-
-To configure with YAML, point the JVM at a config file:
-
-```bash
-java -Dfluxtionserver.config.file=path/to/config.yaml
 ```
 
 ## Key Concepts

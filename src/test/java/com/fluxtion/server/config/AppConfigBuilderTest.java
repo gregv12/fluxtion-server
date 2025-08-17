@@ -11,23 +11,30 @@ import com.fluxtion.runtime.EventProcessor;
 import com.fluxtion.runtime.audit.EventLogControlEvent;
 import org.junit.jupiter.api.Test;
 
-import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 public class AppConfigBuilderTest {
 
     static class DummyProcessor implements EventProcessor<DummyProcessor> {
         @Override
-        public void onEvent(Object o) { }
+        public void onEvent(Object o) {
+        }
+
         @Override
-        public void init() { }
+        public void init() {
+        }
+
         @Override
-        public void start() { }
+        public void start() {
+        }
+
         @Override
-        public void stop() { }
+        public void stop() {
+        }
+
         @Override
-        public void tearDown() { }
+        public void tearDown() {
+        }
     }
 
     @Test
@@ -64,7 +71,7 @@ public class AppConfigBuilderTest {
         // Assemble AppConfig
         AppConfig app = AppConfig.builder()
                 .idleStrategy(new YieldingIdleStrategy())
-                .addGroup(group)
+                .addProcessorGroup(group)
                 .addService(serviceCfg)
                 .addThread(threadCfg)
                 .build();
