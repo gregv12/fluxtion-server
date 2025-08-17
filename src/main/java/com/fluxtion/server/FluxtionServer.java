@@ -125,6 +125,14 @@ public class FluxtionServer implements FluxtionServerController {
     private volatile boolean started = false;
     private final LifecycleManager lifecycleManager = new LifecycleManager(this);
 
+    /**
+     * Construct a FluxtionServer bound to a specific application configuration.
+     * <p>
+     * The supplied {@link AppConfig} provides definitions for services, event sources,
+     * event processors, sinks, and agent thread settings used during initialization and start.
+     *
+     * @param appConfig application configuration used for thread, service, and event-flow setup
+     */
     public FluxtionServer(AppConfig appConfig) {
         this.appConfig = appConfig;
     }
@@ -188,20 +196,57 @@ public class FluxtionServer implements FluxtionServerController {
         return com.fluxtion.server.internal.ServerConfigurator.bootFromConfig(appConfig, logRecordListener);
     }
 
+    /**
+     * Set the default error handler used by agent runners and internal components.
+     * <p>
+     * The handler receives uncaught exceptions or error signals raised by agent threads.
+     *
+     * @param errorHandler handler to delegate errors to; must not be {@code null}
+     */
     public void setDefaultErrorHandler(ErrorHandler errorHandler) {
         this.errorHandler = errorHandler;
     }
 
+    /**
+     * Register a factory to produce event-to-callback mapping strategies for a given callback type.
+     * <p>
+     * This allows customization of how events are mapped to processor invocation strategies,
+     * e.g., per subscription type or routing policy.
+     *
+     * @param eventMapper supplier that creates an {@link EventToInvokeStrategy}
+     * @param type        callback type this mapper applies to
+     */
     public void registerEventMapperFactory(Supplier<EventToInvokeStrategy> eventMapper, CallBackType type) {
         log.info("registerEventMapperFactory:" + eventMapper);
         flowManager.registerEventMapperFactory(eventMapper, type);
     }
 
+    /**
+     * Register a named event source (feed) with the server.
+     * <p>
+     * The source will be made available to the event flow manager for routing to
+     * interested processors and services.
+     *
+     * @param <T>         event type published by the source
+     * @param sourceName  unique name of the source
+     * @param eventSource source instance to register
+     */
     public <T> void registerEventSource(String sourceName, EventSource<T> eventSource) {
         log.info("registerEventSource name:" + sourceName + " eventSource:" + eventSource);
         flowManager.registerEventSource(sourceName, eventSource);
     }
 
+    /**
+     * Register one or more services with the server.
+     * <p>
+     * - Enforces unique service names.<br>
+     * - Injects dependencies: newly registered services get other services injected into them,
+     * and existing services receive the new service (single-target injection).<br>
+     * - If a service participates in event flow, it is connected to the flow manager.
+     *
+     * @param services services to register
+     * @throws com.fluxtion.server.exception.ServiceRegistrationException if a service name is already in use
+     */
     public void registerService(Service<?>... services) {
         for (Service<?> service : services) {
             String serviceName = service.serviceName();
@@ -227,6 +272,14 @@ public class FluxtionServer implements FluxtionServerController {
         }
     }
 
+    /**
+     * Register services and mark them as agent-hosted for lifecycle management.
+     * <p>
+     * This is a convenience that first registers the services, then flags them as
+     * agent-backed so they are managed in the worker-service lifecycle.
+     *
+     * @param services services to register as agent-hosted
+     */
     public void registerAgentService(Service<?>... services) {
         registerService(services);
         registeredAgentServices.addAll(Arrays.asList(services));
@@ -330,6 +383,11 @@ public class FluxtionServer implements FluxtionServerController {
         }
     }
 
+    /**
+     * Get a snapshot of registered event processors grouped by processor group name.
+     *
+     * @return map of group name to the collection of named event processors in that group
+     */
     @Override
     public Map<String, Collection<NamedEventProcessor>> registeredProcessors() {
         HashMap<String, Collection<NamedEventProcessor>> result = new HashMap<>();
@@ -339,6 +397,12 @@ public class FluxtionServer implements FluxtionServerController {
         return result;
     }
 
+    /**
+     * Stop and remove an event processor from the specified group.
+     *
+     * @param groupName     the processor group containing the processor
+     * @param processorName the unique name of the processor to stop
+     */
     @Override
     public void stopProcessor(String groupName, String processorName) {
         log.info("stopProcessor:" + processorName + " in group:" + groupName);
@@ -348,6 +412,13 @@ public class FluxtionServer implements FluxtionServerController {
         }
     }
 
+    /**
+     * Start a previously registered service by name.
+     * <p>
+     * If the service is not registered, this is a no-op.
+     *
+     * @param serviceName the unique service name to start
+     */
     @Override
     public void startService(String serviceName) {
         log.info("start service:" + serviceName);
@@ -356,6 +427,13 @@ public class FluxtionServer implements FluxtionServerController {
         }
     }
 
+    /**
+     * Stop a previously registered service by name.
+     * <p>
+     * If the service is not registered, this is a no-op.
+     *
+     * @param serviceName the unique service name to stop
+     */
     @Override
     public void stopService(String serviceName) {
         log.info("stop service:" + serviceName);
@@ -365,15 +443,33 @@ public class FluxtionServer implements FluxtionServerController {
         }
     }
 
+    /**
+     * Get the registry of services by name.
+     *
+     * @return a mutable map of service name to service instance
+     */
     @Override
     public Map<String, Service<?>> registeredServices() {
         return registeredServices;
     }
 
+    /**
+     * Initialize the server components and wire dependencies.
+     * <p>
+     * Prepares services, agent groups, the event flow manager, and the service registry.
+     * Safe to call once before {@link #start()}.
+     */
     public void init() {
         lifecycleManager.init(registeredServices, registeredAgentServices, flowManager, serviceRegistry);
     }
 
+    /**
+     * Start all configured components and agent groups.
+     * <p>
+     * Launches agent-hosted services and processor groups, then starts services and marks the server as running.
+     *
+     * @throws RuntimeException if startup fails
+     */
     @SneakyThrows
     public void start() {
         ConcurrentHashMap<String, LifecycleManager.GroupRunner> serviceGroups = new ConcurrentHashMap<>();
@@ -409,6 +505,11 @@ public class FluxtionServer implements FluxtionServerController {
         started = true;
     }
 
+    /**
+     * Get an unmodifiable view of all services currently registered.
+     *
+     * @return unmodifiable collection of registered services
+     */
     public Collection<Service<?>> servicesRegistered() {
         return Collections.unmodifiableCollection(registeredServices.values());
     }
@@ -460,6 +561,15 @@ public class FluxtionServer implements FluxtionServerController {
         return map;
     }
 
+    /**
+     * Callback invoked when the AdminCommandRegistry service is registered.
+     * <p>
+     * This method can be used to perform any server-side initialization or wiring
+     * related to administrative command handling once the admin registry becomes available.
+     *
+     * @param adminCommandRegistry the admin command registry service instance
+     * @param name                 the registered service name
+     */
     @ServiceRegistered
     public void adminClient(AdminCommandRegistry adminCommandRegistry, String name) {
         log.info("adminCommandRegistry registered:" + name);
