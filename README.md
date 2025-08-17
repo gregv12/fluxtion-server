@@ -17,10 +17,10 @@ can focus on business logic.
 
 ## Quick start
 
-- Read the Detailed Overview for concepts, architecture, and examples: docs/guide/overview.md
-- See the Architecture docs and sequence diagrams for internals: docs/architecture/index.md
-- Check coding standards if you plan to contribute: docs/standards/coding-standards.md
-- Review Key Concepts section above for component overview
+- Read the Detailed Overview for concepts, architecture, and examples: [overview](docs/guide/overview.md)
+- For internals see:
+    - [Architecture docs](docs/architecture/index.md)
+    - [Sequence diagrams](docs/architecture/sequence-diagrams/index.md)
 
 Minimal bootstrap from code:
 
