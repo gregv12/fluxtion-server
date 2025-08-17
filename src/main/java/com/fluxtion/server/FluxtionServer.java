@@ -38,6 +38,69 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
+
+/**
+ * FluxtionServer is the central runtime that wires together event sources, event processors,
+ * event sinks, and application services, and manages their lifecycle and threading model.
+ * <p>
+ * High-level architecture:
+ * <ul>
+ *   <li><b>Services</b>: Application components registered with the server. They may be standard
+ *       services (executed in the server lifecycle) or <b>agent-hosted</b> worker services
+ *       (executed on dedicated agent threads). Services can depend on each other via dependency
+ *       injection. Services that participate directly in event routing can implement an event-flow
+ *       contract to interact with the event flow manager.</li>
+ *   <li><b>Agent-hosted services</b>: Worker services executed on their own {@code AgentRunner}.
+ *       Each worker service is associated with an agent group and an {@code IdleStrategy}.
+ *       Idle strategies can be provided directly or resolved from configuration using the group name.</li>
+ *   <li><b>Event sources (feeds)</b>: Producers of events registered with the server. The event flow
+ *       manager routes events from sources to interested processors, using mapping/dispatch strategies
+ *       that can be customized.</li>
+ *   <li><b>Event processors</b>: Instances grouped by a logical <i>processor group</i>. Each group runs
+ *       on its own {@code AgentRunner} with a configurable {@code IdleStrategy}. Processors are registered
+ *       by name within a group, and audit logging hooks can be attached. Groups provide isolation and
+ *       parallelism.</li>
+ *   <li><b>Event sinks</b>: Consumers of processed events. Sinks are typically modeled as services
+ *       (standard or agent-hosted) and participate in the event flow by receiving output from processors
+ *       or other services.</li>
+ * </ul>
+ * <p>
+ * Lifecycle and management:
+ * <ul>
+ *   <li>{@link #init()} performs initialization: registers services, prepares agent groups, and wires the
+ *       event flow manager and service registry.</li>
+ *   <li>{@link #start()} launches agent groups (for processors and worker services) using {@code AgentRunner}
+ *       with the resolved idle strategies, then starts services and marks the server as running.</li>
+ *   <li>{@link #stop()} stops all agent groups and services and releases resources.</li>
+ *   <li>At runtime you can query and control components (e.g., {@link #registeredProcessors()},
+ *       {@link #stopProcessor(String, String)}, {@link #startService(String)}, {@link #stopService(String)}).</li>
+ * </ul>
+ * <p>
+ * Configuration and bootstrapping:
+ * <ul>
+ *   <li>Servers can be bootstrapped from an {@link AppConfig}, a {@link java.io.Reader}, or from a YAML
+ *       file path provided via the {@link #CONFIG_FILE_PROPERTY} system property.</li>
+ *   <li>Threading policies are controlled via idle strategies that can be specified per agent group or
+ *       fall back to a global default. These are resolved with helper methods in {@link AppConfig}.</li>
+ *   <li>Custom event-to-callback mapping strategies can be registered to tailor routing behavior.</li>
+ * </ul>
+ * <p>
+ * Error handling and observability:
+ * <ul>
+ *   <li>A default {@link com.fluxtion.agrona.ErrorHandler} can be supplied via {@link #setDefaultErrorHandler(ErrorHandler)}
+ *       and is used by agent runners.</li>
+ *   <li>Event processors can be bridged to a {@link LogRecordListener} for audit logging.</li>
+ * </ul>
+ * <p>
+ * Typical usage pattern:
+ * <ol>
+ *   <li>Construct or load an {@link AppConfig}.</li>
+ *   <li>Boot the server via one of the {@code bootServer(...)} overloads.</li>
+ *   <li>Optionally register additional services, event sources, and event processors programmatically.</li>
+ *   <li>Call {@link #init()} and {@link #start()} (when booting from config helpers, these may be invoked for you).</li>
+ *   <li>Manage components at runtime and finally {@link #stop()} the server.</li>
+ * </ol>
+ */
 @Log
 public class FluxtionServer implements FluxtionServerController {
 
