@@ -11,8 +11,9 @@ The processor receives events from both sources and writes them to a file sink.
 
 ## 1) Create a custom handler
 
-Extend ObjectEventHandlerNode and inject the FileMessageSink using @ServiceRegistered. In handleEvent, forward the
-incoming event to the sink:
+Extend ObjectEventHandlerNode and inject the FileMessageSink using @ServiceRegistered, see
+[BuilderApiExampleHandler](./../../src/test/java/com/fluxtion/server/example/BuilderApiExampleHandler.java).
+In handleEvent, forward the incoming event to the sink:
 
 ```java
 public class BuilderApiExampleHandler extends ObjectEventHandlerNode {
@@ -48,22 +49,14 @@ Path inputFile = Paths.get("/path/to/input/events.txt");
 Path outputFile = Paths.get("/path/to/output/out.log");
 
 FileMessageSink fileSink = new FileMessageSink();
-fileSink.
-
-setFilename(outputFile.toString());
+fileSink.setFilename(outputFile.toString());
 
 FileEventSource fileSource = new FileEventSource();
-fileSource.
-
-setFilename(inputFile.toString());
-        fileSource.
-
-setCacheEventLog(true);
+fileSource.setFilename(inputFile.toString());
+fileSource.setCacheEventLog(true);
 
 InMemoryEventSource<String> inMemSource = new InMemoryEventSource<>();
-inMemSource.
-
-setCacheEventLog(true);
+inMemSource.setCacheEventLog(true);
 
 EventProcessorGroupConfig processorGroup = EventProcessorGroupConfig.builder()
         .agentName("processor-agent")
@@ -122,7 +115,10 @@ try {
 }
 ```
 
-The example test BuilderApiFluentExampleTest demonstrates the complete flow and asserts that the sink contains:
+The example
+test [BuilderApiFluentExampleTest](./../../src/test/java/com/fluxtion/server/example/BuilderApiFluentExampleTest.java)
+demonstrates the complete flow and asserts that the sink contains these
+events from both sources:
 
 - file-1, file-2 (from FileEventSource)
 - mem-1, mem-2 (from InMemoryEventSource)
