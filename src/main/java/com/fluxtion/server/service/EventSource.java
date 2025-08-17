@@ -23,18 +23,48 @@ public interface EventSource<T> {
 
     enum SlowConsumerStrategy {DISCONNECT, EXIT_PROCESS, BACKOFF}
 
+    /**
+     * Subscribe to this event source with the given subscription key.
+     *
+     * @param eventSourceKey the subscription key representing the subscriber
+     */
     void subscribe(EventSubscriptionKey<T> eventSourceKey);
 
+    /**
+     * Unsubscribe from this event source with the given subscription key.
+     *
+     * @param eventSourceKey the subscription key representing the subscriber
+     */
     void unSubscribe(EventSubscriptionKey<T> eventSourceKey);
 
+    /**
+     * Provide the target queue/publisher that this source will publish events to.
+     *
+     * @param targetQueue the target publisher to emit events to
+     */
     void setEventToQueuePublisher(EventToQueuePublisher<T> targetQueue);
 
+    /**
+     * Configure how events are wrapped when delivered to subscribers.
+     *
+     * @param eventWrapStrategy wrapping strategy
+     */
     default void setEventWrapStrategy(EventWrapStrategy eventWrapStrategy) {
     }
 
+    /**
+     * Configure the strategy used when consumers cannot keep up with event rate.
+     *
+     * @param slowConsumerStrategy slow consumer handling strategy
+     */
     default void setSlowConsumerStrategy(EventSource.SlowConsumerStrategy slowConsumerStrategy) {
     }
 
+    /**
+     * Set a mapping function to transform outbound events before delivery.
+     *
+     * @param dataMapper mapping function from T -> outbound
+     */
     default void setDataMapper(Function<T, ?> dataMapper) {
     }
 }

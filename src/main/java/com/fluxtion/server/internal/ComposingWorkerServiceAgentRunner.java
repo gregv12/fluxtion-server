@@ -13,6 +13,9 @@ import com.fluxtion.server.dutycycle.ComposingServiceAgent;
  * <p>
  * Used by FluxtionServer to track worker service agent groups and their runners
  * for lifecycle management (start/stop).
+ *
+ * @param group       the composing worker service agent group
+ * @param groupRunner the agent runner executing the group
  */
 public record ComposingWorkerServiceAgentRunner(ComposingServiceAgent group, AgentRunner groupRunner) {
 }

@@ -9,6 +9,7 @@ package com.fluxtion.server.service;
  * Represents a key used to uniquely identify an event source within the system.
  *
  * @param <T> Type parameter representing the type of events associated with the event source.
+ * @param sourceName the unique name of the event source
  */
 public record EventSourceKey<T>(String sourceName) {
     /**

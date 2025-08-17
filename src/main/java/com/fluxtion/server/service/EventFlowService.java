@@ -13,12 +13,14 @@ import com.fluxtion.server.dispatch.EventFlowManager;
  * managing event flow configurations using an {@link EventFlowManager}.
  * This interface allows for dynamic assignment of an event flow manager
  * with an associated service name.
- * <p>
- * The {@code @Experimental} annotation indicates that this interface
- * is subject to changes as it is a feature under active development
- * and its API is not considered stable.
  */
 public interface EventFlowService {
 
+    /**
+     * Inject the event flow manager and logical service name into this service.
+     *
+     * @param eventFlowManager the event flow manager used to register and route events
+     * @param serviceName      the unique service name under which this source will be registered
+     */
     void setEventFlowManager(EventFlowManager eventFlowManager, String serviceName);
 }

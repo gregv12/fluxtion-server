@@ -27,7 +27,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 /**
- *
+ * Composite agent that manages named StaticEventProcessor instances within an agent group.
+ * <p>
+ * Responsibilities:
+ * <ul>
+ *   <li>Accepts registrations/removals of named event processors</li>
+ *   <li>Wires processors to event queues via the EventFlowManager on first subscription</li>
+ *   <li>Registers shared services and a SchedulerService into each processor</li>
+ *   <li>Adds/removes queue reader agents dynamically as subscriptions change</li>
+ * </ul>
  */
 @Experimental
 @Log

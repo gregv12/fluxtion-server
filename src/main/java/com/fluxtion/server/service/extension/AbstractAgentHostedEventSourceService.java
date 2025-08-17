@@ -26,14 +26,32 @@ public abstract class AbstractAgentHostedEventSourceService<T> extends AbstractE
         implements
         Agent {
 
+    /**
+     * Constructs a new agent-hosted event source with the default ON_EVENT callback.
+     *
+     * @param name unique service name
+     */
     protected AbstractAgentHostedEventSourceService(String name) {
         this(name, CallBackType.ON_EVENT_CALL_BACK);
     }
 
+    /**
+     * Constructs a new agent-hosted event source with an explicit callback type.
+     *
+     * @param name             unique service name
+     * @param eventToInvokeType callback type for event delivery
+     */
     public AbstractAgentHostedEventSourceService(String name, CallBackType eventToInvokeType) {
         this(name, eventToInvokeType, null);
     }
 
+    /**
+     * Constructs a new agent-hosted event source with explicit callback and mapping strategy.
+     *
+     * @param name                          unique service name
+     * @param eventToInvokeType             callback type for event delivery
+     * @param eventToInokeStrategySupplier  optional supplier for custom event-to-invoke mapping strategy
+     */
     public AbstractAgentHostedEventSourceService(
             String name,
             CallBackType eventToInvokeType,

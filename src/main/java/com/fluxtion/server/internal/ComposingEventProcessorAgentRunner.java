@@ -13,6 +13,9 @@ import com.fluxtion.server.dutycycle.ComposingEventProcessorAgent;
  * <p>
  * Used by FluxtionServer to track event processor agent groups and their runners
  * for lifecycle management (start/stop).
+ *
+ * @param group       the composing event processor agent group
+ * @param groupRunner the agent runner executing the group
  */
 public record ComposingEventProcessorAgentRunner(ComposingEventProcessorAgent group, AgentRunner groupRunner) {
 }

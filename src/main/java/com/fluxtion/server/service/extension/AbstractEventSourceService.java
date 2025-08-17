@@ -48,28 +48,53 @@ public abstract class AbstractEventSourceService<T>
         LifeCycleEventSource<T>,
         EventFlowService {
 
+    /** Unique service name for this event source. */
     @Getter
     @Setter
     protected String name;
+    /** Callback type used to map published events to subscriber invocations. */
     private final CallBackType eventToInvokeType;
+    /** Optional supplier for a custom event-to-invoke mapping strategy. */
     private final Supplier<EventToInvokeStrategy> eventToInokeStrategySupplier;
+    /** Publisher provided by the EventFlowManager used to emit events to subscribers. */
     protected EventToQueuePublisher<T> output;
+    /** Logical service name as registered with the EventFlowManager. */
     protected String serviceName;
+    /** Subscription key used by processors to subscribe to this source. */
     protected EventSubscriptionKey<T> subscriptionKey;
+    /** Scheduler service injected at runtime for time-based operations. */
     protected SchedulerService scheduler;
     private EventWrapStrategy eventWrapStrategy = EventWrapStrategy.SUBSCRIPTION_NOWRAP;
     private EventSource.SlowConsumerStrategy slowConsumerStrategy = SlowConsumerStrategy.BACKOFF;
     @Getter(AccessLevel.PROTECTED)
     private Function<T, ?> dataMapper = Function.identity();
 
+    /**
+     * Construct an event source with default ON_EVENT callback type.
+     *
+     * @param name unique service name
+     */
     protected AbstractEventSourceService(String name) {
         this(name, CallBackType.ON_EVENT_CALL_BACK);
     }
 
+    /**
+     * Construct an event source with an explicit callback type.
+     *
+     * @param name               unique service name
+     * @param eventToInvokeType  callback type for event delivery
+     */
     public AbstractEventSourceService(String name, CallBackType eventToInvokeType) {
         this(name, eventToInvokeType, null);
     }
 
+    /**
+     * Construct an event source with explicit callback and mapping strategy.
+     *
+     * @param name                           unique service name
+     * @param eventToInvokeType              callback type for event delivery
+     * @param eventToInokeStrategySupplier   optional supplier for custom event mapping
+     */
     public AbstractEventSourceService(
             String name,
             CallBackType eventToInvokeType,
@@ -95,6 +120,11 @@ public abstract class AbstractEventSourceService<T>
         }
     }
 
+    /**
+     * Injection point for the shared scheduler service.
+     *
+     * @param scheduler the scheduler service instance provided by the server
+     */
     @ServiceRegistered
     public void scheduler(SchedulerService scheduler) {
         this.scheduler = scheduler;

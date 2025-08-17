@@ -11,6 +11,8 @@ package com.fluxtion.server.service;
  * the context of the subscription.
  *
  * @param <T> The type of events associated with the subscription.
+ * @param eventSourceKey the event source key to subscribe to
+ * @param callBackType   the callback type determining how events are delivered
  */
 public record EventSubscriptionKey<T>(EventSourceKey<T> eventSourceKey, CallBackType callBackType) {
     // Existing constructors (backward compatible)
@@ -66,6 +68,8 @@ public record EventSubscriptionKey<T>(EventSourceKey<T> eventSourceKey, CallBack
 
     /**
      * Fluent builder for EventSubscriptionKey.
+     *
+     * @param <T> the event type associated with the subscription
      */
     public static final class Builder<T> {
         private final EventSourceKey<T> eventSourceKey;

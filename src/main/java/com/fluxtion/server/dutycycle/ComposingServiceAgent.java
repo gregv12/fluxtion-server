@@ -21,7 +21,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
- *
+ * Composite agent that manages a group of worker service agents for Fluxtion Server.
+ * <p>
+ * Responsibilities:
+ * <ul>
+ *   <li>Accepts registrations of ServiceAgent instances destined to run on this agent group</li>
+ *   <li>Initializes and starts their exported services, injecting server-registered services and the scheduler</li>
+ *   <li>Adds their Agent delegates to the underlying DynamicCompositeAgent at the appropriate time</li>
+ *   <li>Signals startComplete to services once the agent group is fully active</li>
+ * </ul>
  */
 @Experimental
 @Log
