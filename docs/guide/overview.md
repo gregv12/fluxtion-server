@@ -11,7 +11,13 @@ ES[Event Sources] --> FM[Flow Manager]
 FM --> EH[Event Handlers]
 EH --> ESK[Event Sinks]
 
-    subgraph "Agent Groups"
+    subgraph "Agent thread group 1"
+        EH
+    end
+    subgraph "Agent thread group 2"
+        EH
+    end
+    subgraph "Agent thread group 3"
         EH
     end
 ```

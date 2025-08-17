@@ -19,6 +19,9 @@ can focus on business logic.
 
 - Read the Detailed Overview for concepts, architecture: [overview](docs/guide/overview.md)
 - For sample code see: [example](docs/guide/file-and-memory-feeds-example.md)
+- For writing plugins see:
+    - [event sink plugin](docs/guide/writing-a-message-sink-plugin.md)
+    - [event source plugin](docs/guide/writing-an-event-source-plugin.md)
 - For internals see:
     - [Architecture docs](docs/architecture/index.md)
     - [Sequence diagrams](docs/architecture/sequence-diagrams/index.md)
