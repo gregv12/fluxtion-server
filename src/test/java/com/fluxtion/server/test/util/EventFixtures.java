@@ -78,7 +78,7 @@ public final class EventFixtures {
                 .build();
         AppConfig app = AppConfig.builder()
                 .addEventFeed(feed)
-                .addGroup(group)
+                .addProcessorGroup(group)
                 .build();
         CapturingLogListener logs = new CapturingLogListener(1000);
         FluxtionServer server = FluxtionServer.bootServer(app, logs);
