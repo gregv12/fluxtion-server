@@ -4,7 +4,9 @@
  */
 package com.fluxtion.server.service.error;
 
-/** Listener of error events. */
+/**
+ * Listener of error events.
+ */
 @FunctionalInterface
 public interface ErrorListener {
     void onError(ErrorEvent event);

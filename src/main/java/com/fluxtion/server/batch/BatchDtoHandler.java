@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
+ * SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -9,7 +9,7 @@ import com.fluxtion.runtime.annotations.OnEventHandler;
 import com.fluxtion.runtime.node.BaseNode;
 
 public class BatchDtoHandler extends BaseNode {
-    
+
     @OnEventHandler
     public boolean processBatch(BatchDto batchEvent) {
         auditLog.debug("redispatchBatch", batchEvent);

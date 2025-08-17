@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
+ * SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -13,7 +13,6 @@ import com.fluxtion.runtime.input.EventFeed;
 import com.fluxtion.runtime.lifecycle.Lifecycle;
 import com.fluxtion.runtime.service.Service;
 import com.fluxtion.server.FluxtionServer;
-import com.fluxtion.server.dispatch.EventFlowManager;
 import com.fluxtion.server.dispatch.EventSubscriptionKey;
 import com.fluxtion.server.service.scheduler.DeadWheelScheduler;
 import com.fluxtion.server.service.scheduler.SchedulerService;
@@ -132,7 +131,7 @@ public class ComposingEventProcessorAgent extends DynamicCompositeAgent implemen
     }
 
     private void checkForAdded() {
-        if(!toStartList.isEmpty()) {
+        if (!toStartList.isEmpty()) {
             toStartList.drain(init -> {
                 NamedEventProcessor namedEventProcessor = init.get();
                 StaticEventProcessor eventProcessor = namedEventProcessor.eventProcessor();
@@ -157,7 +156,7 @@ public class ComposingEventProcessorAgent extends DynamicCompositeAgent implemen
     }
 
     private void checkForStopped() {
-        if(toStopList.isEmpty()) {
+        if (toStopList.isEmpty()) {
             return;
         }
         toStopList.drain(name -> {

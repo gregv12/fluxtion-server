@@ -9,5 +9,7 @@ package com.fluxtion.server.exception;
  * Thrown when publishing or writing to an internal event queue fails.
  */
 public class QueuePublishException extends FluxtionServerException {
-    public QueuePublishException(String message, Throwable cause) { super(message, cause); }
+    public QueuePublishException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

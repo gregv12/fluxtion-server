@@ -47,7 +47,7 @@ public final class ServiceInjector {
         // Precompute a multimap of service interface -> list of Service entries
         Map<Class<?>, List<Service<?>>> byType = new HashMap<>();
         for (Service<?> svc : services) {
-            Class<?> iface = (Class<?>) svc.serviceClass();
+            Class<?> iface = svc.serviceClass();
             byType.computeIfAbsent(iface, k -> new ArrayList<>()).add(svc);
         }
 

@@ -1,7 +1,6 @@
 /*
- * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
+ * SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
- *
  */
 
 package com.fluxtion.server.service.admin.impl;
@@ -85,7 +84,7 @@ public class AdminCommand {
         } catch (Exception e) {
             StringWriter sw = new StringWriter();
             e.printStackTrace(new PrintWriter(sw));
-            errOutput.accept("problem executing command exception:" + e.getMessage() + "\n" + sw.toString());
+            errOutput.accept("problem executing command exception:" + e.getMessage() + "\n" + sw);
         } finally {
             semaphore.release();
         }

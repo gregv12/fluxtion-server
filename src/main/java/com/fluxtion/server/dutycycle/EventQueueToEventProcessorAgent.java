@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
+ * SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -69,8 +69,8 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
                     String warnMsg = "event processing failed: agent=" + name +
                             ", attempt=" + attempt +
                             ", eventClass=" + (event == null ? "null" : event.getClass().getName()) +
-                            ", event=" + String.valueOf(event) +
-                            ", error=" + t.toString();
+                            ", event=" + event +
+                            ", error=" + t;
                     logger.warning(warnMsg);
                     com.fluxtion.server.service.error.ErrorReporting.report(
                             "EventQueueToEventProcessorAgent:" + name,
@@ -81,8 +81,8 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
                         String errMsg = "dropping event after retries: agent=" + name +
                                 ", attempts=" + attempt +
                                 ", eventClass=" + (event == null ? "null" : event.getClass().getName()) +
-                                ", event=" + String.valueOf(event) +
-                                ", lastError=" + t.toString();
+                                ", event=" + event +
+                                ", lastError=" + t;
                         logger.severe(errMsg);
                         com.fluxtion.server.service.error.ErrorReporting.report(
                                 "EventQueueToEventProcessorAgent:" + name,
@@ -110,7 +110,9 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
         return name;
     }
 
-    /** Configure the retry policy for processing events. */
+    /**
+     * Configure the retry policy for processing events.
+     */
     public EventQueueToEventProcessorAgent withRetryPolicy(com.fluxtion.server.dispatch.RetryPolicy retryPolicy) {
         if (retryPolicy != null) {
             this.retryPolicy = retryPolicy;
@@ -118,7 +120,9 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
         return this;
     }
 
-    /** Provide an unsubscribe action to be called when listenerCount() drops to zero. */
+    /**
+     * Provide an unsubscribe action to be called when listenerCount() drops to zero.
+     */
     public EventQueueToEventProcessorAgent withUnsubscribeAction(Runnable unsubscribeAction) {
         this.unsubscribeAction = unsubscribeAction;
         return this;

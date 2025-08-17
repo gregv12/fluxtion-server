@@ -6,10 +6,6 @@ package com.fluxtion.server.internal;
 
 import com.fluxtion.agrona.concurrent.AgentRunner;
 import com.fluxtion.server.dutycycle.ComposingEventProcessorAgent;
-import lombok.Value;
 
-@Value
-public class ComposingEventProcessorAgentRunner {
-    ComposingEventProcessorAgent group;
-    AgentRunner groupRunner;
+public record ComposingEventProcessorAgentRunner(ComposingEventProcessorAgent group, AgentRunner groupRunner) {
 }

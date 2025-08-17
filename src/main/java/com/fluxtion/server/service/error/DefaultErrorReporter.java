@@ -12,15 +12,22 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 
-/** Default in-memory error reporter that logs and notifies listeners. */
+/**
+ * Default in-memory error reporter that logs and notifies listeners.
+ */
 @Log
 public class DefaultErrorReporter implements ErrorReporter {
     private final CopyOnWriteArrayList<ErrorListener> listeners = new CopyOnWriteArrayList<>();
     private final ArrayDeque<ErrorEvent> ring = new ArrayDeque<>(128);
     private final int capacity;
 
-    public DefaultErrorReporter() { this(100); }
-    public DefaultErrorReporter(int capacity) { this.capacity = Math.max(1, capacity); }
+    public DefaultErrorReporter() {
+        this(100);
+    }
+
+    public DefaultErrorReporter(int capacity) {
+        this.capacity = Math.max(1, capacity);
+    }
 
     @Override
     public void addListener(ErrorListener listener) {

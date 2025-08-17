@@ -5,14 +5,14 @@
 
 /**
  * Package: exception
- *
+ * <p>
  * Responsibility
  * - Defines Fluxtion Server's domain exception hierarchy used across packages.
- *
+ * <p>
  * Public API
  * - FluxtionServerException (base), ConfigurationException, ServiceRegistrationException,
- *   AdminCommandException, QueuePublishException.
- *
+ * AdminCommandException, QueuePublishException.
+ * <p>
  * Allowed dependencies
  * - No dependencies on other server packages (pure domain exceptions).
  */

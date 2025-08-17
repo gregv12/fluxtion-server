@@ -215,8 +215,8 @@ public class FluxtionServer implements FluxtionServerController {
      * @param service the worker service to register and host on its agent group
      */
     public void registerWorkerService(ServiceAgent<?> service) {
-        String agentGroup = service.getAgentGroup();
-        IdleStrategy idleStrategy = appConfig.lookupIdleStrategyWhenNull(service.getIdleStrategy(), service.getAgentGroup());
+        String agentGroup = service.agentGroup();
+        IdleStrategy idleStrategy = appConfig.lookupIdleStrategyWhenNull(service.idleStrategy(), service.agentGroup());
         log.info("registerWorkerService:" + service + " agentGroup:" + agentGroup + " idleStrategy:" + idleStrategy);
         ComposingWorkerServiceAgentRunner composingAgentRunner = composingServiceAgents.computeIfAbsent(
                 agentGroup,
@@ -234,7 +234,7 @@ public class FluxtionServer implements FluxtionServerController {
                     return new ComposingWorkerServiceAgentRunner(group, groupRunner);
                 });
 
-        composingAgentRunner.getGroup().registerServer(service);
+        composingAgentRunner.group().registerServer(service);
     }
 
     /**
@@ -278,11 +278,11 @@ public class FluxtionServer implements FluxtionServerController {
                     return new ComposingEventProcessorAgentRunner(group, groupRunner);
                 });
 
-        if (composingEventProcessorAgentRunner.getGroup().isProcessorRegistered(processorName)) {
+        if (composingEventProcessorAgentRunner.group().isProcessorRegistered(processorName)) {
             throw new IllegalArgumentException("cannot add event processor name is already assigned:" + processorName);
         }
 
-        composingEventProcessorAgentRunner.getGroup().addNamedEventProcessor(() -> {
+        composingEventProcessorAgentRunner.group().addNamedEventProcessor(() -> {
             StaticEventProcessor eventProcessor = feedConsumer.get();
             eventProcessor.setAuditLogProcessor(logRecordListener);
             if (started) {
@@ -292,9 +292,9 @@ public class FluxtionServer implements FluxtionServerController {
             return new NamedEventProcessor(processorName, eventProcessor);
         });
 
-        if (started && composingEventProcessorAgentRunner.getGroupRunner().thread() == null) {
+        if (started && composingEventProcessorAgentRunner.groupRunner().thread() == null) {
             log.info("staring event processor group:'" + groupName + "' for running server");
-            AgentRunner.startOnThread(composingEventProcessorAgentRunner.getGroupRunner());
+            AgentRunner.startOnThread(composingEventProcessorAgentRunner.groupRunner());
         }
     }
 
@@ -302,7 +302,7 @@ public class FluxtionServer implements FluxtionServerController {
     public Map<String, Collection<NamedEventProcessor>> registeredProcessors() {
         HashMap<String, Collection<NamedEventProcessor>> result = new HashMap<>();
         composingEventProcessorAgents.entrySet().forEach(entry -> {
-            result.put(entry.getKey(), entry.getValue().getGroup().registeredEventProcessors());
+            result.put(entry.getKey(), entry.getValue().group().registeredEventProcessors());
         });
         return result;
     }
@@ -312,7 +312,7 @@ public class FluxtionServer implements FluxtionServerController {
         log.info("stopProcessor:" + processorName + " in group:" + groupName);
         var processorAgent = composingEventProcessorAgents.get(groupName);
         if (processorAgent != null) {
-            processorAgent.getGroup().removeEventProcessorByName(processorName);
+            processorAgent.group().removeEventProcessorByName(processorName);
         }
     }
 
@@ -348,29 +348,29 @@ public class FluxtionServer implements FluxtionServerController {
         composingServiceAgents.forEach((k, v) -> serviceGroups.put(k, new LifecycleManager.GroupRunner() {
             @Override
             public AgentRunner getGroupRunner() {
-                return v.getGroupRunner();
+                return v.groupRunner();
             }
 
             @Override
             public DynamicCompositeAgent getGroup() {
-                return v.getGroup();
+                return v.group();
             }
 
             @Override
             public void startCompleteIfSupported() {
-                v.getGroup().startComplete();
+                v.group().startComplete();
             }
         }));
         ConcurrentHashMap<String, LifecycleManager.GroupRunner> processorGroups = new ConcurrentHashMap<>();
         composingEventProcessorAgents.forEach((k, v) -> processorGroups.put(k, new LifecycleManager.GroupRunner() {
             @Override
             public AgentRunner getGroupRunner() {
-                return v.getGroupRunner();
+                return v.groupRunner();
             }
 
             @Override
             public DynamicCompositeAgent getGroup() {
-                return v.getGroup();
+                return v.group();
             }
         }));
         lifecycleManager.start(registeredServices, serviceGroups, processorGroups, flowManager, registeredAgentServices);
@@ -398,29 +398,29 @@ public class FluxtionServer implements FluxtionServerController {
                 map.put(k, new LifecycleManager.GroupRunner() {
                     @Override
                     public AgentRunner getGroupRunner() {
-                        return cep.getGroupRunner();
+                        return cep.groupRunner();
                     }
 
                     @Override
                     public DynamicCompositeAgent getGroup() {
-                        return cep.getGroup();
+                        return cep.group();
                     }
                 });
             } else if (v instanceof ComposingWorkerServiceAgentRunner cws) {
                 map.put(k, new LifecycleManager.GroupRunner() {
                     @Override
                     public AgentRunner getGroupRunner() {
-                        return cws.getGroupRunner();
+                        return cws.groupRunner();
                     }
 
                     @Override
                     public DynamicCompositeAgent getGroup() {
-                        return cws.getGroup();
+                        return cws.group();
                     }
 
                     @Override
                     public void startCompleteIfSupported() {
-                        cws.getGroup().startComplete();
+                        cws.group().startComplete();
                     }
                 });
             }

@@ -1,7 +1,6 @@
 /*
- * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
+ * SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
- *
  */
 
 package com.fluxtion.server.dispatch;
@@ -37,19 +36,19 @@ public abstract class AbstractEventToInvocationStrategy implements EventToInvoke
     public AbstractEventToInvocationStrategy() {
         this.id = syntheticClock.incrementAndGet();
         fineLogEnabled = log.isLoggable(java.util.logging.Level.FINE);
-        if( fineLogEnabled){
+        if (fineLogEnabled) {
             log.fine(() -> "AbstractEventToInvocationStrategy created with id: " + id);
         }
     }
 
     @Override
     public void processEvent(Object event) {
-        if( fineLogEnabled){
+        if (fineLogEnabled) {
             log.fine(() -> "invokerId: " + id + " processEvent: " + event + " to " + eventProcessorSinks.size() + " processors");
         }
         for (int i = 0, targetQueuesSize = eventProcessorSinks.size(); i < targetQueuesSize; i++) {
             StaticEventProcessor eventProcessor = eventProcessorSinks.get(i);
-            if( fineLogEnabled){
+            if (fineLogEnabled) {
                 log.fine(() -> "invokerId: " + id + " dispatchEvent to " + eventProcessor);
             }
             ProcessorContext.setCurrentProcessor(eventProcessor);

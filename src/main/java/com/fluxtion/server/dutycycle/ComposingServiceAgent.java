@@ -1,7 +1,6 @@
 /*
- * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
+ * SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
- *
  */
 
 package com.fluxtion.server.dutycycle;
@@ -83,7 +82,7 @@ public class ComposingServiceAgent extends DynamicCompositeAgent {
         if (!toStartList.isEmpty()) {
             toStartList.drain(serviceAgent -> {
                 toAddList.add(serviceAgent);
-                Service<?> exportedService = serviceAgent.getExportedService();
+                Service<?> exportedService = serviceAgent.exportedService();
                 exportedService.init();
                 serviceRegistry.init();
                 serviceRegistry.nodeRegistered(exportedService.instance(), exportedService.serviceName());
@@ -98,13 +97,13 @@ public class ComposingServiceAgent extends DynamicCompositeAgent {
             });
         }
 
-        if (!toAddList.isEmpty() && status() == Status.ACTIVE && tryAdd(toAddList.peek().getDelegate())) {
+        if (!toAddList.isEmpty() && status() == Status.ACTIVE && tryAdd(toAddList.peek().delegate())) {
             toAddList.poll();
         }
 
         if (startUpComplete.get() & !toCallStartupCompleteList.isEmpty()) {
             toCallStartupCompleteList.drain(s -> {
-                s.getExportedService().startComplete();
+                s.exportedService().startComplete();
             });
         }
     }

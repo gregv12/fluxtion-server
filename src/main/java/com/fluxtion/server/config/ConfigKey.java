@@ -12,8 +12,8 @@ import java.util.Objects;
  * <p>
  * Use ConfigKey to avoid stringly-typed access and unchecked casts.
  * Example:
- *   static final ConfigKey<Integer> BATCH_SIZE = ConfigKey.of("batch.size", Integer.class);
- *   int size = configMap.getOrDefault(BATCH_SIZE, 1000);
+ * static final ConfigKey<Integer> BATCH_SIZE = ConfigKey.of("batch.size", Integer.class);
+ * int size = configMap.getOrDefault(BATCH_SIZE, 1000);
  */
 public final class ConfigKey<T> {
     private final String name;

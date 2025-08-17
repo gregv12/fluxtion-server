@@ -9,7 +9,15 @@ package com.fluxtion.server.exception;
  * Wraps exceptions related to admin command publication/processing.
  */
 public class AdminCommandException extends FluxtionServerException {
-    public AdminCommandException(String message) { super(message); }
-    public AdminCommandException(String message, Throwable cause) { super(message, cause); }
-    public AdminCommandException(Throwable cause) { super(cause); }
+    public AdminCommandException(String message) {
+        super(message);
+    }
+
+    public AdminCommandException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public AdminCommandException(Throwable cause) {
+        super(cause);
+    }
 }

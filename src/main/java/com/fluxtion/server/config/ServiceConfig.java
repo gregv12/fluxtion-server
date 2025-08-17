@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
+ * SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -103,7 +103,8 @@ public class ServiceConfig<T> {
         private String agentGroup;
         private IdleStrategy idleStrategy;
 
-        private Builder() {}
+        private Builder() {
+        }
 
         public Builder<T> service(T service) {
             this.service = service;

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
+ * SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -51,7 +51,9 @@ public class EventSinkConfig<T extends MessageSink<T>> {
     }
 
     // -------- Builder API --------
-    public static <T extends MessageSink<T>> Builder<T> builder() { return new Builder<>(); }
+    public static <T extends MessageSink<T>> Builder<T> builder() {
+        return new Builder<>();
+    }
 
     public static final class Builder<T extends MessageSink<T>> {
         private T instance;
@@ -60,11 +62,30 @@ public class EventSinkConfig<T extends MessageSink<T>> {
         private String agentName;
         private IdleStrategy idleStrategy;
 
-        private Builder() {}
-        public Builder<T> instance(T instance) { this.instance = instance; return this; }
-        public Builder<T> name(String name) { this.name = name; return this; }
-        public Builder<T> valueMapper(Function<? super T, ?> mapper) { this.valueMapper = mapper; return this; }
-        public Builder<T> agent(String agentName, IdleStrategy idleStrategy) { this.agentName = agentName; this.idleStrategy = idleStrategy; return this; }
+        private Builder() {
+        }
+
+        public Builder<T> instance(T instance) {
+            this.instance = instance;
+            return this;
+        }
+
+        public Builder<T> name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder<T> valueMapper(Function<? super T, ?> mapper) {
+            this.valueMapper = mapper;
+            return this;
+        }
+
+        public Builder<T> agent(String agentName, IdleStrategy idleStrategy) {
+            this.agentName = agentName;
+            this.idleStrategy = idleStrategy;
+            return this;
+        }
+
         public EventSinkConfig<T> build() {
             EventSinkConfig<T> cfg = new EventSinkConfig<>();
             cfg.setInstance(instance);

@@ -1,35 +1,22 @@
 /*
- * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
+ * SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
- *
  */
 
 package com.fluxtion.server.dispatch;
 
-import lombok.Value;
-
 /**
  * Immutable key describing a subscription: which EventSource to subscribe to and
  * which callback type to deliver on.
- *
+ * <p>
  * Adds a fluent API for easier construction while keeping existing constructors
  * for backward compatibility.
  */
-@Value
-public class EventSubscriptionKey<T> {
-    com.fluxtion.server.dispatch.EventSourceKey<T> eventSourceKey;
-    com.fluxtion.server.dispatch.CallBackType callBackType;
-
+public record EventSubscriptionKey<T>(EventSourceKey<T> eventSourceKey, CallBackType callBackType) {
     // Existing constructors (backward compatible)
     public EventSubscriptionKey(EventSourceKey<T> eventSourceKey,
                                 Class<?> callBackClass) {
-        this.eventSourceKey = eventSourceKey;
-        this.callBackType = CallBackType.forClass(callBackClass);
-    }
-
-    public EventSubscriptionKey(EventSourceKey<T> eventSourceKey, CallBackType callBackType) {
-        this.eventSourceKey = eventSourceKey;
-        this.callBackType = callBackType;
+        this(eventSourceKey, CallBackType.forClass(callBackClass));
     }
 
     /**
@@ -37,8 +24,7 @@ public class EventSubscriptionKey<T> {
      * qualifier is ignored (kept for non-breaking backward compatibility).
      */
     public EventSubscriptionKey(EventSourceKey<T> eventSourceKey, CallBackType callBackType, Object qualifier) {
-        this.eventSourceKey = eventSourceKey;
-        this.callBackType = callBackType;
+        this(eventSourceKey, callBackType);
     }
 
     // -------- Fluent API --------
@@ -47,14 +33,14 @@ public class EventSubscriptionKey<T> {
      * Fluent: Create an onEvent subscription to the named source.
      */
     public static <T> EventSubscriptionKey<T> onEvent(String sourceName) {
-        return new EventSubscriptionKey<>(EventSourceKey.<T>of(sourceName), CallBackType.ON_EVENT_CALL_BACK);
+        return new EventSubscriptionKey<>(EventSourceKey.of(sourceName), CallBackType.ON_EVENT_CALL_BACK);
     }
 
     /**
      * Fluent: Create a subscription to the named source with a specific callback type.
      */
     public static <T> EventSubscriptionKey<T> of(String sourceName, CallBackType callBackType) {
-        return new EventSubscriptionKey<>(EventSourceKey.<T>of(sourceName), callBackType);
+        return new EventSubscriptionKey<>(EventSourceKey.of(sourceName), callBackType);
     }
 
     /**
@@ -68,7 +54,7 @@ public class EventSubscriptionKey<T> {
      * Start a fluent builder for a subscription to the named source.
      */
     public static <T> Builder<T> fromSource(String sourceName) {
-        return new Builder<>(EventSourceKey.<T>of(sourceName));
+        return new Builder<>(EventSourceKey.of(sourceName));
     }
 
     /**

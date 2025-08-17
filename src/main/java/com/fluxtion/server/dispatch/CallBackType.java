@@ -7,7 +7,6 @@
 package com.fluxtion.server.dispatch;
 
 import com.fluxtion.runtime.annotations.feature.Experimental;
-import lombok.Value;
 
 @Experimental
 public interface CallBackType {
@@ -20,10 +19,7 @@ public interface CallBackType {
         return new CallBackTypeByClass(clazz);
     }
 
-    @Value
-    class CallBackTypeByClass implements CallBackType {
-
-        Class<?> callBackClass;
+    record CallBackTypeByClass(Class<?> callBackClass) implements CallBackType {
 
         @Override
         public String name() {

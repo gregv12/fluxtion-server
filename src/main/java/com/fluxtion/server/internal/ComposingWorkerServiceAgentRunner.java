@@ -6,10 +6,6 @@ package com.fluxtion.server.internal;
 
 import com.fluxtion.agrona.concurrent.AgentRunner;
 import com.fluxtion.server.dutycycle.ComposingServiceAgent;
-import lombok.Value;
 
-@Value
-public class ComposingWorkerServiceAgentRunner {
-    ComposingServiceAgent group;
-    AgentRunner groupRunner;
+public record ComposingWorkerServiceAgentRunner(ComposingServiceAgent group, AgentRunner groupRunner) {
 }

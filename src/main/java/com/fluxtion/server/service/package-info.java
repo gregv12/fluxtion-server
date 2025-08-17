@@ -5,25 +5,25 @@
 
 /**
  * Package: service
- *
+ * <p>
  * Responsibility
  * - Contains server-managed services and utilities supporting services:
- *   - AbstractEventSourceService and scheduler integration.
- *   - Admin service contracts and implementation (admin subpackage).
- *   - Error reporting utilities (error subpackage).
- *   - ServiceInjector (lightweight DI for server-managed services).
- *
+ * - AbstractEventSourceService and scheduler integration.
+ * - Admin service contracts and implementation (admin subpackage).
+ * - Error reporting utilities (error subpackage).
+ * - ServiceInjector (lightweight DI for server-managed services).
+ * <p>
  * Public API (consumed by other packages)
  * - AbstractEventSourceService (for creating event sources as services)
  * - service.admin.AdminCommandRegistry and related SPI
  * - service.scheduler.SchedulerService
  * - ServiceInjector (utility)
- *
+ * <p>
  * Allowed dependencies
  * - May depend on: com.fluxtion.server.dispatch (to interact with event flow),
- *   com.fluxtion.server.exception, com.fluxtion.runtime annotations/services.
+ * com.fluxtion.server.exception, com.fluxtion.runtime annotations/services.
  * - Must not depend on: com.fluxtion.server.config (config is input to FluxtionServer only).
- *
+ * <p>
  * Notes
  * - Keep services reusable and isolated from server orchestration concerns.
  */

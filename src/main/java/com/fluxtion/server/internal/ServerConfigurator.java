@@ -22,7 +22,8 @@ import java.util.Objects;
  */
 public final class ServerConfigurator {
 
-    private ServerConfigurator() {}
+    private ServerConfigurator() {
+    }
 
     public static FluxtionServer bootFromConfig(AppConfig appConfig, LogRecordListener logRecordListener) {
         Objects.requireNonNull(appConfig, "appConfig must be non-null");
