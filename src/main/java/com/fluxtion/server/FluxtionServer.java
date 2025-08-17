@@ -40,6 +40,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.Reader;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -128,6 +129,15 @@ public class FluxtionServer implements FluxtionServerController {
         this.appConfig = appConfig;
     }
 
+    /**
+     * Boots a FluxtionServer instance by loading configuration from the provided reader.
+     * The configuration is parsed and converted into an {@code AppConfig} instance, which is used
+     * for initializing the server along with the specified log record listener.
+     *
+     * @param reader            A {@code Reader} instance used to read the configuration input.
+     * @param logRecordListener A {@code LogRecordListener} instance for handling log messages during server operations.
+     * @return A new instance of {@code FluxtionServer} configured with the supplied {@code AppConfig} and log record listener.
+     */
     public static FluxtionServer bootServer(Reader reader, LogRecordListener logRecordListener) {
         log.info("booting server loading config from reader");
         LoaderOptions loaderOptions = new LoaderOptions();
@@ -139,6 +149,18 @@ public class FluxtionServer implements FluxtionServerController {
         return bootServer(appConfig, logRecordListener);
     }
 
+    /**
+     * Boots a FluxtionServer instance using a configuration file specified by a system property
+     * and a log record listener. The configuration file path must be specified using the system property
+     * {@value #CONFIG_FILE_PROPERTY} ({@code fluxtionserver.config.file}). The configuration file
+     * should contain YAML-formatted server configuration that will be parsed into an {@link AppConfig}
+     * instance.
+     *
+     * @param logRecordListener A {@code LogRecordListener} instance for handling log messages during server operations.
+     * @return A new instance of {@code FluxtionServer} configured with the loaded configuration and supplied log record listener.
+     * @throws NullPointerException if the configuration file name is not specified in the system property.
+     * @throws IOException          if an error occurs while reading the configuration file.
+     */
     @SneakyThrows
     public static FluxtionServer bootServer(LogRecordListener logRecordListener) {
         String configFileName = System.getProperty(CONFIG_FILE_PROPERTY);
@@ -150,6 +172,15 @@ public class FluxtionServer implements FluxtionServerController {
         }
     }
 
+    /**
+     * Boots a FluxtionServer instance using the provided application configuration and log record listener.
+     * The server is initialized based on the configuration data, and the log record listener
+     * is used to handle log messages during its operation.
+     *
+     * @param appConfig         An {@code AppConfig} instance containing the server configuration.
+     * @param logRecordListener A {@code LogRecordListener} instance for handling log messages.
+     * @return A new {@code FluxtionServer} instance configured with the given {@code AppConfig} and {@code LogRecordListener}.
+     */
     public static FluxtionServer bootServer(AppConfig appConfig, LogRecordListener logRecordListener) {
         FluxtionServer.logRecordListener = logRecordListener;
         log.info("booting fluxtion server");

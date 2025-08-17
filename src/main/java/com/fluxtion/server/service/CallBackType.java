@@ -29,6 +29,22 @@ import com.fluxtion.runtime.annotations.feature.Experimental;
 @Experimental
 public interface CallBackType {
 
+    /**
+     * A predefined callback type representing an event callback in the Fluxtion framework.
+     * It is a specific implementation of the {@link CallBackType} interface, designed
+     * for managing and categorizing event-driven callbacks.
+     * <p>
+     * This constant provides a globally accessible instance of the {@code OnEventCallBack}
+     * type, which is commonly used within the framework to define behaviors associated
+     * with events in the system.
+     * <p>
+     * Characteristics:
+     * - Utilizes the singleton pattern to ensure a single, shared instance.
+     * - Associates the name "onEventCallBack" to this callback type.
+     * <p>
+     * Usage Context:
+     * Typically employed internally to define or register event-based callback scenarios.
+     */
     OnEventCallBack ON_EVENT_CALL_BACK = new OnEventCallBack();
 
     String name();
@@ -55,5 +71,4 @@ public interface CallBackType {
             return "onEventCallBack";
         }
     }
-
 }

@@ -15,6 +15,35 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 
+/**
+ * FluxtionServerAdmin is responsible for managing and administering a
+ * Fluxtion server. It uses the {@link AdminCommandRegistry} to register
+ * administrative commands and the {@link FluxtionServerController} to
+ * manage registered services and processors on the server.
+ * <p>
+ * This class implements the {@link Lifecycle} interface, allowing it
+ * to initialize, start, and tear down administrative services.
+ * <p>
+ * Key responsibilities include:
+ * - Registering administrative commands that interact with the server's
+ * services and event processors.
+ * - Providing functionality to list services, start/stop services, list
+ * processors, and stop processors.
+ * <p>
+ * Lifecycle:
+ * - `init()`: Prepares the server admin system for operation.
+ * - `start()`: Registers administrative commands and starts the server admin.
+ * - `tearDown()`: Cleans up resources used by the server admin system.
+ * <p>
+ * Commands Registered:
+ * - `server.service.list`: Lists all registered server services.
+ * - `server.processors.list`: Lists all registered server processors.
+ * - `server.processors.stop`: Stops a specified event processor.
+ * <p>
+ * Logging:
+ * - Logs are generated at each lifecycle stage and on service/command
+ * interactions for tracking and debugging purposes.
+ */
 @Log
 public class FluxtionServerAdmin implements Lifecycle {
 

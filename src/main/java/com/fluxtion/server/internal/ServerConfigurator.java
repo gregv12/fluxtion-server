@@ -25,6 +25,13 @@ public final class ServerConfigurator {
     private ServerConfigurator() {
     }
 
+    /**
+     * Boots and configures a FluxtionServer instance using the provided configuration and log record listener.
+     *
+     * @param appConfig         the application configuration containing event feeds, sinks, services, and handlers. Must not be null.
+     * @param logRecordListener the listener for log records to be used by event processors. Must not be null.
+     * @return a fully configured and initialized FluxtionServer instance.
+     */
     public static FluxtionServer bootFromConfig(AppConfig appConfig, LogRecordListener logRecordListener) {
         Objects.requireNonNull(appConfig, "appConfig must be non-null");
         Objects.requireNonNull(logRecordListener, "logRecordListener must be non-null");

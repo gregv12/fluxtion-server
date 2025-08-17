@@ -9,6 +9,13 @@ import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.annotations.runtime.ServiceRegistered;
 import com.fluxtion.runtime.callback.AbstractCallbackNode;
 
+/**
+ * A node that schedules and triggers event cycles with a specified delay using a {@link SchedulerService}.
+ * This class extends {@link AbstractCallbackNode} to integrate with the event processing model
+ * and provides scheduling functionality via an injected SchedulerService.
+ * <p>
+ * This class is marked as experimental and may be subject to changes in future releases.
+ */
 @Experimental
 public class ScheduledTriggerNode extends AbstractCallbackNode<Object> {
 

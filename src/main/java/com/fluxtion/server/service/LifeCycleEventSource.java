@@ -9,6 +9,17 @@ import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.lifecycle.Lifecycle;
 import com.fluxtion.server.dispatch.EventToQueuePublisher;
 
+/**
+ * Represents a specialized event source that integrates lifecycle management capabilities
+ * in addition to event subscription and data publishing functionalities. This interface
+ * combines the responsibilities of an {@link EventSource} for managing events and a
+ * {@link Lifecycle} for providing initialization, start, and teardown mechanics.
+ *
+ * @param <T> the type of event data managed by the source
+ * @see EventSource
+ * @see Lifecycle
+ * @see EventSubscriptionKey
+ */
 @Experimental
 public interface LifeCycleEventSource<T> extends EventSource<T>, Lifecycle {
 
