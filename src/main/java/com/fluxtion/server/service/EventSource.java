@@ -3,20 +3,20 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-package com.fluxtion.server.dispatch;
+package com.fluxtion.server.service;
 
-import com.fluxtion.runtime.annotations.feature.Experimental;
+import com.fluxtion.server.dispatch.EventToQueuePublisher;
 
 import java.util.function.Function;
 
 /**
- * Publishes events to {@link com.fluxtion.server.dispatch.EventToQueuePublisher}. Register an {@link EventSource} instance with {@link EventFlowManager}
- * to receive the target queue via the setEventToQueuePublisher callback method.
+ * Interface representing a source of events that supports subscription management
+ * and event delivery customization. Defines methods to subscribe and unsubscribe
+ * consumers of events, as well as to configure event handling strategies.
  *
- * @param <T>
+ * @param <T> the type of event data managed by the event source
  */
 @SuppressWarnings("EmptyMethod")
-@Experimental
 public interface EventSource<T> {
 
     enum EventWrapStrategy {SUBSCRIPTION_NOWRAP, SUBSCRIPTION_NAMED_EVENT, BROADCAST_NOWRAP, BROADCAST_NAMED_EVENT}

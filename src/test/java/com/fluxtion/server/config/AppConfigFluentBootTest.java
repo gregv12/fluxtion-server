@@ -11,7 +11,7 @@ import com.fluxtion.runtime.audit.LogRecord;
 import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.input.EventFeed;
 import com.fluxtion.server.FluxtionServer;
-import com.fluxtion.server.dispatch.EventSubscriptionKey;
+import com.fluxtion.server.service.EventSubscriptionKey;
 import com.fluxtion.server.service.extension.AbstractEventSourceService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;

@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-package com.fluxtion.server.dispatch;
+package com.fluxtion.server.service;
 
 /**
- * Immutable key describing a subscription: which EventSource to subscribe to and
- * which callback type to deliver on.
- * <p>
- * Adds a fluent API for easier construction while keeping existing constructors
- * for backward compatibility.
+ * Represents a unique key for subscribing to events in a system.
+ * Combines an event source identifier with a callback type to determine
+ * the context of the subscription.
+ *
+ * @param <T> The type of events associated with the subscription.
  */
 public record EventSubscriptionKey<T>(EventSourceKey<T> eventSourceKey, CallBackType callBackType) {
     // Existing constructors (backward compatible)

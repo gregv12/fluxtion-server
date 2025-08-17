@@ -10,6 +10,7 @@ import com.fluxtion.agrona.concurrent.ManyToOneConcurrentArrayQueue;
 import com.fluxtion.agrona.concurrent.OneToOneConcurrentArrayQueue;
 import com.fluxtion.server.dutycycle.EventQueueToEventProcessor;
 import com.fluxtion.server.dutycycle.EventQueueToEventProcessorAgent;
+import com.fluxtion.server.service.*;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -18,18 +19,36 @@ import java.util.function.Supplier;
 
 
 /**
- * Manages mapping between:
- * <ul>
- *     <li>{@link com.fluxtion.server.dispatch.EventSource} - pushed events into a queue</li>
- *     <li>{@link com.fluxtion.server.dutycycle.EventQueueToEventProcessor} -  reads from a queue and handles multiplexing to registered {@link com.fluxtion.runtime.StaticEventProcessor}</li>
- *     <li>{@link EventToInvokeStrategy} - processed an event and map events to callbacks on the {@link com.fluxtion.runtime.StaticEventProcessor}</li>
- * </ul>
+ * Manages the flow of events between event sources, sinks, and subscribers. This class is responsible
+ * for registering event sources and sinks, managing subscriptions, and ensuring proper interaction
+ * between event components through queues.
+ * <p>
+ * The {@code EventFlowManager} class supports operations for:
+ * - Registering event sources that publish events.
+ * - Registering event sinks to receive published events.
+ * - Subscribing and unsubscribing to specific event flows.
+ * - Managing the lifecycle of registered event sources.
+ * - Creating mapping agents for specific event source and subscriber combinations.
+ * - Logging and diagnosing the configuration of the event queues.
+ * <p>
+ * Thread Safety:
+ * This class leverages {@link ConcurrentHashMap} for thread-safe
+ * management of event sources, sinks, and subscriptions. Methods are designed to be thread-safe
+ * for concurrent operations in a multi-threaded environment.
+ * <p>
+ * Key Responsibilities:
+ * - Lifecycle events: Initialize and start registered event sources during their lifecycle.
+ * - Event source registration: Allows the addition of event sources and their corresponding publishers.
+ * - Event sink registration: Maps event sinks and readers for receiving event data.
+ * - Subscription management: Handles event source subscriptions and unsubscriptions for a given key.
+ * - Mapping agents: Creates mapping agents that manage the processing of events from sources to subscribers.
+ * - Queue diagnostics: Appends configurations of event queues for debugging and tracing.
  */
 public class EventFlowManager {
 
-    private final ConcurrentHashMap<com.fluxtion.server.dispatch.EventSourceKey<?>, EventSource_QueuePublisher<?>> eventSourceToQueueMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<EventSourceKey<?>, EventSource_QueuePublisher<?>> eventSourceToQueueMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<EventSinkKey<?>, ManyToOneConcurrentArrayQueue<?>> eventSinkToQueueMap = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<com.fluxtion.server.dispatch.CallBackType, Supplier<EventToInvokeStrategy>> eventToInvokerFactoryMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<CallBackType, Supplier<EventToInvokeStrategy>> eventToInvokerFactoryMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<EventSourceKey_Subscriber<?>, OneToOneConcurrentArrayQueue<Object>> subscriberKeyToQueueMap = new ConcurrentHashMap<>();
 
     public EventFlowManager() {
@@ -37,11 +56,11 @@ public class EventFlowManager {
     }
 
     public void init() {
-        forEachLifeCycleEventSource(com.fluxtion.server.dispatch.LifeCycleEventSource::init);
+        forEachLifeCycleEventSource(LifeCycleEventSource::init);
     }
 
     public void start() {
-        forEachLifeCycleEventSource(com.fluxtion.server.dispatch.LifeCycleEventSource::start);
+        forEachLifeCycleEventSource(LifeCycleEventSource::start);
     }
 
     @SuppressWarnings("unchecked")
@@ -72,11 +91,11 @@ public class EventFlowManager {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> com.fluxtion.server.dispatch.EventToQueuePublisher<T> registerEventSource(String sourceName, com.fluxtion.server.dispatch.EventSource<T> eventSource) {
+    public <T> com.fluxtion.server.dispatch.EventToQueuePublisher<T> registerEventSource(String sourceName, EventSource<T> eventSource) {
         Objects.requireNonNull(eventSource, "eventSource must be non-null");
 
         EventSource_QueuePublisher<?> eventSourceQueuePublisher = eventSourceToQueueMap.computeIfAbsent(
-                new com.fluxtion.server.dispatch.EventSourceKey<>(sourceName),
+                new EventSourceKey<>(sourceName),
                 eventSourceKey -> new EventSource_QueuePublisher<>(new com.fluxtion.server.dispatch.EventToQueuePublisher<>(sourceName), eventSource));
 
         com.fluxtion.server.dispatch.EventToQueuePublisher<T> queuePublisher = (com.fluxtion.server.dispatch.EventToQueuePublisher<T>) eventSourceQueuePublisher.queuePublisher();
@@ -84,7 +103,7 @@ public class EventFlowManager {
         return queuePublisher;
     }
 
-    public void registerEventMapperFactory(Supplier<EventToInvokeStrategy> eventMapper, com.fluxtion.server.dispatch.CallBackType type) {
+    public void registerEventMapperFactory(Supplier<EventToInvokeStrategy> eventMapper, CallBackType type) {
         Objects.requireNonNull(eventMapper, "eventMapper must be non-null");
         Objects.requireNonNull(type, "type must be non-null");
 
@@ -95,7 +114,7 @@ public class EventFlowManager {
         Objects.requireNonNull(eventMapper, "eventMapper must be non-null");
         Objects.requireNonNull(type, "Callback class type must be non-null");
 
-        registerEventMapperFactory(eventMapper, com.fluxtion.server.dispatch.CallBackType.forClass(type));
+        registerEventMapperFactory(eventMapper, CallBackType.forClass(type));
     }
 
     public <T> com.fluxtion.server.dutycycle.EventQueueToEventProcessor getMappingAgent(EventSourceKey<T> eventSourceKey, CallBackType type, Agent subscriber) {
@@ -134,11 +153,11 @@ public class EventFlowManager {
         eventSourceToQueueMap.forEach((key, value) -> appendQueueDetails(appendable, key.sourceName(), value.queuePublisher()));
     }
 
-    private void forEachLifeCycleEventSource(java.util.function.Consumer<com.fluxtion.server.dispatch.LifeCycleEventSource> action) {
+    private void forEachLifeCycleEventSource(java.util.function.Consumer<LifeCycleEventSource> action) {
         eventSourceToQueueMap.values().stream()
                 .map(EventSource_QueuePublisher::eventSource)
-                .filter(com.fluxtion.server.dispatch.LifeCycleEventSource.class::isInstance)
-                .map(com.fluxtion.server.dispatch.LifeCycleEventSource.class::cast)
+                .filter(LifeCycleEventSource.class::isInstance)
+                .map(LifeCycleEventSource.class::cast)
                 .forEach(action);
     }
 

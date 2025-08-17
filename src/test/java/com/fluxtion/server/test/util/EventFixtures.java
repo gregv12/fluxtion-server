@@ -15,7 +15,7 @@ import com.fluxtion.server.config.AppConfig;
 import com.fluxtion.server.config.EventFeedConfig;
 import com.fluxtion.server.config.EventProcessorConfig;
 import com.fluxtion.server.config.EventProcessorGroupConfig;
-import com.fluxtion.server.dispatch.EventSubscriptionKey;
+import com.fluxtion.server.service.EventSubscriptionKey;
 import com.fluxtion.server.service.extension.AbstractEventSourceService;
 
 import java.util.ArrayList;

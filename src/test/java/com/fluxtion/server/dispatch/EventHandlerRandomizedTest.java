@@ -8,6 +8,7 @@ package com.fluxtion.server.dispatch;
 import com.fluxtion.runtime.EventProcessor;
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.input.EventFeed;
+import com.fluxtion.server.service.EventSubscriptionKey;
 import com.fluxtion.server.test.util.EventFixtures;
 import com.fluxtion.server.test.util.TestNameUtil;
 import org.junit.jupiter.api.RepeatedTest;

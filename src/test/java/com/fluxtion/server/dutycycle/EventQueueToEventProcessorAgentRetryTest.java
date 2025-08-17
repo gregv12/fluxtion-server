@@ -6,14 +6,15 @@ package com.fluxtion.server.dutycycle;
 
 import com.fluxtion.agrona.concurrent.OneToOneConcurrentArrayQueue;
 import com.fluxtion.runtime.StaticEventProcessor;
-import com.fluxtion.server.dispatch.EventToInvokeStrategy;
 import com.fluxtion.server.dispatch.RetryPolicy;
+import com.fluxtion.server.service.EventToInvokeStrategy;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class EventQueueToEventProcessorAgentRetryTest {
 
@@ -53,13 +54,26 @@ public class EventQueueToEventProcessorAgentRetryTest {
 
     private static class TestQueue<T> extends OneToOneConcurrentArrayQueue<T> {
         private final List<T> items = new ArrayList<>();
-        public TestQueue() { super(16); }
-        @Override public boolean offer(T item) { items.add(item); return true; }
-        @Override public T poll() { return items.isEmpty() ? null : items.remove(0); }
+
+        public TestQueue() {
+            super(16);
+        }
+
+        @Override
+        public boolean offer(T item) {
+            items.add(item);
+            return true;
+        }
+
+        @Override
+        public T poll() {
+            return items.isEmpty() ? null : items.remove(0);
+        }
     }
 
     private static class NoopProcessor implements StaticEventProcessor {
-        @Override public void onEvent(Object event) { /* no-op */ }
+        @Override
+        public void onEvent(Object event) { /* no-op */ }
     }
 
     private static class FailingThenSucceedStrategy implements EventToInvokeStrategy {
@@ -68,8 +82,13 @@ public class EventQueueToEventProcessorAgentRetryTest {
         private final List<StaticEventProcessor> procs = new ArrayList<>();
         int attempts;
         Object lastEvent;
-        FailingThenSucceedStrategy(int failuresBeforeSuccess) { this.failuresBeforeSuccess = failuresBeforeSuccess; }
-        @Override public void processEvent(Object event) {
+
+        FailingThenSucceedStrategy(int failuresBeforeSuccess) {
+            this.failuresBeforeSuccess = failuresBeforeSuccess;
+        }
+
+        @Override
+        public void processEvent(Object event) {
             attempts++;
             if (failures < failuresBeforeSuccess) {
                 failures++;
@@ -78,9 +97,25 @@ public class EventQueueToEventProcessorAgentRetryTest {
             lastEvent = event;
             for (StaticEventProcessor p : procs) p.onEvent(event);
         }
-        @Override public void processEvent(Object event, long time) { processEvent(event); }
-        @Override public void registerProcessor(StaticEventProcessor eventProcessor) { procs.add(eventProcessor); }
-        @Override public void deregisterProcessor(StaticEventProcessor eventProcessor) { procs.remove(eventProcessor); }
-        @Override public int listenerCount() { return procs.size(); }
+
+        @Override
+        public void processEvent(Object event, long time) {
+            processEvent(event);
+        }
+
+        @Override
+        public void registerProcessor(StaticEventProcessor eventProcessor) {
+            procs.add(eventProcessor);
+        }
+
+        @Override
+        public void deregisterProcessor(StaticEventProcessor eventProcessor) {
+            procs.remove(eventProcessor);
+        }
+
+        @Override
+        public int listenerCount() {
+            return procs.size();
+        }
     }
 }

@@ -17,10 +17,7 @@ import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.service.Service;
 import com.fluxtion.runtime.service.ServiceRegistryNode;
 import com.fluxtion.server.config.AppConfig;
-import com.fluxtion.server.dispatch.CallBackType;
-import com.fluxtion.server.dispatch.EventFlowService;
-import com.fluxtion.server.dispatch.EventSource;
-import com.fluxtion.server.dispatch.EventToInvokeStrategy;
+import com.fluxtion.server.dispatch.EventFlowManager;
 import com.fluxtion.server.dutycycle.ComposingEventProcessorAgent;
 import com.fluxtion.server.dutycycle.ComposingServiceAgent;
 import com.fluxtion.server.dutycycle.NamedEventProcessor;
@@ -29,6 +26,10 @@ import com.fluxtion.server.internal.ComposingEventProcessorAgentRunner;
 import com.fluxtion.server.internal.ComposingWorkerServiceAgentRunner;
 import com.fluxtion.server.internal.LifecycleManager;
 import com.fluxtion.server.internal.ServiceInjector;
+import com.fluxtion.server.service.CallBackType;
+import com.fluxtion.server.service.EventFlowService;
+import com.fluxtion.server.service.EventSource;
+import com.fluxtion.server.service.EventToInvokeStrategy;
 import com.fluxtion.server.service.admin.AdminCommandRegistry;
 import com.fluxtion.server.service.scheduler.DeadWheelScheduler;
 import com.fluxtion.server.service.servercontrol.FluxtionServerController;
@@ -113,7 +114,7 @@ public class FluxtionServer implements FluxtionServerController {
     public static final String CONFIG_FILE_PROPERTY = "fluxtionserver.config.file";
     private static LogRecordListener logRecordListener;
     private final AppConfig appConfig;
-    private final com.fluxtion.server.dispatch.EventFlowManager flowManager = new com.fluxtion.server.dispatch.EventFlowManager();
+    private final EventFlowManager flowManager = new EventFlowManager();
     private final ConcurrentHashMap<String, ComposingEventProcessorAgentRunner> composingEventProcessorAgents = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ComposingWorkerServiceAgentRunner> composingServiceAgents = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Service<?>> registeredServices = new ConcurrentHashMap<>();
@@ -180,7 +181,7 @@ public class FluxtionServer implements FluxtionServerController {
             registeredServices.put(serviceName, service);
             Object instance = service.instance();
             //TODO set service name if not an EventFlow service
-            if (instance instanceof com.fluxtion.server.dispatch.EventFlowService) {
+            if (instance instanceof EventFlowService) {
                 ((EventFlowService) instance).setEventFlowManager(flowManager, serviceName);
             }
             // Dependency injection: inject other registered services into this instance

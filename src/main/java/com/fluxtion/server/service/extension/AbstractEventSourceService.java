@@ -10,7 +10,9 @@ import com.fluxtion.runtime.annotations.runtime.ServiceRegistered;
 import com.fluxtion.runtime.input.NamedFeed;
 import com.fluxtion.runtime.input.SubscriptionManager;
 import com.fluxtion.runtime.node.EventSubscription;
-import com.fluxtion.server.dispatch.*;
+import com.fluxtion.server.dispatch.EventFlowManager;
+import com.fluxtion.server.dispatch.EventToQueuePublisher;
+import com.fluxtion.server.service.*;
 import com.fluxtion.server.service.scheduler.SchedulerService;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -25,7 +27,7 @@ import java.util.function.Supplier;
  * <p>
  * Responsibilities:
  * <ul>
- *   <li>Register the service as an {@link com.fluxtion.server.dispatch.EventSource} with the event flow manager</li>
+ *   <li>Register the service as an {@link EventSource} with the event flow manager</li>
  *   <li>Manage subscription keys and subscription lifecycle for processors</li>
  *   <li>Expose knobs for event wrapping, slow-consumer handling, and data mapping</li>
  * </ul>

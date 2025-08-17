@@ -8,7 +8,8 @@ import com.fluxtion.agrona.concurrent.AgentRunner;
 import com.fluxtion.agrona.concurrent.DynamicCompositeAgent;
 import com.fluxtion.runtime.service.Service;
 import com.fluxtion.server.FluxtionServer;
-import com.fluxtion.server.dispatch.LifeCycleEventSource;
+import com.fluxtion.server.dispatch.EventFlowManager;
+import com.fluxtion.server.service.LifeCycleEventSource;
 import lombok.extern.java.Log;
 
 import java.util.Map;
@@ -30,7 +31,7 @@ public final class LifecycleManager {
 
     public void init(Map<String, Service<?>> registeredServices,
                      Set<Service<?>> registeredAgentServices,
-                     com.fluxtion.server.dispatch.EventFlowManager flowManager,
+                     EventFlowManager flowManager,
                      com.fluxtion.runtime.service.ServiceRegistryNode serviceRegistry) {
         log.info("init");
         // Init non-LifeCycleEventSource services
@@ -53,7 +54,7 @@ public final class LifecycleManager {
     public void start(Map<String, Service<?>> registeredServices,
                       ConcurrentHashMap<String, ? extends GroupRunner> composingServiceAgents,
                       ConcurrentHashMap<String, ? extends GroupRunner> composingEventProcessorAgents,
-                      com.fluxtion.server.dispatch.EventFlowManager flowManager,
+                      EventFlowManager flowManager,
                       Set<Service<?>> registeredAgentServices) throws InterruptedException {
         log.info("start");
         // Start non-LifeCycleEventSource services

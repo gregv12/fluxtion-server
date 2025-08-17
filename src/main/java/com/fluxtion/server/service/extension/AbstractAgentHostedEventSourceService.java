@@ -6,8 +6,8 @@
 package com.fluxtion.server.service.extension;
 
 import com.fluxtion.agrona.concurrent.Agent;
-import com.fluxtion.server.dispatch.CallBackType;
-import com.fluxtion.server.dispatch.EventToInvokeStrategy;
+import com.fluxtion.server.service.CallBackType;
+import com.fluxtion.server.service.EventToInvokeStrategy;
 import lombok.extern.java.Log;
 
 import java.util.function.Supplier;

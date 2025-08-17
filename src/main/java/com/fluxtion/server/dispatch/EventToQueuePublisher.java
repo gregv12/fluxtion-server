@@ -9,6 +9,7 @@ import com.fluxtion.agrona.concurrent.OneToOneConcurrentArrayQueue;
 import com.fluxtion.runtime.event.NamedFeedEvent;
 import com.fluxtion.runtime.event.NamedFeedEventImpl;
 import com.fluxtion.runtime.event.ReplayRecord;
+import com.fluxtion.server.service.EventSource;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -23,13 +24,11 @@ import java.util.function.Function;
 import java.util.logging.Level;
 
 /**
- * Handles publishing events to dag dispatch queues, provides the functionality:
- * <ul>
- *     <li>Multiplexes a single event message to multiple queues</li>
- *     <li>Monitors and disconnects slow readers</li>
- * </ul>
+ * EventToQueuePublisher is a generic class that facilitates the publishing of events to
+ * one or more concurrent queues. It supports caching, custom data mapping, and different
+ * event wrapping strategies during dispatch.
  *
- * @param <T>
+ * @param <T> the type of event that this publisher handles
  */
 @RequiredArgsConstructor
 @ToString

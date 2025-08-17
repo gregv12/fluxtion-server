@@ -1,7 +1,6 @@
 /*
- * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
+ * SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
- *
  */
 
 package com.fluxtion.server.service.admin.impl;
@@ -9,10 +8,8 @@ package com.fluxtion.server.service.admin.impl;
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.lifecycle.Lifecycle;
-import com.fluxtion.server.dispatch.CallBackType;
 import com.fluxtion.server.dispatch.EventFlowManager;
-import com.fluxtion.server.dispatch.EventFlowService;
-import com.fluxtion.server.dispatch.EventSource;
+import com.fluxtion.server.service.*;
 import com.fluxtion.server.service.admin.AdminCommandRegistry;
 import com.fluxtion.server.service.admin.AdminCommandRequest;
 import com.fluxtion.server.service.admin.AdminFunction;
@@ -127,8 +124,8 @@ public class AdminCommandProcessor implements EventFlowService, AdminCommandRegi
 
         registeredCommandMap.put(name, adminCommand);
 
-        com.fluxtion.server.dispatch.EventSubscriptionKey<?> subscriptionKey = new com.fluxtion.server.dispatch.EventSubscriptionKey<>(
-                new com.fluxtion.server.dispatch.EventSourceKey<>(queueKey),
+        EventSubscriptionKey<?> subscriptionKey = new EventSubscriptionKey<>(
+                new EventSourceKey<>(queueKey),
                 AdminCallbackType.class
         );
 
@@ -136,11 +133,11 @@ public class AdminCommandProcessor implements EventFlowService, AdminCommandRegi
     }
 
     @Override
-    public void subscribe(com.fluxtion.server.dispatch.EventSubscriptionKey<AdminCommand> eventSourceKey) {
+    public void subscribe(EventSubscriptionKey<AdminCommand> eventSourceKey) {
     }
 
     @Override
-    public void unSubscribe(com.fluxtion.server.dispatch.EventSubscriptionKey<AdminCommand> eventSourceKey) {
+    public void unSubscribe(EventSubscriptionKey<AdminCommand> eventSourceKey) {
     }
 
     @Override

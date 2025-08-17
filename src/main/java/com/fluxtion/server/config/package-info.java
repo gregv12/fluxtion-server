@@ -17,7 +17,7 @@
  * EventProcessorConfig, ThreadConfig.
  * <p>
  * Allowed dependencies
- * - May depend on: com.fluxtion.server.dispatch.EventSource (for EventWrapStrategy),
+ * - May depend on: com.fluxtion.server.service.EventSource (for EventWrapStrategy),
  * com.fluxtion.runtime (Service, MessageSink, EventProcessor) for typing.
  * - Must not depend on: dutycycle, server orchestration, or admin/service impls.
  * <p>

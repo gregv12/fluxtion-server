@@ -13,7 +13,8 @@ import com.fluxtion.runtime.input.EventFeed;
 import com.fluxtion.runtime.lifecycle.Lifecycle;
 import com.fluxtion.runtime.service.Service;
 import com.fluxtion.server.FluxtionServer;
-import com.fluxtion.server.dispatch.EventSubscriptionKey;
+import com.fluxtion.server.dispatch.EventFlowManager;
+import com.fluxtion.server.service.EventSubscriptionKey;
 import com.fluxtion.server.service.scheduler.DeadWheelScheduler;
 import com.fluxtion.server.service.scheduler.SchedulerService;
 import lombok.extern.java.Log;
@@ -30,12 +31,12 @@ import java.util.function.Supplier;
  */
 @Experimental
 @Log
-public class ComposingEventProcessorAgent extends DynamicCompositeAgent implements EventFeed<com.fluxtion.server.dispatch.EventSubscriptionKey<?>> {
+public class ComposingEventProcessorAgent extends DynamicCompositeAgent implements EventFeed<com.fluxtion.server.service.EventSubscriptionKey<?>> {
 
-    private final com.fluxtion.server.dispatch.EventFlowManager eventFlowManager;
+    private final EventFlowManager eventFlowManager;
     private final ConcurrentHashMap<String, Service<?>> registeredServices;
     private final ConcurrentHashMap<String, NamedEventProcessor> registeredEventProcessors = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<com.fluxtion.server.dispatch.EventSubscriptionKey<?>, EventQueueToEventProcessor> queueProcessorMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<com.fluxtion.server.service.EventSubscriptionKey<?>, EventQueueToEventProcessor> queueProcessorMap = new ConcurrentHashMap<>();
     private final OneToOneConcurrentArrayQueue<Supplier<NamedEventProcessor>> toStartList = new OneToOneConcurrentArrayQueue<>(128);
     private final OneToOneConcurrentArrayQueue<String> toStopList = new OneToOneConcurrentArrayQueue<>(128);
     private final List<EventQueueToEventProcessor> queueReadersToAdd = new ArrayList<>();
@@ -44,7 +45,7 @@ public class ComposingEventProcessorAgent extends DynamicCompositeAgent implemen
     private final Service<com.fluxtion.server.service.scheduler.SchedulerService> schedulerService;
 
     public ComposingEventProcessorAgent(String roleName,
-                                        com.fluxtion.server.dispatch.EventFlowManager eventFlowManager,
+                                        EventFlowManager eventFlowManager,
                                         FluxtionServer fluxtionServer,
                                         DeadWheelScheduler scheduler,
                                         ConcurrentHashMap<String, Service<?>> registeredServices) {
@@ -90,7 +91,7 @@ public class ComposingEventProcessorAgent extends DynamicCompositeAgent implemen
     }
 
     @Override
-    public void subscribe(StaticEventProcessor subscriber, com.fluxtion.server.dispatch.EventSubscriptionKey<?> subscriptionKey) {
+    public void subscribe(StaticEventProcessor subscriber, com.fluxtion.server.service.EventSubscriptionKey<?> subscriptionKey) {
         Objects.requireNonNull(subscriber, "subscriber is null");
         Objects.requireNonNull(subscriptionKey, "subscriptionKey is null");
         log.info("subscribe subscriptionKey:" + subscriptionKey + " subscriber:" + subscriber);
