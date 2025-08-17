@@ -20,6 +20,7 @@ can focus on business logic.
 - Read the Detailed Overview for concepts, architecture, and examples: docs/guide/overview.md
 - See the Architecture docs and sequence diagrams for internals: docs/architecture/index.md
 - Check coding standards if you plan to contribute: docs/standards/coding-standards.md
+- Review Key Concepts section above for component overview
 
 Minimal bootstrap from code:
 
@@ -33,14 +34,29 @@ To configure with YAML, point the JVM at a config file:
 java -Dfluxtionserver.config.file=path/to/config.yaml
 ```
 
+## Key Concepts
+
+### Core Components
+
+- Event Feeds: Sources that generate events into the system, such as network connections, files, or message queues
+- Event Sinks: Destinations for processed events, like databases, message brokers, or external services
+- Event Processors: Components containing business logic that transform and process events
+- Services: Reusable components providing shared functionality across processors such as caching, persistence, or
+  authentication
+- Dispatch Strategies: Components that determine how events are dispatched to sinks and processors
+
+### System Features
+
+- Lifecycle Management: Handles startup/shutdown sequences and dependencies between components
+- Plugin Architecture: Extensible framework for adding new event sources, sinks, services, and processors
+- Agent Threading: Single-threaded event processing per agent with configurable idle strategies for optimal performance
+
 ## Documentation
 
 - Detailed overview and usage: [docs/guide/overview.md](docs/guide/overview.md)
-- Architecture overview and components: [docs/architecture/overview.md](docs/architecture/overview.md)
-  and [docs/architecture/components.md](docs/architecture/components.md)
-- Event flow: [docs/architecture/event-flow.md](docs/architecture/event-flow.md)
+- Architecture: [docs/architecture/index.md](docs/architecture/index.md)
 - Sequence diagrams: [docs/architecture/sequence-diagrams/index.md](docs/architecture/sequence-diagrams/index.md)
-- Coding standards: [docs/standards/coding-standards.md](docs/standards/coding-standards.md)
+- Event flow: [docs/architecture/event-flow.md](docs/architecture/event-flow.md)
 
 ## License
 
