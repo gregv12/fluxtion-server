@@ -83,7 +83,7 @@ EventSinkConfig<FileMessageSink> sinkCfg = EventSinkConfig.<FileMessageSink>buil
         .build();
 
 AppConfig appConfig = AppConfig.builder()
-        .addGroup(processorGroup)
+        .addProcessorGroup(processorGroup)
         .addEventFeed(fileFeedCfg)
         .addEventFeed(memFeedCfg)
         .addEventSink(sinkCfg)

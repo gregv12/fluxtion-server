@@ -84,7 +84,7 @@ public class BuilderApiFluentExampleTest {
 
         // Build full AppConfig
         AppConfig appConfig = AppConfig.builder()
-                .addGroup(processorGroup)
+                .addProcessorGroup(processorGroup)
                 .addEventFeed(fileFeedCfg)
                 .addEventFeed(memFeedCfg)
                 .addEventSink(sinkCfg)
