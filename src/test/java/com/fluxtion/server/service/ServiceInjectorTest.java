@@ -7,31 +7,64 @@ package com.fluxtion.server.service;
 
 import com.fluxtion.runtime.annotations.runtime.ServiceRegistered;
 import com.fluxtion.runtime.service.Service;
+import com.fluxtion.server.internal.ServiceInjector;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collection;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class ServiceInjectorTest {
 
-    interface Alpha { String name(); }
-    interface Beta { int value(); }
+    public interface Alpha {
+        String name();
+    }
 
-    static class AlphaImpl implements Alpha { private final String name; AlphaImpl(String n){this.name=n;} public String name(){return name;} }
-    static class BetaImpl implements Beta { private final int v; BetaImpl(int v){this.v=v;} public int value(){return v;} }
+    public interface Beta {
+        int value();
+    }
 
-    static class ConsumerService {
+    static class AlphaImpl implements Alpha {
+        private final String name;
+
+        AlphaImpl(String n) {
+            this.name = n;
+        }
+
+        public String name() {
+            return name;
+        }
+    }
+
+    public static class BetaImpl implements Beta {
+        private final int v;
+
+        BetaImpl(int v) {
+            this.v = v;
+        }
+
+        public int value() {
+            return v;
+        }
+    }
+
+    public static class ConsumerService {
         Alpha injectedAlpha;
         String injectedAlphaName;
         Beta injectedBeta;
 
         @ServiceRegistered
-        public void alpha(Alpha alpha) { this.injectedAlpha = alpha; }
+        public void alpha(Alpha alpha) {
+            this.injectedAlpha = alpha;
+        }
 
         @ServiceRegistered
-        public void beta(Beta beta, String name) { this.injectedBeta = beta; this.injectedAlphaName = name; }
+        public void beta(Beta beta, String name) {
+            this.injectedBeta = beta;
+            this.injectedAlphaName = name;
+        }
     }
 
     @Test

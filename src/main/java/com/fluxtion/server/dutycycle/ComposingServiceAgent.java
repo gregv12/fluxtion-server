@@ -13,6 +13,7 @@ import com.fluxtion.runtime.service.Service;
 import com.fluxtion.runtime.service.ServiceRegistryNode;
 import com.fluxtion.server.FluxtionServer;
 import com.fluxtion.server.dispatch.EventFlowManager;
+import com.fluxtion.server.internal.ServiceInjector;
 import com.fluxtion.server.service.scheduler.DeadWheelScheduler;
 import com.fluxtion.server.service.scheduler.SchedulerService;
 import lombok.extern.java.Log;
@@ -79,7 +80,7 @@ public class ComposingServiceAgent extends DynamicCompositeAgent {
     }
 
     private void checkForAdded() {
-        if(!toStartList.isEmpty()) {
+        if (!toStartList.isEmpty()) {
             toStartList.drain(serviceAgent -> {
                 toAddList.add(serviceAgent);
                 Service<?> exportedService = serviceAgent.getExportedService();
@@ -91,7 +92,7 @@ public class ComposingServiceAgent extends DynamicCompositeAgent {
                 // Inject dependencies into the agent-hosted service instance (scheduler + server services)
                 java.util.List<com.fluxtion.runtime.service.Service<?>> inj = new java.util.ArrayList<>(fluxtionServer.servicesRegistered());
                 inj.add(schedulerService);
-                com.fluxtion.server.service.ServiceInjector.inject(exportedService.instance(), inj);
+                ServiceInjector.inject(exportedService.instance(), inj);
                 fluxtionServer.registerAgentService(exportedService);
                 exportedService.start();
             });

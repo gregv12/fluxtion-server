@@ -28,7 +28,7 @@ import com.fluxtion.server.dutycycle.ServiceAgent;
 import com.fluxtion.server.internal.ComposingEventProcessorAgentRunner;
 import com.fluxtion.server.internal.ComposingWorkerServiceAgentRunner;
 import com.fluxtion.server.internal.LifecycleManager;
-import com.fluxtion.server.service.ServiceInjector;
+import com.fluxtion.server.internal.ServiceInjector;
 import com.fluxtion.server.service.admin.AdminCommandRegistry;
 import com.fluxtion.server.service.scheduler.DeadWheelScheduler;
 import com.fluxtion.server.service.servercontrol.FluxtionServerController;

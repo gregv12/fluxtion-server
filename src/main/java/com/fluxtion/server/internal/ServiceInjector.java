@@ -3,12 +3,11 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-package com.fluxtion.server.service;
+package com.fluxtion.server.internal;
 
 import com.fluxtion.runtime.annotations.runtime.ServiceRegistered;
 import com.fluxtion.runtime.service.Service;
 
-import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.logging.Level;
@@ -16,12 +15,12 @@ import java.util.logging.Logger;
 
 /**
  * Simple reflection-based dependency injector for server-level services.
- *
+ * <p>
  * It scans an object for methods annotated with {@link ServiceRegistered} and attempts
  * to invoke them using the supplied registered services. The supported method shapes are:
  * - (ServiceInterface)
  * - (ServiceInterface, String name)
- *
+ * <p>
  * This injector is intended for non-processor objects (plain services managed by FluxtionServer
  * or agent-hosted services). Injection inside StaticEventProcessor graphs is already handled by
  * the Fluxtion runtime via ServiceRegistryNode.
@@ -29,7 +28,8 @@ import java.util.logging.Logger;
 public final class ServiceInjector {
     private static final Logger LOG = Logger.getLogger(ServiceInjector.class.getName());
 
-    private ServiceInjector() {}
+    private ServiceInjector() {
+    }
 
     public static void inject(Object target, Collection<Service<?>> services) {
         if (target == null || services == null || services.isEmpty()) {
