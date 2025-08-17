@@ -7,6 +7,7 @@ package com.fluxtion.server;
 
 import com.fluxtion.agrona.ErrorHandler;
 import com.fluxtion.agrona.concurrent.AgentRunner;
+import com.fluxtion.agrona.concurrent.DynamicCompositeAgent;
 import com.fluxtion.agrona.concurrent.IdleStrategy;
 import com.fluxtion.agrona.concurrent.UnsafeBuffer;
 import com.fluxtion.agrona.concurrent.status.AtomicCounter;
@@ -16,13 +17,18 @@ import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.service.Service;
 import com.fluxtion.runtime.service.ServiceRegistryNode;
 import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.dispatch.CallBackType;
 import com.fluxtion.server.dispatch.EventFlowService;
+import com.fluxtion.server.dispatch.EventSource;
+import com.fluxtion.server.dispatch.EventToInvokeStrategy;
 import com.fluxtion.server.dutycycle.ComposingEventProcessorAgent;
 import com.fluxtion.server.dutycycle.ComposingServiceAgent;
 import com.fluxtion.server.dutycycle.NamedEventProcessor;
 import com.fluxtion.server.dutycycle.ServiceAgent;
 import com.fluxtion.server.internal.ComposingEventProcessorAgentRunner;
 import com.fluxtion.server.internal.ComposingWorkerServiceAgentRunner;
+import com.fluxtion.server.internal.LifecycleManager;
+import com.fluxtion.server.service.ServiceInjector;
 import com.fluxtion.server.service.admin.AdminCommandRegistry;
 import com.fluxtion.server.service.scheduler.DeadWheelScheduler;
 import com.fluxtion.server.service.servercontrol.FluxtionServerController;
@@ -115,7 +121,7 @@ public class FluxtionServer implements FluxtionServerController {
     private ErrorHandler errorHandler = m -> log.severe(m.getMessage());
     private final ServiceRegistryNode serviceRegistry = new ServiceRegistryNode();
     private volatile boolean started = false;
-    private final com.fluxtion.server.internal.LifecycleManager lifecycleManager = new com.fluxtion.server.internal.LifecycleManager(this);
+    private final LifecycleManager lifecycleManager = new LifecycleManager(this);
 
     public FluxtionServer(AppConfig appConfig) {
         this.appConfig = appConfig;
@@ -154,12 +160,12 @@ public class FluxtionServer implements FluxtionServerController {
         this.errorHandler = errorHandler;
     }
 
-    public void registerEventMapperFactory(Supplier<com.fluxtion.server.dispatch.EventToInvokeStrategy> eventMapper, com.fluxtion.server.dispatch.CallBackType type) {
+    public void registerEventMapperFactory(Supplier<EventToInvokeStrategy> eventMapper, CallBackType type) {
         log.info("registerEventMapperFactory:" + eventMapper);
         flowManager.registerEventMapperFactory(eventMapper, type);
     }
 
-    public <T> void registerEventSource(String sourceName, com.fluxtion.server.dispatch.EventSource<T> eventSource) {
+    public <T> void registerEventSource(String sourceName, EventSource<T> eventSource) {
         log.info("registerEventSource name:" + sourceName + " eventSource:" + eventSource);
         flowManager.registerEventSource(sourceName, eventSource);
     }
@@ -178,12 +184,12 @@ public class FluxtionServer implements FluxtionServerController {
                 ((EventFlowService) instance).setEventFlowManager(flowManager, serviceName);
             }
             // Dependency injection: inject other registered services into this instance
-            com.fluxtion.server.service.ServiceInjector.inject(instance, registeredServices.values());
+            ServiceInjector.inject(instance, registeredServices.values());
             // Also inject the newly registered service into existing services (single-target injection)
             for (Service<?> existing : registeredServices.values()) {
                 Object existingInstance = existing.instance();
                 if (existingInstance != instance) {
-                    com.fluxtion.server.service.ServiceInjector.inject(existingInstance, java.util.Collections.singleton(service));
+                    ServiceInjector.inject(existingInstance, java.util.Collections.singleton(service));
                 }
             }
         }
@@ -194,6 +200,20 @@ public class FluxtionServer implements FluxtionServerController {
         registeredAgentServices.addAll(Arrays.asList(services));
     }
 
+    /**
+     * Register an agent-hosted (worker) service that runs on a dedicated agent thread.
+     * <p>
+     * The supplied {@link ServiceAgent} advertises an agent group name and may provide an
+     * {@link IdleStrategy}. If the service's idle strategy is {@code null}, an appropriate
+     * strategy is resolved from configuration using the agent group via
+     * {@link AppConfig#lookupIdleStrategyWhenNull(IdleStrategy, String)}.
+     * <p>
+     * Services registered under the same agent group are executed within a shared
+     * {@code AgentRunner}. If no runner exists for the group, it is created on demand.
+     * The service is then registered with the group's composite agent.
+     *
+     * @param service the worker service to register and host on its agent group
+     */
     public void registerWorkerService(ServiceAgent<?> service) {
         String agentGroup = service.getAgentGroup();
         IdleStrategy idleStrategy = appConfig.lookupIdleStrategyWhenNull(service.getIdleStrategy(), service.getAgentGroup());
@@ -217,6 +237,25 @@ public class FluxtionServer implements FluxtionServerController {
         composingAgentRunner.getGroup().registerServer(service);
     }
 
+    /**
+     * Add a named event processor to a processor group, creating the group on demand.
+     * <p>
+     * Each processor group executes on its own {@code AgentRunner} with a configurable
+     * {@link IdleStrategy}. If a specific strategy is not supplied, a suitable strategy
+     * is resolved from configuration via {@link AppConfig#getIdleStrategyOrDefault(String, IdleStrategy)}.
+     * <p>
+     * The processor name must be unique within its group; attempting to register a duplicate
+     * name results in an {@link IllegalArgumentException}. When added, the processor is wrapped
+     * as a {@link NamedEventProcessor} and configured with the current {@link LogRecordListener}
+     * for audit logging. If the server is already started and the group's thread is not yet
+     * running, the group is started.
+     *
+     * @param processorName unique name of the processor within the group
+     * @param groupName     the logical processor group to host the processor
+     * @param idleStrategy  optional idle strategy override for the group (may be {@code null})
+     * @param feedConsumer  supplier creating the {@link StaticEventProcessor} instance
+     * @throws IllegalArgumentException if a processor with {@code processorName} already exists in the group
+     */
     public void addEventProcessor(
             String processorName,
             String groupName,
@@ -305,15 +344,15 @@ public class FluxtionServer implements FluxtionServerController {
 
     @SneakyThrows
     public void start() {
-        java.util.concurrent.ConcurrentHashMap<String, com.fluxtion.server.internal.LifecycleManager.GroupRunner> serviceGroups = new java.util.concurrent.ConcurrentHashMap<>();
-        composingServiceAgents.forEach((k, v) -> serviceGroups.put(k, new com.fluxtion.server.internal.LifecycleManager.GroupRunner() {
+        ConcurrentHashMap<String, LifecycleManager.GroupRunner> serviceGroups = new ConcurrentHashMap<>();
+        composingServiceAgents.forEach((k, v) -> serviceGroups.put(k, new LifecycleManager.GroupRunner() {
             @Override
-            public com.fluxtion.agrona.concurrent.AgentRunner getGroupRunner() {
+            public AgentRunner getGroupRunner() {
                 return v.getGroupRunner();
             }
 
             @Override
-            public com.fluxtion.agrona.concurrent.DynamicCompositeAgent getGroup() {
+            public DynamicCompositeAgent getGroup() {
                 return v.getGroup();
             }
 
@@ -322,15 +361,15 @@ public class FluxtionServer implements FluxtionServerController {
                 v.getGroup().startComplete();
             }
         }));
-        java.util.concurrent.ConcurrentHashMap<String, com.fluxtion.server.internal.LifecycleManager.GroupRunner> processorGroups = new java.util.concurrent.ConcurrentHashMap<>();
-        composingEventProcessorAgents.forEach((k, v) -> processorGroups.put(k, new com.fluxtion.server.internal.LifecycleManager.GroupRunner() {
+        ConcurrentHashMap<String, LifecycleManager.GroupRunner> processorGroups = new ConcurrentHashMap<>();
+        composingEventProcessorAgents.forEach((k, v) -> processorGroups.put(k, new LifecycleManager.GroupRunner() {
             @Override
-            public com.fluxtion.agrona.concurrent.AgentRunner getGroupRunner() {
+            public AgentRunner getGroupRunner() {
                 return v.getGroupRunner();
             }
 
             @Override
-            public com.fluxtion.agrona.concurrent.DynamicCompositeAgent getGroup() {
+            public DynamicCompositeAgent getGroup() {
                 return v.getGroup();
             }
         }));
@@ -352,30 +391,30 @@ public class FluxtionServer implements FluxtionServerController {
         started = false;
     }
 
-    private java.util.concurrent.ConcurrentHashMap<String, com.fluxtion.server.internal.LifecycleManager.GroupRunner> toGroupRunnerMap(java.util.concurrent.ConcurrentHashMap<String, ? extends Object> source) {
-        java.util.concurrent.ConcurrentHashMap<String, com.fluxtion.server.internal.LifecycleManager.GroupRunner> map = new java.util.concurrent.ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, LifecycleManager.GroupRunner> toGroupRunnerMap(java.util.concurrent.ConcurrentHashMap<String, ? extends Object> source) {
+        ConcurrentHashMap<String, LifecycleManager.GroupRunner> map = new ConcurrentHashMap<>();
         source.forEach((k, v) -> {
             if (v instanceof ComposingEventProcessorAgentRunner cep) {
-                map.put(k, new com.fluxtion.server.internal.LifecycleManager.GroupRunner() {
+                map.put(k, new LifecycleManager.GroupRunner() {
                     @Override
-                    public com.fluxtion.agrona.concurrent.AgentRunner getGroupRunner() {
+                    public AgentRunner getGroupRunner() {
                         return cep.getGroupRunner();
                     }
 
                     @Override
-                    public com.fluxtion.agrona.concurrent.DynamicCompositeAgent getGroup() {
+                    public DynamicCompositeAgent getGroup() {
                         return cep.getGroup();
                     }
                 });
             } else if (v instanceof ComposingWorkerServiceAgentRunner cws) {
-                map.put(k, new com.fluxtion.server.internal.LifecycleManager.GroupRunner() {
+                map.put(k, new LifecycleManager.GroupRunner() {
                     @Override
-                    public com.fluxtion.agrona.concurrent.AgentRunner getGroupRunner() {
+                    public AgentRunner getGroupRunner() {
                         return cws.getGroupRunner();
                     }
 
                     @Override
-                    public com.fluxtion.agrona.concurrent.DynamicCompositeAgent getGroup() {
+                    public DynamicCompositeAgent getGroup() {
                         return cws.getGroup();
                     }
 
