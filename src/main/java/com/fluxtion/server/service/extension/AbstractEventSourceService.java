@@ -135,6 +135,10 @@ public abstract class AbstractEventSourceService<T>
 
     }
 
+    /**
+     * Subscribe the current processor (from ProcessorContext) to this event source.
+     * If no processor is present in context, logs a warning and does nothing.
+     */
     public void subscribe() {
         log.info("subscribe request");
         var current = com.fluxtion.server.dispatch.ProcessorContext.currentProcessor();

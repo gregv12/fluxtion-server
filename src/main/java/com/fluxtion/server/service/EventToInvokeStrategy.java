@@ -14,13 +14,40 @@ import com.fluxtion.runtime.StaticEventProcessor;
  */
 public interface EventToInvokeStrategy {
 
+    /**
+     * Process an incoming event and dispatch it to registered processors.
+     *
+     * @param event the event to process
+     */
     void processEvent(Object event);
 
+    /**
+     * Process an incoming event with an explicit timestamp and dispatch it to registered processors.
+     * Implementations may use the time to set a synthetic clock for processors.
+     *
+     * @param event the event to process
+     * @param time  the time associated with the event (units defined by implementation)
+     */
     void processEvent(Object event, long time);
 
+    /**
+     * Register a processor as a target for dispatched events.
+     *
+     * @param eventProcessor the processor to register
+     */
     void registerProcessor(StaticEventProcessor eventProcessor);
 
+    /**
+     * Deregister a processor so it no longer receives dispatched events.
+     *
+     * @param eventProcessor the processor to deregister
+     */
     void deregisterProcessor(StaticEventProcessor eventProcessor);
 
+    /**
+     * Return the number of currently registered processors.
+     *
+     * @return number of listeners
+     */
     int listenerCount();
 }

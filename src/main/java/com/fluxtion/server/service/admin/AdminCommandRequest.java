@@ -23,6 +23,12 @@ import java.util.function.Consumer;
 @Data
 public class AdminCommandRequest {
 
+    /**
+     * Create an empty AdminCommandRequest.
+     */
+    public AdminCommandRequest() {
+    }
+
     private String command;
     private List<String> arguments = new ArrayList<>();
     @ToString.Exclude

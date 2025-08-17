@@ -21,9 +21,20 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+/**
+ * Processor that registers and dispatches admin commands through the event flow.
+ * It registers built-in commands and allows services to register additional commands
+ * that can be executed either directly or via event queues.
+ */
 @Experimental
 @Log
 public class AdminCommandProcessor implements EventFlowService, AdminCommandRegistry, Lifecycle, EventSource<AdminCommand> {
+
+    /**
+     * Create a new AdminCommandProcessor.
+     */
+    public AdminCommandProcessor() {
+    }
 
     private final Map<String, AdminCommand> registeredCommandMap = new HashMap<>();
     private EventFlowManager eventFlowManager;

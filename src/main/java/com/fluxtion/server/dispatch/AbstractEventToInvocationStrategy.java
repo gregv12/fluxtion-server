@@ -28,12 +28,30 @@ import java.util.concurrent.atomic.AtomicLong;
 @Log
 public abstract class AbstractEventToInvocationStrategy implements EventToInvokeStrategy {
 
+    /**
+     * The set of registered target event processors that should receive callbacks from this strategy.
+     */
     protected final List<StaticEventProcessor> eventProcessorSinks = new CopyOnWriteArrayList<>();
+    /**
+     * Per-processor synthetic clocks used to supply a custom time source to processors when dispatching with an explicit time.
+     */
     protected static final Map<StaticEventProcessor, AtomicLong> syntheticClocks = new ConcurrentHashMap<>();
+    /**
+     * Monotonic id generator for instances of this strategy, also used for logging context.
+     */
     protected static final AtomicLong syntheticClock = new AtomicLong();
+    /**
+     * Unique identifier for this strategy instance for tracing/logging purposes.
+     */
     private final long id;
+    /**
+     * Cached flag indicating whether FINE logging is enabled to avoid recomputing per event.
+     */
     private final boolean fineLogEnabled;
 
+    /**
+     * Create a new invocation strategy instance, assigning a unique id and caching log level state.
+     */
     public AbstractEventToInvocationStrategy() {
         this.id = syntheticClock.incrementAndGet();
         fineLogEnabled = log.isLoggable(java.util.logging.Level.FINE);

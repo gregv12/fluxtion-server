@@ -44,6 +44,11 @@ import java.util.List;
 @Data
 public class AppConfig {
     /**
+     * Construct an empty AppConfig with sensible defaults.
+     */
+    public AppConfig() {
+    }
+    /**
      * Event processor groups and their handler configurations.
      * Created lazily via {@link #getEventHandlers()} if accessed while {@code null}.
      * A default handler group may be added automatically when present.
