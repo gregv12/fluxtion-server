@@ -13,36 +13,109 @@ import com.fluxtion.agrona.concurrent.UnsafeBuffer;
 import com.fluxtion.agrona.concurrent.status.AtomicCounter;
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.runtime.ServiceRegistered;
-import com.fluxtion.runtime.audit.EventLogControlEvent;
 import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.service.Service;
 import com.fluxtion.runtime.service.ServiceRegistryNode;
-import com.fluxtion.server.config.*;
-import com.fluxtion.server.dispatch.EventFlowService;
-import com.fluxtion.server.dutycycle.*;
+import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.dispatch.EventFlowManager;
+import com.fluxtion.server.dutycycle.ComposingEventProcessorAgent;
+import com.fluxtion.server.dutycycle.ComposingServiceAgent;
+import com.fluxtion.server.dutycycle.NamedEventProcessor;
+import com.fluxtion.server.dutycycle.ServiceAgent;
+import com.fluxtion.server.internal.ComposingEventProcessorAgentRunner;
+import com.fluxtion.server.internal.ComposingWorkerServiceAgentRunner;
+import com.fluxtion.server.internal.LifecycleManager;
+import com.fluxtion.server.internal.ServiceInjector;
+import com.fluxtion.server.service.CallBackType;
+import com.fluxtion.server.service.EventFlowService;
+import com.fluxtion.server.service.EventSource;
+import com.fluxtion.server.service.EventToInvokeStrategy;
 import com.fluxtion.server.service.admin.AdminCommandRegistry;
 import com.fluxtion.server.service.scheduler.DeadWheelScheduler;
 import com.fluxtion.server.service.servercontrol.FluxtionServerController;
 import lombok.SneakyThrows;
-import lombok.Value;
 import lombok.extern.java.Log;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.Reader;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
+
+/**
+ * FluxtionServer is the central runtime that wires together event sources, event processors,
+ * event sinks, and application services, and manages their lifecycle and threading model.
+ * <p>
+ * High-level architecture:
+ * <ul>
+ *   <li><b>Services</b>: Application components registered with the server. They may be standard
+ *       services (executed in the server lifecycle) or <b>agent-hosted</b> worker services
+ *       (executed on dedicated agent threads). Services can depend on each other via dependency
+ *       injection. Services that participate directly in event routing can implement an event-flow
+ *       contract to interact with the event flow manager.</li>
+ *   <li><b>Agent-hosted services</b>: Worker services executed on their own {@code AgentRunner}.
+ *       Each worker service is associated with an agent group and an {@code IdleStrategy}.
+ *       Idle strategies can be provided directly or resolved from configuration using the group name.</li>
+ *   <li><b>Event sources (feeds)</b>: Producers of events registered with the server. The event flow
+ *       manager routes events from sources to interested processors, using mapping/dispatch strategies
+ *       that can be customized.</li>
+ *   <li><b>Event processors</b>: Instances grouped by a logical <i>processor group</i>. Each group runs
+ *       on its own {@code AgentRunner} with a configurable {@code IdleStrategy}. Processors are registered
+ *       by name within a group, and audit logging hooks can be attached. Groups provide isolation and
+ *       parallelism.</li>
+ *   <li><b>Event sinks</b>: Consumers of processed events. Sinks are typically modeled as services
+ *       (standard or agent-hosted) and participate in the event flow by receiving output from processors
+ *       or other services.</li>
+ * </ul>
+ * <p>
+ * Lifecycle and management:
+ * <ul>
+ *   <li>{@link #init()} performs initialization: registers services, prepares agent groups, and wires the
+ *       event flow manager and service registry.</li>
+ *   <li>{@link #start()} launches agent groups (for processors and worker services) using {@code AgentRunner}
+ *       with the resolved idle strategies, then starts services and marks the server as running.</li>
+ *   <li>{@link #stop()} stops all agent groups and services and releases resources.</li>
+ *   <li>At runtime you can query and control components (e.g., {@link #registeredProcessors()},
+ *       {@link #stopProcessor(String, String)}, {@link #startService(String)}, {@link #stopService(String)}).</li>
+ * </ul>
+ * <p>
+ * Configuration and bootstrapping:
+ * <ul>
+ *   <li>Servers can be bootstrapped from an {@link AppConfig}, a {@link java.io.Reader}, or from a YAML
+ *       file path provided via the {@link #CONFIG_FILE_PROPERTY} system property.</li>
+ *   <li>Threading policies are controlled via idle strategies that can be specified per agent group or
+ *       fall back to a global default. These are resolved with helper methods in {@link AppConfig}.</li>
+ *   <li>Custom event-to-callback mapping strategies can be registered to tailor routing behavior.</li>
+ * </ul>
+ * <p>
+ * Error handling and observability:
+ * <ul>
+ *   <li>A default {@link com.fluxtion.agrona.ErrorHandler} can be supplied via {@link #setDefaultErrorHandler(ErrorHandler)}
+ *       and is used by agent runners.</li>
+ *   <li>Event processors can be bridged to a {@link LogRecordListener} for audit logging.</li>
+ * </ul>
+ * <p>
+ * Typical usage pattern:
+ * <ol>
+ *   <li>Construct or load an {@link AppConfig}.</li>
+ *   <li>Boot the server via one of the {@code bootServer(...)} overloads.</li>
+ *   <li>Optionally register additional services, event sources, and event processors programmatically.</li>
+ *   <li>Call {@link #init()} and {@link #start()} (when booting from config helpers, these may be invoked for you).</li>
+ *   <li>Manage components at runtime and finally {@link #stop()} the server.</li>
+ * </ol>
+ */
 @Log
 public class FluxtionServer implements FluxtionServerController {
 
     public static final String CONFIG_FILE_PROPERTY = "fluxtionserver.config.file";
     private static LogRecordListener logRecordListener;
     private final AppConfig appConfig;
-    private final com.fluxtion.server.dispatch.EventFlowManager flowManager = new com.fluxtion.server.dispatch.EventFlowManager();
+    private final EventFlowManager flowManager = new EventFlowManager();
     private final ConcurrentHashMap<String, ComposingEventProcessorAgentRunner> composingEventProcessorAgents = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ComposingWorkerServiceAgentRunner> composingServiceAgents = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Service<?>> registeredServices = new ConcurrentHashMap<>();
@@ -50,11 +123,21 @@ public class FluxtionServer implements FluxtionServerController {
     private ErrorHandler errorHandler = m -> log.severe(m.getMessage());
     private final ServiceRegistryNode serviceRegistry = new ServiceRegistryNode();
     private volatile boolean started = false;
+    private final LifecycleManager lifecycleManager = new LifecycleManager(this);
 
     public FluxtionServer(AppConfig appConfig) {
         this.appConfig = appConfig;
     }
 
+    /**
+     * Boots a FluxtionServer instance by loading configuration from the provided reader.
+     * The configuration is parsed and converted into an {@code AppConfig} instance, which is used
+     * for initializing the server along with the specified log record listener.
+     *
+     * @param reader            A {@code Reader} instance used to read the configuration input.
+     * @param logRecordListener A {@code LogRecordListener} instance for handling log messages during server operations.
+     * @return A new instance of {@code FluxtionServer} configured with the supplied {@code AppConfig} and log record listener.
+     */
     public static FluxtionServer bootServer(Reader reader, LogRecordListener logRecordListener) {
         log.info("booting server loading config from reader");
         LoaderOptions loaderOptions = new LoaderOptions();
@@ -66,6 +149,18 @@ public class FluxtionServer implements FluxtionServerController {
         return bootServer(appConfig, logRecordListener);
     }
 
+    /**
+     * Boots a FluxtionServer instance using a configuration file specified by a system property
+     * and a log record listener. The configuration file path must be specified using the system property
+     * {@value #CONFIG_FILE_PROPERTY} ({@code fluxtionserver.config.file}). The configuration file
+     * should contain YAML-formatted server configuration that will be parsed into an {@link AppConfig}
+     * instance.
+     *
+     * @param logRecordListener A {@code LogRecordListener} instance for handling log messages during server operations.
+     * @return A new instance of {@code FluxtionServer} configured with the loaded configuration and supplied log record listener.
+     * @throws NullPointerException if the configuration file name is not specified in the system property.
+     * @throws IOException          if an error occurs while reading the configuration file.
+     */
     @SneakyThrows
     public static FluxtionServer bootServer(LogRecordListener logRecordListener) {
         String configFileName = System.getProperty(CONFIG_FILE_PROPERTY);
@@ -77,105 +172,32 @@ public class FluxtionServer implements FluxtionServerController {
         }
     }
 
+    /**
+     * Boots a FluxtionServer instance using the provided application configuration and log record listener.
+     * The server is initialized based on the configuration data, and the log record listener
+     * is used to handle log messages during its operation.
+     *
+     * @param appConfig         An {@code AppConfig} instance containing the server configuration.
+     * @param logRecordListener A {@code LogRecordListener} instance for handling log messages.
+     * @return A new {@code FluxtionServer} instance configured with the given {@code AppConfig} and {@code LogRecordListener}.
+     */
     public static FluxtionServer bootServer(AppConfig appConfig, LogRecordListener logRecordListener) {
         FluxtionServer.logRecordListener = logRecordListener;
         log.info("booting fluxtion server");
         log.fine("config:" + appConfig);
-        FluxtionServer fluxtionServer = new FluxtionServer(appConfig);
-        fluxtionServer.setDefaultErrorHandler(new GlobalErrorHandler());
-
-        //root server controller
-        fluxtionServer.registerService(new Service<>(fluxtionServer, FluxtionServerController.class, FluxtionServerController.SERVICE_NAME));
-
-        //event sources
-        if (appConfig.getEventFeeds() != null) {
-            appConfig.getEventFeeds().forEach(server -> {
-                if (server.isAgent()) {
-                    fluxtionServer.registerWorkerService(server.toServiceAgent());
-                } else {
-                    fluxtionServer.registerService(server.toService());
-                }
-            });
-        }
-
-        //event sinks eventSinks
-        if (appConfig.getEventSinks() != null) {
-            appConfig.getEventSinks().forEach(server -> {
-                if (server.isAgent()) {
-                    fluxtionServer.registerWorkerService(server.toServiceAgent());
-                } else {
-                    fluxtionServer.registerService(server.toService());
-                }
-            });
-        }
-
-        //service
-        if (appConfig.getServices() != null) {
-            for (ServiceConfig<?> serviceConfig : appConfig.getServices()) {
-                if (serviceConfig.isAgent()) {
-                    fluxtionServer.registerWorkerService(serviceConfig.toServiceAgent());
-                } else {
-                    fluxtionServer.registerService(serviceConfig.toService());
-                }
-            }
-        }
-
-        //add market maker processors
-        if (appConfig.getEventHandlers() != null) {
-            appConfig.getEventHandlers().forEach(cfg -> {
-                final EventLogControlEvent.LogLevel defaultLogLevel = cfg.getLogLevel() == null ? EventLogControlEvent.LogLevel.INFO : cfg.getLogLevel();
-                String groupName = cfg.getAgentName();
-                IdleStrategy idleStrategy1 = cfg.getIdleStrategy();
-                IdleStrategy idleStrategy = appConfig.lookupIdleStrategyWhenNull(idleStrategy1, cfg.getAgentName());
-                cfg.getEventHandlers().entrySet().forEach(handlerEntry -> {
-                    String name = handlerEntry.getKey();
-                    try {
-                        fluxtionServer.addEventProcessor(
-                                name,
-                                groupName,
-                                idleStrategy,
-                                () -> {
-                                    log.info("adding eventProcessor:" + name + " to group:" + groupName + ", idleStrategy:" + idleStrategy);
-                                    EventProcessorConfig<?> eventProcessorConfig = handlerEntry.getValue();
-                                    var eventProcessor = eventProcessorConfig.getEventHandler() == null
-                                            ? eventProcessorConfig.getEventHandlerBuilder().get()
-                                            : eventProcessorConfig.getEventHandler();
-                                    var logLevel = eventProcessorConfig.getLogLevel() == null ? defaultLogLevel : eventProcessorConfig.getLogLevel();
-                                    @SuppressWarnings("unckecked")
-                                    ConfigMap configMap = eventProcessorConfig.getConfig();
-
-                                    eventProcessor.setAuditLogProcessor(logRecordListener);
-                                    eventProcessor.setAuditLogLevel(logLevel);
-                                    eventProcessor.init();
-
-                                    eventProcessor.consumeServiceIfExported(ConfigListener.class, l -> l.initialConfig(configMap));
-                                    return eventProcessor;
-                                });
-                    } catch (Exception e) {
-                        log.warning("could not add eventProcessor:" + name + " to group:" + groupName + " error:" + e.getMessage());
-                    }
-                });
-            });
-        }
-
-        //start
-        fluxtionServer.init();
-        fluxtionServer.start();
-
-        //success
-        return fluxtionServer;
+        return com.fluxtion.server.internal.ServerConfigurator.bootFromConfig(appConfig, logRecordListener);
     }
 
     public void setDefaultErrorHandler(ErrorHandler errorHandler) {
         this.errorHandler = errorHandler;
     }
 
-    public void registerEventMapperFactory(Supplier<com.fluxtion.server.dispatch.EventToInvokeStrategy> eventMapper, com.fluxtion.server.dispatch.CallBackType type) {
+    public void registerEventMapperFactory(Supplier<EventToInvokeStrategy> eventMapper, CallBackType type) {
         log.info("registerEventMapperFactory:" + eventMapper);
         flowManager.registerEventMapperFactory(eventMapper, type);
     }
 
-    public <T> void registerEventSource(String sourceName, com.fluxtion.server.dispatch.EventSource<T> eventSource) {
+    public <T> void registerEventSource(String sourceName, EventSource<T> eventSource) {
         log.info("registerEventSource name:" + sourceName + " eventSource:" + eventSource);
         flowManager.registerEventSource(sourceName, eventSource);
     }
@@ -185,13 +207,22 @@ public class FluxtionServer implements FluxtionServerController {
             String serviceName = service.serviceName();
             log.info("registerService:" + service);
             if (registeredServices.containsKey(serviceName)) {
-                throw new IllegalArgumentException("cannot register service name is already assigned:" + serviceName);
+                throw new com.fluxtion.server.exception.ServiceRegistrationException("cannot register service name is already assigned:" + serviceName);
             }
             registeredServices.put(serviceName, service);
             Object instance = service.instance();
             //TODO set service name if not an EventFlow service
-            if (instance instanceof com.fluxtion.server.dispatch.EventFlowService) {
+            if (instance instanceof EventFlowService) {
                 ((EventFlowService) instance).setEventFlowManager(flowManager, serviceName);
+            }
+            // Dependency injection: inject other registered services into this instance
+            ServiceInjector.inject(instance, registeredServices.values());
+            // Also inject the newly registered service into existing services (single-target injection)
+            for (Service<?> existing : registeredServices.values()) {
+                Object existingInstance = existing.instance();
+                if (existingInstance != instance) {
+                    ServiceInjector.inject(existingInstance, java.util.Collections.singleton(service));
+                }
             }
         }
     }
@@ -201,9 +232,23 @@ public class FluxtionServer implements FluxtionServerController {
         registeredAgentServices.addAll(Arrays.asList(services));
     }
 
+    /**
+     * Register an agent-hosted (worker) service that runs on a dedicated agent thread.
+     * <p>
+     * The supplied {@link ServiceAgent} advertises an agent group name and may provide an
+     * {@link IdleStrategy}. If the service's idle strategy is {@code null}, an appropriate
+     * strategy is resolved from configuration using the agent group via
+     * {@link AppConfig#lookupIdleStrategyWhenNull(IdleStrategy, String)}.
+     * <p>
+     * Services registered under the same agent group are executed within a shared
+     * {@code AgentRunner}. If no runner exists for the group, it is created on demand.
+     * The service is then registered with the group's composite agent.
+     *
+     * @param service the worker service to register and host on its agent group
+     */
     public void registerWorkerService(ServiceAgent<?> service) {
-        String agentGroup = service.getAgentGroup();
-        IdleStrategy idleStrategy = appConfig.lookupIdleStrategyWhenNull(service.getIdleStrategy(), service.getAgentGroup());
+        String agentGroup = service.agentGroup();
+        IdleStrategy idleStrategy = appConfig.lookupIdleStrategyWhenNull(service.idleStrategy(), service.agentGroup());
         log.info("registerWorkerService:" + service + " agentGroup:" + agentGroup + " idleStrategy:" + idleStrategy);
         ComposingWorkerServiceAgentRunner composingAgentRunner = composingServiceAgents.computeIfAbsent(
                 agentGroup,
@@ -221,9 +266,28 @@ public class FluxtionServer implements FluxtionServerController {
                     return new ComposingWorkerServiceAgentRunner(group, groupRunner);
                 });
 
-        composingAgentRunner.getGroup().registerServer(service);
+        composingAgentRunner.group().registerServer(service);
     }
 
+    /**
+     * Add a named event processor to a processor group, creating the group on demand.
+     * <p>
+     * Each processor group executes on its own {@code AgentRunner} with a configurable
+     * {@link IdleStrategy}. If a specific strategy is not supplied, a suitable strategy
+     * is resolved from configuration via {@link AppConfig#getIdleStrategyOrDefault(String, IdleStrategy)}.
+     * <p>
+     * The processor name must be unique within its group; attempting to register a duplicate
+     * name results in an {@link IllegalArgumentException}. When added, the processor is wrapped
+     * as a {@link NamedEventProcessor} and configured with the current {@link LogRecordListener}
+     * for audit logging. If the server is already started and the group's thread is not yet
+     * running, the group is started.
+     *
+     * @param processorName unique name of the processor within the group
+     * @param groupName     the logical processor group to host the processor
+     * @param idleStrategy  optional idle strategy override for the group (may be {@code null})
+     * @param feedConsumer  supplier creating the {@link StaticEventProcessor} instance
+     * @throws IllegalArgumentException if a processor with {@code processorName} already exists in the group
+     */
     public void addEventProcessor(
             String processorName,
             String groupName,
@@ -246,11 +310,11 @@ public class FluxtionServer implements FluxtionServerController {
                     return new ComposingEventProcessorAgentRunner(group, groupRunner);
                 });
 
-        if (composingEventProcessorAgentRunner.getGroup().isProcessorRegistered(processorName)) {
+        if (composingEventProcessorAgentRunner.group().isProcessorRegistered(processorName)) {
             throw new IllegalArgumentException("cannot add event processor name is already assigned:" + processorName);
         }
 
-        composingEventProcessorAgentRunner.getGroup().addNamedEventProcessor(() -> {
+        composingEventProcessorAgentRunner.group().addNamedEventProcessor(() -> {
             StaticEventProcessor eventProcessor = feedConsumer.get();
             eventProcessor.setAuditLogProcessor(logRecordListener);
             if (started) {
@@ -260,9 +324,9 @@ public class FluxtionServer implements FluxtionServerController {
             return new NamedEventProcessor(processorName, eventProcessor);
         });
 
-        if (started && composingEventProcessorAgentRunner.getGroupRunner().thread() == null) {
+        if (started && composingEventProcessorAgentRunner.groupRunner().thread() == null) {
             log.info("staring event processor group:'" + groupName + "' for running server");
-            AgentRunner.startOnThread(composingEventProcessorAgentRunner.getGroupRunner());
+            AgentRunner.startOnThread(composingEventProcessorAgentRunner.groupRunner());
         }
     }
 
@@ -270,7 +334,7 @@ public class FluxtionServer implements FluxtionServerController {
     public Map<String, Collection<NamedEventProcessor>> registeredProcessors() {
         HashMap<String, Collection<NamedEventProcessor>> result = new HashMap<>();
         composingEventProcessorAgents.entrySet().forEach(entry -> {
-            result.put(entry.getKey(), entry.getValue().getGroup().registeredEventProcessors());
+            result.put(entry.getKey(), entry.getValue().group().registeredEventProcessors());
         });
         return result;
     }
@@ -280,7 +344,7 @@ public class FluxtionServer implements FluxtionServerController {
         log.info("stopProcessor:" + processorName + " in group:" + groupName);
         var processorAgent = composingEventProcessorAgents.get(groupName);
         if (processorAgent != null) {
-            processorAgent.getGroup().removeEventProcessorByName(processorName);
+            processorAgent.group().removeEventProcessorByName(processorName);
         }
     }
 
@@ -307,86 +371,42 @@ public class FluxtionServer implements FluxtionServerController {
     }
 
     public void init() {
-        log.info("init");
-        registeredServices.values().forEach(svc -> {
-            if (!(svc.instance() instanceof com.fluxtion.server.dispatch.LifeCycleEventSource)) {
-                svc.init();
-            }
-        });
-
-        flowManager.init();
-
-        registeredServices.values().forEach(svc -> {
-            if (!(registeredAgentServices.contains(svc))) {
-                serviceRegistry.nodeRegistered(svc.instance(), svc.serviceName());
-                servicesRegistered().forEach(serviceRegistry::registerService);
-            }
-        });
-
+        lifecycleManager.init(registeredServices, registeredAgentServices, flowManager, serviceRegistry);
     }
 
     @SneakyThrows
     public void start() {
-        log.info("start");
-
-        log.info("start registered services");
-        registeredServices.values().forEach(svc -> {
-            if (!(svc.instance() instanceof com.fluxtion.server.dispatch.LifeCycleEventSource)) {
-                svc.start();
+        ConcurrentHashMap<String, LifecycleManager.GroupRunner> serviceGroups = new ConcurrentHashMap<>();
+        composingServiceAgents.forEach((k, v) -> serviceGroups.put(k, new LifecycleManager.GroupRunner() {
+            @Override
+            public AgentRunner getGroupRunner() {
+                return v.groupRunner();
             }
-        });
 
-        log.info("start flowManager");
-        flowManager.start();
-
-        log.info("start agent hosted services");
-        composingServiceAgents.forEach((k, v) -> {
-            log.info("starting composing service agent " + k);
-            AgentRunner.startOnThread(v.getGroupRunner());
-        });
-
-        boolean waiting = true;
-        log.info("waiting for agent hosted services to start");
-        while (waiting) {
-            waiting = composingServiceAgents.values().stream()
-                    .anyMatch(f -> f.group.status() != DynamicCompositeAgent.Status.ACTIVE);
-            Thread.sleep(10);
-            log.finer("checking all service agents are started");
-        }
-
-        log.info("start event processor agent workers");
-        composingEventProcessorAgents.forEach((k, v) -> {
-            log.info("starting composing event processor agent " + k);
-            AgentRunner.startOnThread(v.getGroupRunner());
-        });
-
-        waiting = true;
-        log.info("waiting for event processor agents to start");
-        while (waiting) {
-            waiting = composingEventProcessorAgents.values().stream()
-                    .anyMatch(f -> {
-                        DynamicCompositeAgent.Status status = f.group.status();
-                        return status != DynamicCompositeAgent.Status.ACTIVE;
-                    });
-            Thread.sleep(10);
-            log.finer("checking all processor agents are started");
-        }
-
-        log.info("calling startup complete on services");
-        for (Service<?> service : registeredServices.values()) {
-            if (!registeredAgentServices.contains(service)) {
-                service.startComplete();
+            @Override
+            public DynamicCompositeAgent getGroup() {
+                return v.group();
             }
-        }
 
-        log.info("calling startup complete on agent hosted services");
-        composingServiceAgents.values()
-                .stream()
-                .map(ComposingWorkerServiceAgentRunner::getGroup)
-                .forEach(ComposingServiceAgent::startComplete);
+            @Override
+            public void startCompleteIfSupported() {
+                v.group().startComplete();
+            }
+        }));
+        ConcurrentHashMap<String, LifecycleManager.GroupRunner> processorGroups = new ConcurrentHashMap<>();
+        composingEventProcessorAgents.forEach((k, v) -> processorGroups.put(k, new LifecycleManager.GroupRunner() {
+            @Override
+            public AgentRunner getGroupRunner() {
+                return v.groupRunner();
+            }
 
+            @Override
+            public DynamicCompositeAgent getGroup() {
+                return v.group();
+            }
+        }));
+        lifecycleManager.start(registeredServices, serviceGroups, processorGroups, flowManager, registeredAgentServices);
         started = true;
-        log.info("start complete");
     }
 
     public Collection<Service<?>> servicesRegistered() {
@@ -399,59 +419,49 @@ public class FluxtionServer implements FluxtionServerController {
      * It should be called when the server is no longer needed to free up resources.
      */
     public void stop() {
-        log.info("stopping server");
-
-        if (!started) {
-            log.info("server not started, nothing to stop");
-            return;
-        }
-
-        log.info("stopping event processor agents");
-        composingEventProcessorAgents.forEach((k, v) -> {
-            log.info("stopping composing event processor agent " + k);
-            AgentRunner groupRunner = v.getGroupRunner();
-            if (groupRunner.thread() != null) {
-                groupRunner.close();
-            }
-        });
-
-        log.info("stopping agent hosted services");
-        composingServiceAgents.forEach((k, v) -> {
-            log.info("stopping composing service agent " + k);
-            AgentRunner groupRunner = v.getGroupRunner();
-            if (groupRunner.thread() != null) {
-                groupRunner.close();
-            }
-        });
-
-        log.info("stopping flowManager");
-        // No explicit stop method in flowManager, but we can stop all services
-
-        log.info("stopping registered services");
-        for (Service<?> service : registeredServices.values()) {
-            if (!(service.instance() instanceof com.fluxtion.server.dispatch.LifeCycleEventSource)) {
-                service.stop();
-            }
-        }
-
+        lifecycleManager.stop(started, toGroupRunnerMap(composingEventProcessorAgents), toGroupRunnerMap(composingServiceAgents), registeredServices);
         started = false;
-        log.info("server stopped");
+    }
+
+    private ConcurrentHashMap<String, LifecycleManager.GroupRunner> toGroupRunnerMap(java.util.concurrent.ConcurrentHashMap<String, ? extends Object> source) {
+        ConcurrentHashMap<String, LifecycleManager.GroupRunner> map = new ConcurrentHashMap<>();
+        source.forEach((k, v) -> {
+            if (v instanceof ComposingEventProcessorAgentRunner cep) {
+                map.put(k, new LifecycleManager.GroupRunner() {
+                    @Override
+                    public AgentRunner getGroupRunner() {
+                        return cep.groupRunner();
+                    }
+
+                    @Override
+                    public DynamicCompositeAgent getGroup() {
+                        return cep.group();
+                    }
+                });
+            } else if (v instanceof ComposingWorkerServiceAgentRunner cws) {
+                map.put(k, new LifecycleManager.GroupRunner() {
+                    @Override
+                    public AgentRunner getGroupRunner() {
+                        return cws.groupRunner();
+                    }
+
+                    @Override
+                    public DynamicCompositeAgent getGroup() {
+                        return cws.group();
+                    }
+
+                    @Override
+                    public void startCompleteIfSupported() {
+                        cws.group().startComplete();
+                    }
+                });
+            }
+        });
+        return map;
     }
 
     @ServiceRegistered
     public void adminClient(AdminCommandRegistry adminCommandRegistry, String name) {
         log.info("adminCommandRegistry registered:" + name);
-    }
-
-    @Value
-    private static class ComposingEventProcessorAgentRunner {
-        ComposingEventProcessorAgent group;
-        AgentRunner groupRunner;
-    }
-
-    @Value
-    private static class ComposingWorkerServiceAgentRunner {
-        ComposingServiceAgent group;
-        AgentRunner groupRunner;
     }
 }

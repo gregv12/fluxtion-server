@@ -7,10 +7,9 @@ package com.fluxtion.server.dispatch;
 
 import com.fluxtion.agrona.concurrent.Agent;
 import com.fluxtion.agrona.concurrent.ManyToOneConcurrentArrayQueue;
-import com.fluxtion.agrona.concurrent.OneToOneConcurrentArrayQueue;
 import com.fluxtion.runtime.StaticEventProcessor;
-import com.fluxtion.runtime.lifecycle.Lifecycle;
 import com.fluxtion.server.dutycycle.EventQueueToEventProcessor;
+import com.fluxtion.server.service.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -233,14 +232,14 @@ public class EventFlowManagerTest {
         eventFlowManager.subscribe(subscriptionKey);
 
         // Assert
-        assertTrue(testEventSource.getSubscriptions().contains(subscriptionKey), 
+        assertTrue(testEventSource.getSubscriptions().contains(subscriptionKey),
                 "Subscription should be added to the event source");
 
         // Act - Unsubscribe
         eventFlowManager.unSubscribe(subscriptionKey);
 
         // Assert
-        assertFalse(testEventSource.getSubscriptions().contains(subscriptionKey), 
+        assertFalse(testEventSource.getSubscriptions().contains(subscriptionKey),
                 "Subscription should be removed from the event source");
     }
 
@@ -317,17 +316,17 @@ public class EventFlowManagerTest {
     @Test
     void testCurrentProcessor() {
         // Act - Set current processor
-        EventFlowManager.setCurrentProcessor(testEventProcessor);
+        ProcessorContext.setCurrentProcessor(testEventProcessor);
 
         // Assert
-        assertSame(testEventProcessor, EventFlowManager.currentProcessor(),
+        assertSame(testEventProcessor, ProcessorContext.currentProcessor(),
                 "Current processor should be the one we set");
 
         // Act - Remove current processor
-        EventFlowManager.removeCurrentProcessor();
+        ProcessorContext.removeCurrentProcessor();
 
         // Assert
-        assertNull(EventFlowManager.currentProcessor(),
+        assertNull(ProcessorContext.currentProcessor(),
                 "Current processor should be null after removal");
     }
 

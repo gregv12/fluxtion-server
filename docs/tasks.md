@@ -58,17 +58,17 @@ logically ordered and cover both architectural and code-level improvements.
 
 ### API Improvements
 
-- [ ] Create a more fluent API for event subscription
-- [ ] Improve service registration API
-- [ ] Add builder patterns for complex configurations
-- [ ] Create a more consistent exception hierarchy
+- [x] Create a more fluent API for event subscription
+- [x] Improve service registration API
+- [x] Add builder patterns for complex configurations
+- [x] Create a more consistent exception hierarchy
 
 ### Dependency Management
 
-- [ ] Review and update external dependencies
-- [ ] Reduce coupling between components
-- [ ] Implement proper dependency injection
-- [ ] Create clear boundaries between modules
+- [x] Review and update external dependencies
+- [x] Reduce coupling between components
+- [x] Implement proper dependency injection
+- [x] Create clear boundaries between modules
 
 ### Security
 
@@ -88,17 +88,17 @@ logically ordered and cover both architectural and code-level improvements.
 
 ### Refactoring
 
-- [ ] Refactor EventFlowManager to reduce complexity
-- [ ] Split FluxtionServer class into smaller, focused classes
-- [ ] Improve thread safety in concurrent operations
-- [ ] Refactor service lifecycle management
+- [x] Refactor EventFlowManager to reduce complexity
+- [x] Split FluxtionServer class into smaller, focused classes
+- [x] Improve thread safety in concurrent operations
+- [x] Refactor service lifecycle management
 
 ### Testing Infrastructure
 
-- [ ] Create test utilities for common testing scenarios
-- [ ] Implement test fixtures for event processing
-- [ ] Add property-based testing for event handlers
-- [ ] Improve test isolation and repeatability
+- [x] Create test utilities for common testing scenarios
+- [x] Implement test fixtures for event processing
+- [x] Add property-based testing for event handlers
+- [x] Improve test isolation and repeatability
 
 ### Build and CI/CD
 

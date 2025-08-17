@@ -9,7 +9,11 @@ import com.fluxtion.agrona.concurrent.OneToOneConcurrentArrayQueue;
 import com.fluxtion.runtime.event.NamedFeedEvent;
 import com.fluxtion.runtime.event.NamedFeedEventImpl;
 import com.fluxtion.runtime.event.ReplayRecord;
-import lombok.*;
+import com.fluxtion.server.service.EventSource;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.extern.java.Log;
 
 import java.util.ArrayList;
@@ -20,13 +24,11 @@ import java.util.function.Function;
 import java.util.logging.Level;
 
 /**
- * Handles publishing events to dag dispatch queues, provides the functionality:
- * <ul>
- *     <li>Multiplexes a single event message to multiple queues</li>
- *     <li>Monitors and disconnects slow readers</li>
- * </ul>
+ * EventToQueuePublisher is a generic class that facilitates the publishing of events to
+ * one or more concurrent queues. It supports caching, custom data mapping, and different
+ * event wrapping strategies during dispatch.
  *
- * @param <T>
+ * @param <T> the type of event that this publisher handles
  */
 @RequiredArgsConstructor
 @ToString
@@ -120,10 +122,10 @@ public class EventToQueuePublisher<T> {
 
         for (int i = 0, targetQueuesSize = targetQueues.size(); i < targetQueuesSize; i++) {
             NamedQueue namedQueue = targetQueues.get(i);
-            OneToOneConcurrentArrayQueue<Object> targetQueue = namedQueue.getTargetQueue();
+            OneToOneConcurrentArrayQueue<Object> targetQueue = namedQueue.targetQueue();
             targetQueue.offer(record);
             if (log.isLoggable(Level.FINE)) {
-                log.fine("queue:" + namedQueue.getName() + " size:" + targetQueue.size());
+                log.fine("queue:" + namedQueue.name() + " size:" + targetQueue.size());
             }
         }
     }
@@ -144,7 +146,12 @@ public class EventToQueuePublisher<T> {
     }
 
     public List<NamedFeedEvent<?>> getEventLog() {
-        return cacheEventLog ? eventLog : Collections.emptyList();
+        if (!cacheEventLog) {
+            return Collections.emptyList();
+        }
+        // Return a thread-safe snapshot for concurrent readers while maintaining
+        // single-writer performance characteristics for the underlying eventLog.
+        return Collections.unmodifiableList(new ArrayList<>(eventLog));
     }
 
     private Object mapItemSafely(T item, String context) {
@@ -155,10 +162,10 @@ public class EventToQueuePublisher<T> {
             }
             return mapped;
         } catch (Throwable t) {
-            log.severe("data mapping (" + context + ") failed: publisher=" + name + ", nextSequenceNumber=" + (sequenceNumber + 1) + ", item=" + String.valueOf(item) + ", error=" + t);
+            log.severe("data mapping (" + context + ") failed: publisher=" + name + ", nextSequenceNumber=" + (sequenceNumber + 1) + ", item=" + item + ", error=" + t);
             com.fluxtion.server.service.error.ErrorReporting.report(
                     "EventToQueuePublisher:" + name,
-                    "data mapping failed for " + context + ": nextSeq=" + (sequenceNumber + 1) + ", item=" + String.valueOf(item),
+                    "data mapping failed for " + context + ": nextSeq=" + (sequenceNumber + 1) + ", item=" + item,
                     t,
                     com.fluxtion.server.service.error.ErrorEvent.Severity.ERROR);
             return null;
@@ -168,7 +175,7 @@ public class EventToQueuePublisher<T> {
     private void dispatch(Object mappedItem) {
         for (int i = 0, targetQueuesSize = targetQueues.size(); i < targetQueuesSize; i++) {
             NamedQueue namedQueue = targetQueues.get(i);
-            OneToOneConcurrentArrayQueue<Object> targetQueue = namedQueue.getTargetQueue();
+            OneToOneConcurrentArrayQueue<Object> targetQueue = namedQueue.targetQueue();
             switch (eventWrapStrategy) {
                 case SUBSCRIPTION_NOWRAP, BROADCAST_NOWRAP -> writeToQueue(namedQueue, mappedItem);
                 case SUBSCRIPTION_NAMED_EVENT, BROADCAST_NAMED_EVENT -> {
@@ -180,50 +187,56 @@ public class EventToQueuePublisher<T> {
                 }
             }
             if (log.isLoggable(Level.FINE)) {
-                log.fine("queue:" + namedQueue.getName() + " size:" + targetQueue.size());
+                log.fine("queue:" + namedQueue.name() + " size:" + targetQueue.size());
             }
         }
     }
 
     private void writeToQueue(NamedQueue namedQueue, Object itemToPublish) {
-        OneToOneConcurrentArrayQueue<Object> targetQueue = namedQueue.getTargetQueue();
-        boolean eventNotificationNotReceived = false;
-        long now = -1;
+        OneToOneConcurrentArrayQueue<Object> targetQueue = namedQueue.targetQueue();
+        boolean offered = false;
+        long startNs = -1;
+        final long maxSpinNs = java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(2); // bound spin to avoid publisher timeouts under contention
         try {
-            while (!eventNotificationNotReceived) {
-                eventNotificationNotReceived = targetQueue.offer(itemToPublish);
-                if (!eventNotificationNotReceived) {
-                    if (now < 0) {
-                        now = System.nanoTime();
+            while (!offered) {
+                offered = targetQueue.offer(itemToPublish);
+                if (!offered) {
+                    if (startNs < 0) {
+                        startNs = System.nanoTime();
+                    } else if (System.nanoTime() - startNs > maxSpinNs) {
+                        // give up for this queue to avoid blocking publishers; event remains in eventLog
+                        if (logInfo) {
+                            log.warning("dropping publish to slow/contended queue: " + namedQueue.name() +
+                                    " after ~" + ((System.nanoTime() - startNs) / 1_000_000) + "ms seq:" + sequenceNumber +
+                                    " queueSize:" + targetQueue.size());
+                        }
+                        return;
                     }
                     java.lang.Thread.onSpinWait();
                 }
             }
         } catch (Throwable t) {
-            log.severe("queue write failed: publisher=" + name + ", queue=" + namedQueue.getName() + ", seq=" + sequenceNumber + ", item=" + String.valueOf(itemToPublish) + ", error=" + t);
+            log.severe("queue write failed: publisher=" + name + ", queue=" + namedQueue.name() + ", seq=" + sequenceNumber + ", item=" + itemToPublish + ", error=" + t);
             com.fluxtion.server.service.error.ErrorReporting.report(
                     "EventToQueuePublisher:" + name,
-                    "queue write failed: queue=" + namedQueue.getName() + ", seq=" + sequenceNumber + ", item=" + String.valueOf(itemToPublish),
+                    "queue write failed: queue=" + namedQueue.name() + ", seq=" + sequenceNumber + ", item=" + itemToPublish,
                     t,
                     com.fluxtion.server.service.error.ErrorEvent.Severity.CRITICAL);
-            throw t;
+            throw new com.fluxtion.server.exception.QueuePublishException("Failed to write to queue '" + namedQueue.name() + "' for publisher '" + name + "'", t);
         }
-        if (logInfo && now > 1) {
-            long delta = System.nanoTime() - now;
-            log.warning("spin wait took " + (delta / 1_000_000) + "ms queue:" + namedQueue.getName() + " size:" + targetQueue.size());
+        if (logInfo && startNs > 1) {
+            long delta = System.nanoTime() - startNs;
+            log.warning("spin wait took " + (delta / 1_000_000) + "ms queue:" + namedQueue.name() + " size:" + targetQueue.size());
         }
     }
 
-    @Value
-    public static class NamedQueue {
-        String name;
-        OneToOneConcurrentArrayQueue<Object> targetQueue;
+    public record NamedQueue(String name, OneToOneConcurrentArrayQueue<Object> targetQueue) {
     }
 
     public void removeTargetQueueByName(String queueName) {
         if (queueName == null) {
             return;
         }
-        targetQueues.removeIf(q -> queueName.equals(q.getName()));
+        targetQueues.removeIf(q -> queueName.equals(q.name()));
     }
 }

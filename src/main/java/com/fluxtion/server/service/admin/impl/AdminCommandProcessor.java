@@ -1,7 +1,6 @@
 /*
- * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
+ * SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
- *
  */
 
 package com.fluxtion.server.service.admin.impl;
@@ -9,10 +8,8 @@ package com.fluxtion.server.service.admin.impl;
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.lifecycle.Lifecycle;
-import com.fluxtion.server.dispatch.CallBackType;
 import com.fluxtion.server.dispatch.EventFlowManager;
-import com.fluxtion.server.dispatch.EventFlowService;
-import com.fluxtion.server.dispatch.EventSource;
+import com.fluxtion.server.service.*;
 import com.fluxtion.server.service.admin.AdminCommandRegistry;
 import com.fluxtion.server.service.admin.AdminCommandRequest;
 import com.fluxtion.server.service.admin.AdminFunction;
@@ -24,9 +21,20 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+/**
+ * Processor that registers and dispatches admin commands through the event flow.
+ * It registers built-in commands and allows services to register additional commands
+ * that can be executed either directly or via event queues.
+ */
 @Experimental
 @Log
 public class AdminCommandProcessor implements EventFlowService, AdminCommandRegistry, Lifecycle, EventSource<AdminCommand> {
+
+    /**
+     * Create a new AdminCommandProcessor.
+     */
+    public AdminCommandProcessor() {
+    }
 
     private final Map<String, AdminCommand> registeredCommandMap = new HashMap<>();
     private EventFlowManager eventFlowManager;
@@ -75,7 +83,7 @@ public class AdminCommandProcessor implements EventFlowService, AdminCommandRegi
     @Override
     @SuppressWarnings("unchecked")
     public <OUT, ERR> void registerCommand(String name, AdminFunction<OUT, ERR> command) {
-        if (EventFlowManager.currentProcessor() == null) {
+        if (com.fluxtion.server.dispatch.ProcessorContext.currentProcessor() == null) {
             registeredCommandMap.put(name, new AdminCommand((AdminFunction<Object, Object>) command));
         } else {
             String queueKey = "adminCommand." + name;
@@ -122,13 +130,13 @@ public class AdminCommandProcessor implements EventFlowService, AdminCommandRegi
     }
 
     private void addCommand(String name, String queueKey, AdminCommand adminCommand) {
-        StaticEventProcessor staticEventProcessor = EventFlowManager.currentProcessor();
+        StaticEventProcessor staticEventProcessor = com.fluxtion.server.dispatch.ProcessorContext.currentProcessor();
         log.info("registered command:" + name + " queue:" + queueKey + " processor:" + staticEventProcessor);
 
         registeredCommandMap.put(name, adminCommand);
 
-        com.fluxtion.server.dispatch.EventSubscriptionKey<?> subscriptionKey = new com.fluxtion.server.dispatch.EventSubscriptionKey<>(
-                new com.fluxtion.server.dispatch.EventSourceKey<>(queueKey),
+        EventSubscriptionKey<?> subscriptionKey = new EventSubscriptionKey<>(
+                new EventSourceKey<>(queueKey),
                 AdminCallbackType.class
         );
 
@@ -136,11 +144,11 @@ public class AdminCommandProcessor implements EventFlowService, AdminCommandRegi
     }
 
     @Override
-    public void subscribe(com.fluxtion.server.dispatch.EventSubscriptionKey<AdminCommand> eventSourceKey) {
+    public void subscribe(EventSubscriptionKey<AdminCommand> eventSourceKey) {
     }
 
     @Override
-    public void unSubscribe(com.fluxtion.server.dispatch.EventSubscriptionKey<AdminCommand> eventSourceKey) {
+    public void unSubscribe(EventSubscriptionKey<AdminCommand> eventSourceKey) {
     }
 
     @Override

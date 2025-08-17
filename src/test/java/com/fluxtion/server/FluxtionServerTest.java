@@ -12,16 +12,12 @@ import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.lifecycle.Lifecycle;
 import com.fluxtion.runtime.service.Service;
 import com.fluxtion.server.config.AppConfig;
-import com.fluxtion.server.dispatch.CallBackType;
 import com.fluxtion.server.dispatch.EventFlowManager;
-import com.fluxtion.server.dispatch.EventFlowService;
-import com.fluxtion.server.dispatch.EventSource;
-import com.fluxtion.server.dispatch.EventSourceKey;
-import com.fluxtion.server.dispatch.EventSubscriptionKey;
-import com.fluxtion.server.dispatch.EventToInvokeStrategy;
 import com.fluxtion.server.dispatch.EventToQueuePublisher;
 import com.fluxtion.server.dutycycle.NamedEventProcessor;
-import com.fluxtion.server.dutycycle.ServiceAgent;
+import com.fluxtion.server.service.EventFlowService;
+import com.fluxtion.server.service.EventSource;
+import com.fluxtion.server.service.EventSubscriptionKey;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -65,7 +61,7 @@ public class FluxtionServerTest {
 
         // Assert
         assertNotNull(testEventSource.getEventToQueuePublisher(), "EventToQueuePublisher should be set");
-        assertTrue(testEventSource.getEventToQueuePublisher().toString().contains(sourceName), 
+        assertTrue(testEventSource.getEventToQueuePublisher().toString().contains(sourceName),
                 "EventToQueuePublisher should contain the source name");
     }
 
