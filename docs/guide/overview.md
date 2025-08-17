@@ -1,6 +1,7 @@
 # Fluxtion Server: Concepts, Architecture, and Usage
 
-This document provides a deeper overview of Fluxtion Server beyond the short README summary. It covers the event-driven architecture, core components, configuration, plugin model, lifecycle, and example usage.
+This document provides a deeper overview of Fluxtion Server beyond the short README summary. It covers the event-driven
+architecture, core components, configuration, plugin model, lifecycle, and example usage.
 
 ## Event Processing Architecture
 
@@ -18,12 +19,14 @@ EH --> ESK[Event Sinks]
 ## Core Components
 
 ### Event Processing
+
 - Event Sources: Producers that generate events
 - Event Processors: Custom handlers for processing specific event types
 - Event Sinks: Consumers that receive processed events
 - Event Flow Manager: Coordinates event routing and processing
 
 ### Services
+
 - Dynamic service registration and management
 - Support for both standard and agent-based services
 - Runtime control (start/stop) of services
@@ -31,6 +34,7 @@ EH --> ESK[Event Sinks]
 - Registered at the container level for lookup and use by event handlers
 
 ### Agent Hosted Application Logic
+
 - Background workers for continuous processing
 - Configurable idle strategies
 - Concurrent execution support
@@ -39,21 +43,21 @@ EH --> ESK[Event Sinks]
 ## Components and Interaction Flow
 
 1. Event Sources (Feeds)
-   - Generate events into the system
-   - Can run as standard services or agents
-   - Examples: market data feeds, sensors, external integrations
+    - Generate events into the system
+    - Can run as standard services or agents
+    - Examples: market data feeds, sensors, external integrations
 
 2. Event Handlers
-   - Organized into named groups, each with its own thread/idle strategy/log level
-   - Features: dynamic add/remove, configuration injection, audit logging
-   - Receive callbacks when feeds publish events; can use registered services; can publish to sinks
+    - Organized into named groups, each with its own thread/idle strategy/log level
+    - Features: dynamic add/remove, configuration injection, audit logging
+    - Receive callbacks when feeds publish events; can use registered services; can publish to sinks
 
 3. Event Sinks
-   - Receive processed events and handle output distribution (DB, network, monitoring)
-   - Can operate as services or agents
+    - Receive processed events and handle output distribution (DB, network, monitoring)
+    - Can operate as services or agents
 
 4. Flow Manager
-   - Central coordination component routing events and managing dispatch strategies
+    - Central coordination component routing events and managing dispatch strategies
 
 ## Configuration (YAML)
 
@@ -78,8 +82,8 @@ eventHandlers:
       heartBeatProcessor_2:
         eventHandler: !!com.fluxtion.server.example.HeartBeatExampleProcessor { }
         logLevel: DEBUG
-# --------- EVENT HANDLERS END CONFIG ---------
-        
+        # --------- EVENT HANDLERS END CONFIG ---------
+
 # --------- AGENT THREAD BEGIN CONFIG ---------
 agentThreads:
   - agentName: heartBeatPublisher-thread
@@ -117,6 +121,7 @@ F --> A
 - Event Handlers: processing, transformation, business rules
 
 ### Idle Strategies
+
 - Busy spin, yielding, sleeping, or custom
 
 ## Plugin Lifecycle
@@ -157,9 +162,10 @@ FluxtionServer server = FluxtionServer.bootServer(logRecordListener);
 ```
 
 ## See Also
-- Architecture index: ../architecture/index.md
-- Architecture overview: ../architecture/overview.md
-- Components: ../architecture/components.md
-- Event flow: ../architecture/event-flow.md
-- Sequence diagrams: ../architecture/sequence-diagrams/index.md
-- Coding standards: ../standards/coding-standards.md
+
+- [Architecture index](../architecture/index.md)
+- [Architecture overview](../architecture/overview.md)
+- [Components](../architecture/components.md)
+- [Event flow](../architecture/event-flow.md)
+- [Sequence diagrams](../architecture/sequence-diagrams/index.md)
+- [Coding standards](../standards/coding-standards.md)
