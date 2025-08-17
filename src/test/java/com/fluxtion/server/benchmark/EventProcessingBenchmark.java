@@ -15,7 +15,7 @@ import com.fluxtion.server.config.AppConfig;
 import com.fluxtion.server.dispatch.CallBackType;
 import com.fluxtion.server.dispatch.EventSourceKey;
 import com.fluxtion.server.dispatch.EventSubscriptionKey;
-import com.fluxtion.server.internal.AbstractEventSourceService;
+import com.fluxtion.server.service.extension.AbstractEventSourceService;
 import lombok.Getter;
 import lombok.Setter;
 import org.junit.jupiter.api.AfterEach;

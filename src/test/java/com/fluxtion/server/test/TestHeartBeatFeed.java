@@ -5,7 +5,7 @@
 
 package com.fluxtion.server.test;
 
-import com.fluxtion.server.internal.AbstractEventSourceService;
+import com.fluxtion.server.service.extension.AbstractEventSourceService;
 
 public class TestHeartBeatFeed extends AbstractEventSourceService<HeartbeatEvent> {
 

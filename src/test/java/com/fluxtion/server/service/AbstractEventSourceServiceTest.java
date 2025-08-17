@@ -9,7 +9,7 @@ import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.input.SubscriptionManager;
 import com.fluxtion.runtime.node.EventSubscription;
 import com.fluxtion.server.dispatch.*;
-import com.fluxtion.server.internal.AbstractEventSourceService;
+import com.fluxtion.server.service.extension.AbstractEventSourceService;
 import com.fluxtion.server.service.scheduler.SchedulerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

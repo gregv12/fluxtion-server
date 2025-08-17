@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-package com.fluxtion.server.internal;
+package com.fluxtion.server.service.extension;
 
 import com.fluxtion.agrona.concurrent.Agent;
 import com.fluxtion.server.dispatch.CallBackType;
