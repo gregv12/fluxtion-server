@@ -22,6 +22,7 @@ can focus on business logic.
 - For writing plugins see:
     - [event sink plugin](docs/guide/writing-a-message-sink-plugin.md)
     - [event source plugin](docs/guide/writing-an-event-source-plugin.md)
+    - [service plugin](docs/guide/writing-a-service-plugin.md)
 - For internals see:
     - [Architecture docs](docs/architecture/index.md)
     - [Sequence diagrams](docs/architecture/sequence-diagrams/index.md)
