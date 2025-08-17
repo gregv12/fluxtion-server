@@ -27,6 +27,7 @@ can focus on business logic.
     - [add an admin command](docs/guide/writing-an-admin-command.md)
     - [using the scheduler service](docs/guide/using-the-scheduler-service.md)
 - For internals see:
+    - [Threading model](docs/guide/threading-model.md)
     - [Architecture docs](docs/architecture/index.md)
     - [Sequence diagrams](docs/architecture/sequence-diagrams/index.md)
 
@@ -87,6 +88,7 @@ FluxtionServer server = FluxtionServer.bootServer(appConfig, logRecordListener);
 ## Documentation
 
 - Detailed overview and usage: [docs/guide/overview.md](docs/guide/overview.md)
+- Threading model: [docs/guide/threading-model.md](docs/guide/threading-model.md)
 - Architecture: [docs/architecture/index.md](docs/architecture/index.md)
 - Sequence diagrams: [docs/architecture/sequence-diagrams/index.md](docs/architecture/sequence-diagrams/index.md)
 - Event flow: [docs/architecture/event-flow.md](docs/architecture/event-flow.md)
