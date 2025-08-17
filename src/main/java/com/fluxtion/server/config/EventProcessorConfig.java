@@ -28,6 +28,13 @@ public class EventProcessorConfig<T extends EventProcessor<?>> {
     @Setter(AccessLevel.NONE)
     private Map<String, Object> configMap = new HashMap<>();
 
+    public EventProcessorConfig(ObjectEventHandlerNode customHandler) {
+        this.customHandler = customHandler;
+    }
+
+    public EventProcessorConfig() {
+    }
+
     @SuppressWarnings({"unchecked"})
     public T getEventHandler() {
         if (eventHandler == null && customHandler != null) {
