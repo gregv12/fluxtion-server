@@ -20,6 +20,25 @@ import lombok.extern.java.Log;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * Base class for event source services that participate in Fluxtion's event flow.
+ * <p>
+ * Responsibilities:
+ * <ul>
+ *   <li>Register the service as an {@link com.fluxtion.server.dispatch.EventSource} with the event flow manager</li>
+ *   <li>Manage subscription keys and subscription lifecycle for processors</li>
+ *   <li>Expose knobs for event wrapping, slow-consumer handling, and data mapping</li>
+ * </ul>
+ * <p>
+ * Subclasses typically:
+ * <ul>
+ *   <li>Construct with a unique service name and desired callback type</li>
+ *   <li>Publish data via the configured {@link EventToQueuePublisher} obtained in {@link #setEventFlowManager}</li>
+ *   <li>Call {@link #subscribe()} when a processor should begin receiving events</li>
+ * </ul>
+ *
+ * @param <T> event type emitted by this source
+ */
 @Log
 public abstract class AbstractEventSourceService<T>
         implements

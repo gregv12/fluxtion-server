@@ -7,5 +7,12 @@ package com.fluxtion.server.internal;
 import com.fluxtion.agrona.concurrent.AgentRunner;
 import com.fluxtion.server.dutycycle.ComposingServiceAgent;
 
+/**
+ * Lightweight holder pairing a {@link com.fluxtion.server.dutycycle.ComposingServiceAgent}
+ * with its executing {@link com.fluxtion.agrona.concurrent.AgentRunner}.
+ * <p>
+ * Used by FluxtionServer to track worker service agent groups and their runners
+ * for lifecycle management (start/stop).
+ */
 public record ComposingWorkerServiceAgentRunner(ComposingServiceAgent group, AgentRunner groupRunner) {
 }

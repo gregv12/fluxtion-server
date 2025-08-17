@@ -7,5 +7,12 @@ package com.fluxtion.server.internal;
 import com.fluxtion.agrona.concurrent.AgentRunner;
 import com.fluxtion.server.dutycycle.ComposingEventProcessorAgent;
 
+/**
+ * Lightweight holder pairing a {@link com.fluxtion.server.dutycycle.ComposingEventProcessorAgent}
+ * with its executing {@link com.fluxtion.agrona.concurrent.AgentRunner}.
+ * <p>
+ * Used by FluxtionServer to track event processor agent groups and their runners
+ * for lifecycle management (start/stop).
+ */
 public record ComposingEventProcessorAgentRunner(ComposingEventProcessorAgent group, AgentRunner groupRunner) {
 }
