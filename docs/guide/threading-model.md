@@ -31,18 +31,18 @@ Data is handed between agents through lock‑free single‑producer/single‑con
 
 ```mermaid
 flowchart LR
-    subgraph ServiceAgentGroup[Service Agent Group (thread)]
+    subgraph ServiceAgentGroup [Service Agent Group thread]
         ES1[Agent-hosted Event Source]
         WS1[Worker Service A]
         WS2[Worker Service B]
     end
 
-    subgraph ProcessorAgentGroup[Processor Agent Group (thread)]
+    subgraph ProcessorAgentGroup [Processor Agent Group thread]
         P1[StaticEventProcessor #1]
         P2[StaticEventProcessor #2]
     end
 
-    subgraph Scheduler[Scheduler Agent (thread)]
+    subgraph SchedulerAgent [Scheduler Agent thread]
         Svc[DeadWheelScheduler]
     end
 
@@ -54,7 +54,7 @@ flowchart LR
 
     style ServiceAgentGroup fill:#eef,stroke:#88a
     style ProcessorAgentGroup fill:#efe,stroke:#8a8
-    style Scheduler fill:#fee,stroke:#a88
+    style SchedulerAgent fill:#fee,stroke:#a88
 ```
 
 Notes:
