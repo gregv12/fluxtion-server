@@ -12,10 +12,10 @@ import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.input.EventFeed;
 import com.fluxtion.server.FluxtionServer;
 import com.fluxtion.server.config.AppConfig;
-import com.fluxtion.server.dispatch.CallBackType;
-import com.fluxtion.server.dispatch.EventSourceKey;
-import com.fluxtion.server.dispatch.EventSubscriptionKey;
-import com.fluxtion.server.service.AbstractEventSourceService;
+import com.fluxtion.server.service.CallBackType;
+import com.fluxtion.server.service.EventSourceKey;
+import com.fluxtion.server.service.EventSubscriptionKey;
+import com.fluxtion.server.service.extension.AbstractEventSourceService;
 import lombok.Getter;
 import lombok.Setter;
 import org.junit.jupiter.api.AfterEach;
@@ -100,7 +100,6 @@ public class EventProcessingBenchmark {
 
         // Benchmark
         System.out.println("Running benchmark with " + BENCHMARK_COUNT + " events");
-        long now = System.nanoTime();
 
         for (int i = 0; i < BENCHMARK_COUNT; i++) {
             TestEvent event = eventCache[i];
@@ -109,7 +108,6 @@ public class EventProcessingBenchmark {
         }
 
         eventSource.publishEvent("publishResults");
-        long endTime = System.nanoTime();
         eventProcessedLatch.await();
 
         // Verify that the benchmark completed successfully
@@ -258,7 +256,6 @@ public class EventProcessingBenchmark {
         public void onEvent(Object event) {
             if (event instanceof TestEvent) {
                 handleTestEvent((TestEvent) event);
-                long start = System.nanoTime();
             } else if (event instanceof String) {
                 switch ((String) event) {
                     case "reset" -> handleReset((String) event);

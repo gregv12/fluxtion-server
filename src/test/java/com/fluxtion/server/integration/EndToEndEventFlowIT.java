@@ -12,11 +12,10 @@ import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.input.EventFeed;
 import com.fluxtion.server.FluxtionServer;
 import com.fluxtion.server.config.AppConfig;
-import com.fluxtion.server.dispatch.CallBackType;
-import com.fluxtion.server.dispatch.EventSourceKey;
-import com.fluxtion.server.dispatch.EventSubscriptionKey;
-import com.fluxtion.server.dispatch.EventToQueuePublisher;
-import com.fluxtion.server.service.AbstractEventSourceService;
+import com.fluxtion.server.service.CallBackType;
+import com.fluxtion.server.service.EventSourceKey;
+import com.fluxtion.server.service.EventSubscriptionKey;
+import com.fluxtion.server.service.extension.AbstractEventSourceService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -113,8 +112,6 @@ public class EndToEndEventFlowIT {
      * A test event source that can publish events.
      */
     private static class TestEventSource extends AbstractEventSourceService<TestEvent> {
-        private EventToQueuePublisher<TestEvent> publisher;
-
         public TestEventSource(String name) {
             super(name);
         }

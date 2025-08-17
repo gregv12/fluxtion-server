@@ -1,7 +1,6 @@
 /*
- * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
+ * SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
- *
  */
 
 package com.fluxtion.server.dutycycle;
@@ -13,6 +12,7 @@ import com.fluxtion.runtime.service.Service;
 import com.fluxtion.runtime.service.ServiceRegistryNode;
 import com.fluxtion.server.FluxtionServer;
 import com.fluxtion.server.dispatch.EventFlowManager;
+import com.fluxtion.server.internal.ServiceInjector;
 import com.fluxtion.server.service.scheduler.DeadWheelScheduler;
 import com.fluxtion.server.service.scheduler.SchedulerService;
 import lombok.extern.java.Log;
@@ -21,7 +21,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
- *
+ * Composite agent that manages a group of worker service agents for Fluxtion Server.
+ * <p>
+ * Responsibilities:
+ * <ul>
+ *   <li>Accepts registrations of ServiceAgent instances destined to run on this agent group</li>
+ *   <li>Initializes and starts their exported services, injecting server-registered services and the scheduler</li>
+ *   <li>Adds their Agent delegates to the underlying DynamicCompositeAgent at the appropriate time</li>
+ *   <li>Signals startComplete to services once the agent group is fully active</li>
+ * </ul>
  */
 @Experimental
 @Log
@@ -79,27 +87,31 @@ public class ComposingServiceAgent extends DynamicCompositeAgent {
     }
 
     private void checkForAdded() {
-        if(!toStartList.isEmpty()) {
+        if (!toStartList.isEmpty()) {
             toStartList.drain(serviceAgent -> {
                 toAddList.add(serviceAgent);
-                Service<?> exportedService = serviceAgent.getExportedService();
+                Service<?> exportedService = serviceAgent.exportedService();
                 exportedService.init();
                 serviceRegistry.init();
                 serviceRegistry.nodeRegistered(exportedService.instance(), exportedService.serviceName());
                 serviceRegistry.registerService(schedulerService);
                 fluxtionServer.servicesRegistered().forEach(serviceRegistry::registerService);
+                // Inject dependencies into the agent-hosted service instance (scheduler + server services)
+                java.util.List<com.fluxtion.runtime.service.Service<?>> inj = new java.util.ArrayList<>(fluxtionServer.servicesRegistered());
+                inj.add(schedulerService);
+                ServiceInjector.inject(exportedService.instance(), inj);
                 fluxtionServer.registerAgentService(exportedService);
                 exportedService.start();
             });
         }
 
-        if (!toAddList.isEmpty() && status() == Status.ACTIVE && tryAdd(toAddList.peek().getDelegate())) {
+        if (!toAddList.isEmpty() && status() == Status.ACTIVE && tryAdd(toAddList.peek().delegate())) {
             toAddList.poll();
         }
 
         if (startUpComplete.get() & !toCallStartupCompleteList.isEmpty()) {
             toCallStartupCompleteList.drain(s -> {
-                s.getExportedService().startComplete();
+                s.exportedService().startComplete();
             });
         }
     }

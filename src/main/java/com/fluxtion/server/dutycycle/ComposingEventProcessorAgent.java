@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
+ * SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -14,7 +14,7 @@ import com.fluxtion.runtime.lifecycle.Lifecycle;
 import com.fluxtion.runtime.service.Service;
 import com.fluxtion.server.FluxtionServer;
 import com.fluxtion.server.dispatch.EventFlowManager;
-import com.fluxtion.server.dispatch.EventSubscriptionKey;
+import com.fluxtion.server.service.EventSubscriptionKey;
 import com.fluxtion.server.service.scheduler.DeadWheelScheduler;
 import com.fluxtion.server.service.scheduler.SchedulerService;
 import lombok.extern.java.Log;
@@ -27,16 +27,24 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 /**
- *
+ * Composite agent that manages named StaticEventProcessor instances within an agent group.
+ * <p>
+ * Responsibilities:
+ * <ul>
+ *   <li>Accepts registrations/removals of named event processors</li>
+ *   <li>Wires processors to event queues via the EventFlowManager on first subscription</li>
+ *   <li>Registers shared services and a SchedulerService into each processor</li>
+ *   <li>Adds/removes queue reader agents dynamically as subscriptions change</li>
+ * </ul>
  */
 @Experimental
 @Log
-public class ComposingEventProcessorAgent extends DynamicCompositeAgent implements EventFeed<com.fluxtion.server.dispatch.EventSubscriptionKey<?>> {
+public class ComposingEventProcessorAgent extends DynamicCompositeAgent implements EventFeed<com.fluxtion.server.service.EventSubscriptionKey<?>> {
 
-    private final com.fluxtion.server.dispatch.EventFlowManager eventFlowManager;
+    private final EventFlowManager eventFlowManager;
     private final ConcurrentHashMap<String, Service<?>> registeredServices;
     private final ConcurrentHashMap<String, NamedEventProcessor> registeredEventProcessors = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<com.fluxtion.server.dispatch.EventSubscriptionKey<?>, EventQueueToEventProcessor> queueProcessorMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<com.fluxtion.server.service.EventSubscriptionKey<?>, EventQueueToEventProcessor> queueProcessorMap = new ConcurrentHashMap<>();
     private final OneToOneConcurrentArrayQueue<Supplier<NamedEventProcessor>> toStartList = new OneToOneConcurrentArrayQueue<>(128);
     private final OneToOneConcurrentArrayQueue<String> toStopList = new OneToOneConcurrentArrayQueue<>(128);
     private final List<EventQueueToEventProcessor> queueReadersToAdd = new ArrayList<>();
@@ -45,7 +53,7 @@ public class ComposingEventProcessorAgent extends DynamicCompositeAgent implemen
     private final Service<com.fluxtion.server.service.scheduler.SchedulerService> schedulerService;
 
     public ComposingEventProcessorAgent(String roleName,
-                                        com.fluxtion.server.dispatch.EventFlowManager eventFlowManager,
+                                        EventFlowManager eventFlowManager,
                                         FluxtionServer fluxtionServer,
                                         DeadWheelScheduler scheduler,
                                         ConcurrentHashMap<String, Service<?>> registeredServices) {
@@ -91,7 +99,7 @@ public class ComposingEventProcessorAgent extends DynamicCompositeAgent implemen
     }
 
     @Override
-    public void subscribe(StaticEventProcessor subscriber, com.fluxtion.server.dispatch.EventSubscriptionKey<?> subscriptionKey) {
+    public void subscribe(StaticEventProcessor subscriber, com.fluxtion.server.service.EventSubscriptionKey<?> subscriptionKey) {
         Objects.requireNonNull(subscriber, "subscriber is null");
         Objects.requireNonNull(subscriptionKey, "subscriptionKey is null");
         log.info("subscribe subscriptionKey:" + subscriptionKey + " subscriber:" + subscriber);
@@ -132,12 +140,12 @@ public class ComposingEventProcessorAgent extends DynamicCompositeAgent implemen
     }
 
     private void checkForAdded() {
-        if(!toStartList.isEmpty()) {
+        if (!toStartList.isEmpty()) {
             toStartList.drain(init -> {
                 NamedEventProcessor namedEventProcessor = init.get();
                 StaticEventProcessor eventProcessor = namedEventProcessor.eventProcessor();
                 registeredEventProcessors.put(namedEventProcessor.name(), namedEventProcessor);
-                com.fluxtion.server.dispatch.EventFlowManager.setCurrentProcessor(eventProcessor);
+                com.fluxtion.server.dispatch.ProcessorContext.setCurrentProcessor(eventProcessor);
                 eventProcessor.registerService(schedulerService);
                 registeredServices.values().forEach(eventProcessor::registerService);
                 eventProcessor.addEventFeed(this);
@@ -145,7 +153,7 @@ public class ComposingEventProcessorAgent extends DynamicCompositeAgent implemen
                     ((Lifecycle) eventProcessor).start();
                     ((Lifecycle) eventProcessor).startComplete();
                 }
-                EventFlowManager.removeCurrentProcessor();
+                com.fluxtion.server.dispatch.ProcessorContext.removeCurrentProcessor();
             });
         }
 
@@ -157,7 +165,7 @@ public class ComposingEventProcessorAgent extends DynamicCompositeAgent implemen
     }
 
     private void checkForStopped() {
-        if(toStopList.isEmpty()) {
+        if (toStopList.isEmpty()) {
             return;
         }
         toStopList.drain(name -> {

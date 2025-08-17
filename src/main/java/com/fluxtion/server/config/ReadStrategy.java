@@ -6,5 +6,5 @@
 package com.fluxtion.server.config;
 
 public enum ReadStrategy {
-    COMMITED, EARLIEST, LATEST, ONCE_EARLIEST, ONCE_LATEST;
+    COMMITED, EARLIEST, LATEST, ONCE_EARLIEST, ONCE_LATEST
 }
