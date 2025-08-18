@@ -15,12 +15,12 @@ Prerequisites:
 
 References in this repo:
 
-- [Thread configuration model](src/main/java/com/fluxtion/server/config/ThreadConfig.java)
-- [Processor agent implementation](src/main/java/com/fluxtion/server/dutycycle/ComposingEventProcessorAgent.java)
-- [Service agent implementation](src/main/java/com/fluxtion/server/dutycycle/ComposingServiceAgent.java)
-- [Helper that invokes OS pinning (reflective)](src/main/java/com/fluxtion/server/internal/CoreAffinity.java)
-- [Optional test](src/test/java/com/fluxtion/server/internal/CoreAffinityOptionalTest.java)
-- [POM entry for optional Affinity dependency](pom.xml) (artifact net.openhft:affinity)
+- [Thread configuration model](../../src/main/java/com/fluxtion/server/config/ThreadConfig.java)
+- [Processor agent implementation](../../src/main/java/com/fluxtion/server/dutycycle/ComposingEventProcessorAgent.java)
+- [Service agent implementation](../../src/main/java/com/fluxtion/server/dutycycle/ComposingServiceAgent.java)
+- [Helper that invokes OS pinning (reflective)](../../src/main/java/com/fluxtion/server/internal/CoreAffinity.java)
+- [Optional test](../../src/test/java/com/fluxtion/server/internal/CoreAffinityOptionalTest.java)
+- [POM entry for optional Affinity dependency](../../pom.xml) (artifact net.openhft:affinity)
 
 ## 1) Configure core IDs with the fluent AppConfig builder
 
@@ -59,10 +59,10 @@ That’s it for configuration. When the server boots and each agent thread start
 
 Key code paths:
 
-- [FluxtionServer.java#resolveCoreIdForAgentName](../src/main/java/com/fluxtion/server/FluxtionServer.java#L726)
-- [ComposingEventProcessorAgent.java#onStart](../src/main/java/com/fluxtion/server/dutycycle/ComposingEventProcessorAgent.java#L233)
-- [ComposingServiceAgent.java#onStart](../src/main/java/com/fluxtion/server/dutycycle/ComposingServiceAgent.java#L89)
-- [CoreAffinity.java](../src/main/java/com/fluxtion/server/internal/CoreAffinity.java)
+- [FluxtionServer.java#resolveCoreIdForAgentName](../../src/main/java/com/fluxtion/server/FluxtionServer.java#L726)
+- [ComposingEventProcessorAgent.java#onStart](../../src/main/java/com/fluxtion/server/dutycycle/ComposingEventProcessorAgent.java#L233)
+- [ComposingServiceAgent.java#onStart](../../src/main/java/com/fluxtion/server/dutycycle/ComposingServiceAgent.java#L89)
+- [CoreAffinity.java](../../src/main/java/com/fluxtion/server/internal/CoreAffinity.java)
 
 ## 3) Enable OS‑level pinning (optional)
 
@@ -103,6 +103,6 @@ Notes:
 
 ## 6) Related reading
 
-- [Threading overview and agent lifecycles](docs/guide/threading-model.md#optional-core-pinning-for-agent-threads)
-- [Scheduler service](docs/guide/using-the-scheduler-service.md)
-- [Fluent AppConfig examples](src/test/java/com/fluxtion/server/example/BuilderApiFluentExampleTest.java)
+- [Threading overview and agent lifecycles](threading-model.md#optional-core-pinning-for-agent-threads)
+- [Scheduler service](using-the-scheduler-service.md)
+- [Fluent AppConfig examples](../../src/test/java/com/fluxtion/server/example/BuilderApiFluentExampleTest.java)
