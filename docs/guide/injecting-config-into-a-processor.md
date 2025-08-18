@@ -1,6 +1,6 @@
 # How to inject initial config into a processor
 
-This guide shows two simple ways to inject configuration into your event processors at server boot when using the fluent AppConfig builder.
+This guide shows how to inject configuration into your event processors at server boot when using the fluent AppConfig builder.
 
 When to use this:
 - Provide per-processor settings (thresholds, file names, feature flags)
@@ -74,7 +74,7 @@ EventProcessorConfig<?> built = EventProcessorConfig.builder()
         .build();
 ```
 
-At boot, the server will deliver this map to the processor if it exports ConfigListener.
+At boot, the server will deliver this map to the handler if it exports ConfigListener.
 
 ## 4) End-to-end example (runnable test)
 
