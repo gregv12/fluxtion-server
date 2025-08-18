@@ -30,6 +30,7 @@ can focus on business logic.
     - [using the scheduler service](docs/guide/using-the-scheduler-service.md)
     - [write a custom EventToInvokeStrategy](docs/guide/writing-a-custom-event-to-invoke-strategy.md)
     - [core pin agent threads](docs/guide/how-to-core-pin.md)
+    - [inject config into a processor](docs/guide/injecting-config-into-a-processor.md)
 - For internals see:
     - [Threading model](docs/guide/threading-model.md)
     - [Architecture docs](docs/architecture/index.md)
