@@ -6,6 +6,7 @@
 package com.fluxtion.server.dispatch;
 
 import com.fluxtion.agrona.concurrent.Agent;
+import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.server.service.CallBackType;
 import com.fluxtion.server.service.EventSource;
@@ -47,6 +48,7 @@ public class CustomEventToInvokeStrategyTest {
         @Override
         public void onEvent(Object event) {
             // not used by this strategy
+            System.out.println("received onEvent:" + event);
         }
 
         @Override
@@ -140,5 +142,85 @@ public class CustomEventToInvokeStrategyTest {
         public int doWork() { return 0; }
         @Override
         public String roleName() { return "test-agent"; }
+    }
+
+    // --- Fluent builder API server boot example ---
+    @Test
+    void fluentBuilder_bootsServer_and_applies_custom_strategy() throws Exception {
+        // Build a minimal AppConfig with one feed and one processor using the fluent builder API
+        var eventSource = new com.fluxtion.server.connector.memory.InMemoryEventSource<Object>();
+
+        // Create a processor that subscribes to the feed via EventProcessor.start() and records uppercased strings
+        var processor = new FluentRecordingProcessor("fluentEventFeed");
+
+        // Processor group
+        var processorGroup = com.fluxtion.server.config.EventProcessorGroupConfig.builder()
+                .agentName("fluent-group")
+                .idleStrategy(new BusySpinIdleStrategy())
+                .put("fluent-processor", com.fluxtion.server.config.EventProcessorConfig.<FluentRecordingProcessor>builder().handler(processor).build())
+                .build();
+
+        // Event feed config
+        var feedCfg = com.fluxtion.server.config.EventFeedConfig.builder()
+                .instance(eventSource)
+                .name("fluentEventFeed")
+                .broadcast(true)
+                .wrapWithNamedEvent(false)
+                .build();
+
+        // Build AppConfig
+        var appConfig = com.fluxtion.server.config.AppConfig.builder()
+                .addProcessorGroup(processorGroup)
+                .addEventFeed(feedCfg)
+                .onEventInvokeStrategy(UppercaseStringStrategy::new)
+                .build();
+
+        // Boot server which will register our custom EventToInvokeStrategy from config
+        var server = com.fluxtion.server.FluxtionServer.bootServer(appConfig, rec -> {});
+        try {
+
+            // Publish both a String and a non-String event
+            eventSource.publishNow("hello");
+            eventSource.offer(42);
+
+            // Spin-wait briefly for async processing
+            long end = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(2);
+            while (System.nanoTime() < end && processor.received.size() < 1) {
+                Thread.sleep(10);
+            }
+
+            // Assert our processor received the transformed string via the custom strategy
+            assertEquals(List.of("HELLO"), processor.received);
+            assertSame(processor, processor.seenCurrentProcessor);
+        } finally {
+            server.stop();
+        }
+    }
+
+    // Processor used with the fluent builder server boot example
+    static class FluentRecordingProcessor extends RecordingProcessor implements com.fluxtion.runtime.EventProcessor<FluentRecordingProcessor> {
+        private final java.util.List<com.fluxtion.runtime.input.EventFeed> feeds = new java.util.ArrayList<>();
+        private final String feedName;
+
+        FluentRecordingProcessor(String feedName) {
+            this.feedName = feedName;
+        }
+
+        @Override
+        public void addEventFeed(com.fluxtion.runtime.input.EventFeed eventFeed) {
+            feeds.add(eventFeed);
+        }
+
+        @Override
+        public void init() { }
+
+        @Override
+        public void start() {
+            var key = EventSubscriptionKey.onEvent(feedName);
+            feeds.forEach(f -> f.subscribe(this, key));
+        }
+
+        @Override
+        public void tearDown() { }
     }
 }

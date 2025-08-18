@@ -11,8 +11,8 @@ When to customize:
 ## 1) Choose a base: implement the interface or extend the helper
 
 You can:
-- Implement the low-level interface directly: com.fluxtion.server.service.EventToInvokeStrategy
-- Or extend the convenience base class: com.fluxtion.server.dispatch.AbstractEventToInvocationStrategy
+- Implement the low-level interface directly: [com.fluxtion.server.service.EventToInvokeStrategy](../../src/main/java/com/fluxtion/server/service/EventToInvokeStrategy.java)
+- Or extend the convenience base class: [com.fluxtion.server.dispatch.AbstractEventToInvocationStrategy](../../src/main/java/com/fluxtion/server/dispatch/AbstractEventToInvocationStrategy.java)
 
 The helper already manages:
 - Registration/deregistration of processors (thread-safe list)
@@ -53,14 +53,14 @@ public class UppercaseStringStrategy extends AbstractEventToInvocationStrategy {
 
 Notes:
 - Using an invoker strategy allows your event processors to be strongly typed (e.g., MarkerProcessor.onString), while the strategy takes responsibility for mapping inbound events to the correct callback. This reduces boilerplate and centralizes dispatch logic, which can make future maintenance easier.
-- ProcessorContext is automatically set to the current target processor during dispatch. Inside the processor, you can call ProcessorContext.currentProcessor() if needed.
+- [ProcessorContext](../../src/main/java/com/fluxtion/server/dispatch/ProcessorContext.java) is automatically set to the current target processor during dispatch. Inside the processor, you can call ProcessorContext.currentProcessor() if needed.
 - If you call processEvent(event, time), AbstractEventToInvocationStrategy wires a synthetic clock into each target processor via setClockStrategy so that processors can use a provided time source.
 
 ## 3) Wire your strategy into the runtime
 
-Register your strategy as a factory for a CallBackType. The ON_EVENT_CALL_BACK delivers raw events to processors.
+Register your strategy as a factory for a [CallBackType](../../src/main/java/com/fluxtion/server/service/CallBackType.java). The ON_EVENT_CALL_BACK delivers raw events to processors.
 
-Via EventFlowManager:
+Via [EventFlowManager](../../src/main/java/com/fluxtion/server/dispatch/EventFlowManager.java):
 ```java
 EventFlowManager flow = new EventFlowManager();
 flow.registerEventMapperFactory(UppercaseStringStrategy::new, CallBackType.ON_EVENT_CALL_BACK);
@@ -78,7 +78,16 @@ publisher.publish("hello");
 agent.doWork(); // drains the queue and invokes your strategy
 ```
 
-Via FluxtionServer (if you bootstrap a server):
+Via AppConfig fluent builder (server will register on boot):
+```java
+AppConfig appConfig = AppConfig.builder()
+    .onEventInvokeStrategy(UppercaseStringStrategy::new)
+    // add groups, feeds, sinks, services
+    .build();
+FluxtionServer server = FluxtionServer.bootServer(appConfig);
+```
+
+Via FluxtionServer (register at runtime):
 ```java
 FluxtionServer server = FluxtionServer.bootServer(appConfig);
 server.registerEventMapperFactory(UppercaseStringStrategy::new, CallBackType.ON_EVENT_CALL_BACK);
@@ -91,4 +100,15 @@ server.registerEventMapperFactory(UppercaseStringStrategy::new, CallBackType.ON_
 - Publish test events through EventToQueuePublisher and call agent.doWork() to force processing.
 - If you need timestamp semantics, publish a ReplayRecord through the EventToQueuePublisher or use processEvent(event, time) inside a controlled driver and have your processor consult its clock strategy.
 
-See src/test/java/com/fluxtion/server/dispatch/CustomEventToInvokeStrategyTest.java for a complete, runnable example.
+See [CustomEventToInvokeStrategyTest.java](../../src/test/java/com/fluxtion/server/dispatch/CustomEventToInvokeStrategyTest.java) for a complete, runnable example. It includes:
+- A direct EventFlowManager usage example of a custom strategy ✓
+- A fluent AppConfig builder example that boots a FluxtionServer and registers the custom strategy ✓
+
+References:
+- [EventFlowManager](../../src/main/java/com/fluxtion/server/dispatch/EventFlowManager.java)
+- [EventToQueuePublisher](../../src/main/java/com/fluxtion/server/dispatch/EventToQueuePublisher.java)
+- [EventSourceKey](../../src/main/java/com/fluxtion/server/service/EventSourceKey.java)
+- [FluxtionServer](../../src/main/java/com/fluxtion/server/FluxtionServer.java)
+- [CallBackType](../../src/main/java/com/fluxtion/server/service/CallBackType.java)
+- [AbstractEventToInvocationStrategy](../../src/main/java/com/fluxtion/server/dispatch/AbstractEventToInvocationStrategy.java)
+- [ProcessorContext](../../src/main/java/com/fluxtion/server/dispatch/ProcessorContext.java)
