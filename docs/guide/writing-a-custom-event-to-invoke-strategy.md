@@ -6,7 +6,7 @@ When to customize:
 - Filter which processors can receive events
 - Transform events before delivery
 - Route or multiplex events differently than the default onEvent dispatch
-- Provide custom handling for wall-clock timestamps (synthetic clock)
+- Callback to a strongly-typed interface
 
 ## 1) Choose a base: implement the interface or extend the helper
 
@@ -60,24 +60,6 @@ Notes:
 
 Register your strategy as a factory for a [CallBackType](../../src/main/java/com/fluxtion/server/service/CallBackType.java). The ON_EVENT_CALL_BACK delivers raw events to processors.
 
-Via [EventFlowManager](../../src/main/java/com/fluxtion/server/dispatch/EventFlowManager.java):
-```java
-EventFlowManager flow = new EventFlowManager();
-flow.registerEventMapperFactory(UppercaseStringStrategy::new, CallBackType.ON_EVENT_CALL_BACK);
-
-// Create an event source and subscribe a mapping agent
-EventToQueuePublisher<Object> publisher = flow.registerEventSource("mySource", eventSource);
-Agent subscriber = ...;
-EventQueueToEventProcessor agent = flow.getMappingAgent(new EventSourceKey<>("mySource"), CallBackType.ON_EVENT_CALL_BACK, subscriber);
-
-// Register processors
-agent.registerProcessor(myProcessorImplementingMarker);
-
-// Publish and drive the agent
-publisher.publish("hello");
-agent.doWork(); // drains the queue and invokes your strategy
-```
-
 Via AppConfig fluent builder (server will register on boot):
 ```java
 AppConfig appConfig = AppConfig.builder()
@@ -86,6 +68,7 @@ AppConfig appConfig = AppConfig.builder()
     .build();
 FluxtionServer server = FluxtionServer.bootServer(appConfig);
 ```
+For a full end-to-end example that boots the server via the fluent AppConfig builder and verifies the custom strategy, see the test method fluentBuilder_bootsServer_and_applies_custom_strategy in [CustomEventToInvokeStrategyTest.java](../../src/test/java/com/fluxtion/server/dispatch/CustomEventToInvokeStrategyTest.java).
 
 Via FluxtionServer (register at runtime):
 ```java

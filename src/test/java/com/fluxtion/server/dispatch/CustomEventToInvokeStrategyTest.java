@@ -8,6 +8,8 @@ package com.fluxtion.server.dispatch;
 import com.fluxtion.agrona.concurrent.Agent;
 import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
 import com.fluxtion.runtime.StaticEventProcessor;
+import com.fluxtion.runtime.input.EventFeed;
+import com.fluxtion.server.config.EventProcessorConfig;
 import com.fluxtion.server.service.CallBackType;
 import com.fluxtion.server.service.EventSource;
 import com.fluxtion.server.service.EventSourceKey;
@@ -48,7 +50,6 @@ public class CustomEventToInvokeStrategyTest {
         @Override
         public void onEvent(Object event) {
             // not used by this strategy
-            System.out.println("received onEvent:" + event);
         }
 
         @Override
@@ -157,7 +158,7 @@ public class CustomEventToInvokeStrategyTest {
         var processorGroup = com.fluxtion.server.config.EventProcessorGroupConfig.builder()
                 .agentName("fluent-group")
                 .idleStrategy(new BusySpinIdleStrategy())
-                .put("fluent-processor", com.fluxtion.server.config.EventProcessorConfig.<FluentRecordingProcessor>builder().handler(processor).build())
+                .put("fluent-processor", EventProcessorConfig.<FluentRecordingProcessor>builder().handler(processor).build())
                 .build();
 
         // Event feed config
@@ -199,7 +200,7 @@ public class CustomEventToInvokeStrategyTest {
 
     // Processor used with the fluent builder server boot example
     static class FluentRecordingProcessor extends RecordingProcessor implements com.fluxtion.runtime.EventProcessor<FluentRecordingProcessor> {
-        private final java.util.List<com.fluxtion.runtime.input.EventFeed> feeds = new java.util.ArrayList<>();
+        private final java.util.List<EventFeed> feeds = new java.util.ArrayList<>();
         private final String feedName;
 
         FluentRecordingProcessor(String feedName) {
@@ -207,7 +208,7 @@ public class CustomEventToInvokeStrategyTest {
         }
 
         @Override
-        public void addEventFeed(com.fluxtion.runtime.input.EventFeed eventFeed) {
+        public void addEventFeed(EventFeed eventFeed) {
             feeds.add(eventFeed);
         }
 
