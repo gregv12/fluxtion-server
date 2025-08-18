@@ -29,6 +29,7 @@ can focus on business logic.
     - [add an admin command](docs/guide/writing-an-admin-command.md)
     - [using the scheduler service](docs/guide/using-the-scheduler-service.md)
     - [write a custom EventToInvokeStrategy](docs/guide/writing-a-custom-event-to-invoke-strategy.md)
+    - [core pin agent threads](docs/guide/how-to-core-pin.md)
 - For internals see:
     - [Threading model](docs/guide/threading-model.md)
     - [Architecture docs](docs/architecture/index.md)

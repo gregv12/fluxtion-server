@@ -69,6 +69,14 @@
             <version>5.13.4</version>
             <scope>test</scope>
         </dependency>
+        <!-- Optional pinning helper for tests only -->
+        <dependency>
+            <groupId>net.openhft</groupId>
+            <artifactId>affinity</artifactId>
+            <version>3.27ea0</version>
+            <scope>test</scope>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
 
     <build>
