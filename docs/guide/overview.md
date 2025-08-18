@@ -157,20 +157,6 @@ F --> A
 5. Runtime: Event processing and service execution
 6. Management: Dynamic control of components
 
-## Usage Examples
-
-Start from code:
-
-```java
-FluxtionServer server = FluxtionServer.bootServer(appConfig, logRecordListener);
-```
-
-Or use the default bootstrap:
-
-```java
-FluxtionServer server = FluxtionServer.bootServer(logRecordListener);
-```
-
 ## See Also
 
 - [Architecture index](../architecture/index.md)

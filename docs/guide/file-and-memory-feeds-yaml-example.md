@@ -1,8 +1,10 @@
 # Example: Wiring File and In‑Memory Event Sources to a File Sink using YAML configuration
 
-This guide shows the same scenario as the fluent builder example, but using a YAML configuration loaded by `FluxtionServer.bootServer(Reader, ...)`.
+This guide shows the same scenario as the fluent builder example, but using a YAML configuration loaded by
+`FluxtionServer.bootServer(Reader, ...)`.
 
 What you will do:
+
 - Create a custom processor by extending `ObjectEventHandlerNode` that publishes to a file sink.
 - Configure two event sources: `FileEventSource` and `InMemoryEventSource`.
 - Configure a `FileMessageSink` as an output.
@@ -12,7 +14,8 @@ The processor receives events from both sources and writes them to a file sink.
 
 ## 1) Custom handler
 
-We reuse the same handler as the fluent example: `BuilderApiExampleHandler` — it accepts any event and publishes it to the injected sink.
+We reuse the same handler as the fluent example: `BuilderApiExampleHandler` — it accepts any event and publishes it to
+the injected sink.
 Source: `src/test/java/com/fluxtion/server/example/BuilderApiExampleHandler.java`
 
 ```java
@@ -37,7 +40,8 @@ public class BuilderApiExampleHandler extends ObjectEventHandlerNode {
 
 ## 2) YAML configuration
 
-The YAML wires two event feeds and one sink, and registers the handler in a processor group. Replace the file paths with your desired locations.
+The YAML wires two event feeds and one sink, and registers the handler in a processor group. Replace the file paths
+with your desired locations.
 
 ```yaml
 # --------- EVENT INPUT FEEDS BEGIN CONFIG ---------
@@ -75,7 +79,9 @@ eventHandlers:
 ```
 
 Notes:
-- `eventFeeds[].instance` holds the actual event-source object; we set properties such as `filename` and `cacheEventLog` directly.
+
+- `eventFeeds[].instance` holds the actual event-source object; we set properties such as `filename` and `cacheEventLog`
+  directly.
 - `broadcast: true` ensures the feed is broadcast to all processors.
 - The sink is registered via `eventSinks` with an instance of `FileMessageSink` and its `filename`.
 - The processor group registers `BuilderApiExampleHandler` as a `customHandler` under the name `example-processor`.
@@ -105,9 +111,14 @@ try {
 
 ## 4) Complete, runnable test
 
-See `src/test/java/com/fluxtion/server/example/YamlConfigFeedsExampleTest.java` for a full end-to-end test that builds the YAML string programmatically with temporary file paths, boots the server, stimulates both sources, and asserts the sink content.
+See [YamlConfigFeedsExampleTest](./../../src/test/java/com/fluxtion/server/example/YamlConfigFeedsExampleTest.java)
+for a full end-to-end test that builds the YAML string programmatically with temporary file paths, boots the server,
+stimulates both sources, and asserts the sink content.
 
 ## Tips
-- `FileEventSource` and `InMemoryEventSource` support pre-start caching via `cacheEventLog: true` so that data produced before `startComplete` is not lost.
+
+- `FileEventSource` and `InMemoryEventSource` support pre-start caching via `cacheEventLog: true` so that data produced
+  before `startComplete` is not lost.
 - You can declare additional services using `services:` in YAML if your handler needs more dependencies.
-- If you want to run a sink or source on its own agent thread, ensure the instance implements `com.fluxtion.agrona.concurrent.Agent` and add `agentName` and `idleStrategy` to the respective config section.
+- If you want to run a sink or source on its own agent thread, ensure the instance implements
+- `com.fluxtion.agrona.concurrent.Agent` and add `agentName` and `idleStrategy` to the respective config section.

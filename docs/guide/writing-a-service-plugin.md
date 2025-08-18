@@ -1,8 +1,13 @@
 # Guide: Writing a Service Plugin for Fluxtion Server
 
-This guide explains how to implement and integrate a custom Service into Fluxtion Server. A service is a component that is registered with the server and can participate in lifecycle management and dependency injection. Services can be simple (Lifecycle only) or worker/agent-hosted (with their own thread). They may also interact with the event flow when they implement specific interfaces, but a “service plugin” here focuses on generic, reusable capabilities (admin, metrics, adaptors, utilities, HTTP clients/servers, etc.).
+This guide explains how to implement and integrate a custom Service into Fluxtion Server. A service is a component that
+is registered with the server and can participate in lifecycle management and dependency injection. Services can be
+simple (Lifecycle only) or worker/agent-hosted (with their own thread). They may also interact with the event flow when
+they implement specific interfaces, but a “service plugin” here focuses on generic, reusable capabilities (admin,
+metrics, adaptors, utilities, HTTP clients/servers, etc.).
 
 You’ll learn:
+
 - When to write a service
 - Implementing a simple Lifecycle service
 - Implementing a worker (agent-hosted) service
@@ -12,21 +17,28 @@ You’ll learn:
 - Testing patterns and common pitfalls
 
 References in this repository:
+
 - `src/main/java/com/fluxtion/server/config/ServiceConfig.java`
 - `src/main/java/com/fluxtion/server/internal/ServerConfigurator.java`
 - `src/main/java/com/fluxtion/server/FluxtionServer.java`
 
 ## When to write a service
-Create a service when you need reusable functionality that should be lifecycle-managed and injectable across processors and other services. Typical use cases:
+
+Create a service when you need reusable functionality that should be lifecycle-managed and injectable across processors
+and other services. Typical use cases:
+
 - Provide an admin or control API (e.g., register commands)
 - Maintain shared state or caches available to multiple components
 - Expose a client to external systems (HTTP/DB/KV) for processors to use
 - Run background maintenance tasks or telemetry collection
 
-If the service needs to run continuously and perform periodic work, consider implementing it as a worker service (agent-hosted). If it just exposes methods and reacts to calls, a simple `Lifecycle` service is sufficient.
+If the service needs to run continuously and perform periodic work, consider implementing it as a worker service (
+agent-hosted). If it just exposes methods and reacts to calls, a simple `Lifecycle` service is sufficient.
 
 ## Simple Lifecycle-based service (no agent)
-A basic service implements `com.fluxtion.runtime.lifecycle.Lifecycle` (optional but recommended). The server will call its lifecycle methods in order.
+
+A basic service implements `com.fluxtion.runtime.lifecycle.Lifecycle` (optional but recommended). The server will call
+its lifecycle methods in order.
 
 ```java
 package com.mycompany.service;
@@ -74,7 +86,9 @@ public class MySimpleService implements Lifecycle {
 ```
 
 ## Worker (agent-hosted) service
-If your service needs its own thread to perform a periodic loop, implement `com.fluxtion.agrona.concurrent.Agent` (and optionally `Lifecycle`). Worker services are registered in an agent group with a chosen idle strategy.
+
+If your service needs its own thread to perform a periodic loop, implement `com.fluxtion.agrona.concurrent.Agent` (and
+optionally `Lifecycle`). Worker services are registered in an agent group with a chosen idle strategy.
 
 ```java
 package com.mycompany.service;
@@ -131,11 +145,14 @@ public class MyWorkerService implements Agent, Lifecycle {
 ```
 
 Notes:
+
 - Keep `doWork()` non-blocking; rely on the idle strategy to handle waiting.
 - If you need IO, prefer time-bounded operations or non-blocking APIs.
 
 ## Dependency injection with @ServiceRegistered
-Services can both inject and be injected into each other (and into processors) using the `@ServiceRegistered` annotation. The server performs reflective injection during `registerService`.
+
+Services can both inject and be injected into each other (and into processors) using the `@ServiceRegistered`
+annotation. The server performs reflective injection during `registerService`.
 
 ```java
 package com.mycompany.processor;
@@ -166,10 +183,13 @@ public class MyHandler extends ObjectEventHandlerNode {
 ```
 
 Key points:
+
 - The `@ServiceRegistered` method can accept the service instance and optionally the service name.
-- Server injects newly registered services into all existing services and vice versa (single-target injection step), enabling loose coupling.
+- Server injects newly registered services into all existing services and vice versa (single-target injection step),
+  enabling loose coupling.
 
 ## Registering services with AppConfig (fluent builder)
+
 Register services using `ServiceConfig`. For worker services, specify an agent group and an idle strategy.
 
 ```java
@@ -200,11 +220,13 @@ AppConfig app = AppConfig.builder()
 ```
 
 When booting the server with this `AppConfig`, `ServerConfigurator` will:
+
 - Register the simple service (as a regular `Service`)
 - Register the worker service (as a `ServiceAgent` with the given agent group and idle strategy)
 - Perform dependency injection between all registered services and processors
 
 ## Programmatic boot and lookup
+
 You can also boot programmatically and inspect the registered services map.
 
 ```java
@@ -224,17 +246,24 @@ try {
 }
 ```
 
-You may also boot from YAML using `FluxtionServer.bootServer(Reader, LogRecordListener)`; YAML maps directly to `AppConfig` and `ServiceConfig` fields.
+You may also boot from YAML using `FluxtionServer.bootServer(Reader, LogRecordListener)`; YAML maps directly to
+`AppConfig` and `ServiceConfig` fields.
 
 ## Worker services and agent threads
+
 - A worker service must implement `com.fluxtion.agrona.concurrent.Agent`.
 - In `ServiceConfig`, set `agent(groupName, idleStrategy)` to host it in a runner thread.
-- The server selects an idle strategy using `AppConfig.getIdleStrategyOrDefault(...)` when necessary; per-group overrides are supported via `AppConfig.agentThreads`.
+- The server selects an idle strategy using `AppConfig.getIdleStrategyOrDefault(...)` when necessary; per-group
+  overrides are supported via `AppConfig.agentThreads`.
 
 ## Testing your service
-- Unit-test simple services by constructing them directly and calling lifecycle methods in order (`init`, `start`, `stop`, `tearDown`).
-- For worker services, test the `doWork()` loop logic in isolation; avoid real sleeping; simulate time or use small intervals.
-- For integration tests with the server: build a small `AppConfig`, boot the server, and verify injection and interactions work.
+
+- Unit-test simple services by constructing them directly and calling lifecycle methods in order (`init`, `start`,
+  `stop`, `tearDown`).
+- For worker services, test the `doWork()` loop logic in isolation; avoid real sleeping; simulate time or use small
+  intervals.
+- For integration tests with the server: build a small `AppConfig`, boot the server, and verify injection and
+  interactions work.
 
 Example test snippet for a simple service:
 
@@ -249,14 +278,19 @@ svc.tearDown();
 ```
 
 ## Common pitfalls and tips
+
 - Make `stop()` idempotent; always close resources.
 - Avoid long blocking in `Agent#doWork()`; keep it non-blocking with bounded work per call.
 - Guard logs in hot paths using `log.isLoggable(...)` to reduce overhead.
 - Provide clear service names in `ServiceConfig` for easier injection and debugging.
-- If your service also participates in event flow (implements `EventFlowService`), the server will wire it to the `EventFlowManager` automatically during registration.
+- If your service also participates in event flow (implements `EventFlowService`), the server will wire it to the
+  `EventFlowManager` automatically during registration.
 
 ## See also
-- Message sinks: `docs/guide/writing-a-message-sink-plugin.md`
-- Event sources: `docs/guide/writing-an-event-source-plugin.md`
-- Configuration API: `src/main/java/com/fluxtion/server/config/ServiceConfig.java`, `AppConfig.Builder`
-- Bootstrapping: `src/main/java/com/fluxtion/server/internal/ServerConfigurator.java`, `FluxtionServer`
+
+- Message sinks: [Writing a Message Sink Plugin](../guide/writing-a-message-sink-plugin.md)
+- Event sources: [Writing an Event Source Plugin](../guide/writing-an-event-source-plugin.md)
+- Configuration API: [ServiceConfig.java](../../src/main/java/com/fluxtion/server/config/ServiceConfig.java),
+  `AppConfig.Builder`
+- Bootstrapping: [ServerConfigurator.java](../../src/main/java/com/fluxtion/server/internal/ServerConfigurator.java),
+  `FluxtionServer`

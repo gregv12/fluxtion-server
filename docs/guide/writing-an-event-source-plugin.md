@@ -1,6 +1,7 @@
 # Guide: Writing an Event Source Plugin for Fluxtion Server
 
-This guide explains how to implement a custom event source (input connector) that publishes events into Fluxtion Server’s event flow. You will learn how to:
+This guide explains how to implement a custom event source (input connector) that publishes events into Fluxtion
+Server’s event flow. You will learn how to:
 
 - Choose the right base class for your source
 - Implement lifecycle and (optionally) agent work loops
@@ -10,39 +11,51 @@ This guide explains how to implement a custom event source (input connector) tha
 - Test your event source
 
 Reference implementations in this repository:
-- File-based source: src/main/java/com/fluxtion/server/connector/file/FileEventSource.java
-- In-memory source: src/main/java/com/fluxtion/server/connector/memory/InMemoryEventSource.java
-- Base classes: src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java and AbstractAgentHostedEventSourceService.java
+
+- File-based source: [FileEventSource.java](../../src/main/java/com/fluxtion/server/connector/file/FileEventSource.java)
+- In-memory
+  source: [InMemoryEventSource.java](../../src/main/java/com/fluxtion/server/connector/memory/InMemoryEventSource.java)
+- Base
+  classes: [AbstractEventSourceService.java](../../src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java)
+  and [AbstractAgentHostedEventSourceService.java](../../src/main/java/com/fluxtion/server/service/extension/AbstractAgentHostedEventSourceService.java)
 
 ## When to write a source
+
 Create a custom source when events originate outside your processors and must be injected into the server, e.g.:
+
 - Tail a file, read a socket/HTTP stream, consume from Kafka/JMS/MQTT, poll a DB, integrate a custom driver, etc.
 
-If your source needs its own thread and a non-blocking work loop, implement an agent-hosted source. If events are pushed from an external library callback (and you don’t need your own loop), a non-agent source may be sufficient.
+If your source needs its own thread and a non-blocking work loop, implement an agent-hosted source. If events are pushed
+from an external library callback (and you don’t need your own loop), a non-agent source may be sufficient.
 
 ## Pick a base class
 
 - AbstractEventSourceService<T>
-  - Use when your source does not need an Agrona Agent; e.g., you receive callbacks from another component and can forward to Fluxtion.
-  - You get lifecycle hooks (init/start/stop/tearDown) and are wired into the event flow.
+    - Use when your source does not need an Agrona Agent; e.g., you receive callbacks from another component and can
+      forward to Fluxtion.
+    - You get lifecycle hooks (init/start/stop/tearDown) and are wired into the event flow.
 
 - AbstractAgentHostedEventSourceService<T>
-  - Extends AbstractEventSourceService and implements com.fluxtion.agrona.concurrent.Agent.
-  - Use when your source runs its own work loop (doWork), like file tailing, network reads, or periodic polling.
-  - Provides roleName() for agent diagnostics.
+    - Extends AbstractEventSourceService and implements com.fluxtion.agrona.concurrent.Agent.
+    - Use when your source runs its own work loop (doWork), like file tailing, network reads, or periodic polling.
+    - Provides roleName() for agent diagnostics.
 
-Both base classes take care of registration with the EventFlowManager and provide an EventToQueuePublisher<T> named output you use to publish events.
+Both base classes take care of registration with the EventFlowManager and provide an EventToQueuePublisher<T> named
+output you use to publish events.
 
 ## Lifecycle and publishing
 
 Typical lifecycle flow:
+
 - init(): light setup
 - start(): allocate IO/resources, set up caching or state
-- startComplete(): server signals that the system is ready; you may switch from caching to publishing and replay cached events
+- startComplete(): server signals that the system is ready; you may switch from caching to publishing and replay cached
+  events
 - doWork(): agent loop (only for agent-hosted sources)
 - stop()/tearDown(): release resources
 
 Publishing APIs available via this.output:
+
 - output.publish(item): map (via dataMapper) and dispatch immediately to subscribed queues
 - output.cache(item): record in the event log cache but do not dispatch yet
 - output.setCacheEventLog(boolean): enable/disable event log caching
@@ -162,19 +175,24 @@ public class MyCallbackSource extends AbstractEventSourceService<String> {
 ```
 
 ## Event wrapping, slow-consumer policy, and data mapping
+
 Event wrapping determines how items are written to queues:
+
 - SUBSCRIPTION_NOWRAP: publish raw mapped item only to subscribed processors
 - SUBSCRIPTION_NAMED_EVENT: wrap in NamedFeedEvent for subscribers (default in EventFeedConfig)
 - BROADCAST_NOWRAP / BROADCAST_NAMED_EVENT: deliver to all handlers regardless of subscription
 
 Slow-consumer policy hints (currently managed internally):
+
 - BACKOFF (default) — used by EventToQueuePublisher to avoid long blocking on contended queues
 
 Data mapping lets you transform T->U before dispatch (e.g., parse lines, decode bytes):
+
 - In code: setDataMapper(Function<T, ?>)
 - Via config builder: EventFeedConfig.Builder#valueMapper
 
 ## Register your source with AppConfig
+
 Use EventFeedConfig to add your source, control wrapping/broadcast, and optionally host it on an agent thread.
 
 ```java
@@ -198,13 +216,19 @@ AppConfig app = AppConfig.builder()
 ```
 
 Notes:
-- If your source implements Agent (i.e., extends AbstractAgentHostedEventSourceService), supply agent(name, idleStrategy) in EventFeedConfig.
+
+- If your source implements Agent (i.e., extends AbstractAgentHostedEventSourceService), supply agent(name,
+  idleStrategy) in EventFeedConfig.
 - If it’s not agent-hosted, omit the agent() call.
 
-Under the hood, ServerConfigurator will translate your EventFeedConfig into a Service or ServiceAgent and register it with FluxtionServer. During registration, AbstractEventSourceService wires itself to the EventFlowManager and prepares the EventToQueuePublisher output.
+Under the hood, ServerConfigurator will translate your EventFeedConfig into a Service or ServiceAgent and register it
+with FluxtionServer. During registration, AbstractEventSourceService wires itself to the EventFlowManager and prepares
+the EventToQueuePublisher output.
 
 ## Pre-start caching pattern
+
 If you need to read an initial backlog before serving live (or avoid dropping events during server startup):
+
 - Call output.setCacheEventLog(true) in start()
 - Cache(events) until startComplete()
 - On startComplete(), set a flag to publish and call output.dispatchCachedEventLog()
@@ -212,12 +236,15 @@ If you need to read an initial backlog before serving live (or avoid dropping ev
 This pattern is used by FileEventSource and InMemoryEventSource in this repo.
 
 ## Testing your source
+
 - Unit test the doWork() loop (for agent-hosted) or the callback path (for non-agent).
 - Inject a test EventToQueuePublisher and a OneToOneConcurrentArrayQueue as the target queue; drain and assert outputs.
 - Verify event log when caching is enabled via output.getEventLog().
-- See src/test/java/com/fluxtion/server/connector/file/FileEventSourceTest.java and src/test/java/com/fluxtion/server/connector/memory/InMemoryEventSourceTest.java for patterns.
+- See src/test/java/com/fluxtion/server/connector/file/FileEventSourceTest.java and
+  src/test/java/com/fluxtion/server/connector/memory/InMemoryEventSourceTest.java for patterns.
 
 Example snippet:
+
 ```java
 EventToQueuePublisher<String> pub = new EventToQueuePublisher<>("myFeed");
 OneToOneConcurrentArrayQueue<Object> q = new OneToOneConcurrentArrayQueue<>(128);
@@ -235,13 +262,22 @@ assertEquals(List.of("x"), drained.stream().map(Object::toString).toList());
 ```
 
 ## Tips and pitfalls
-- Avoid blocking indefinitely in doWork(); use non-blocking reads or time-bounded IO. Let the agent idle strategy handle waits.
+
+- Avoid blocking indefinitely in doWork(); use non-blocking reads or time-bounded IO. Let the agent idle strategy handle
+  waits.
 - Guard logging in hot paths (use log.isLoggable) to avoid overhead.
-- Keep data mapping simple and resilient; report mapping errors via the built-in error reporting when appropriate (EventToQueuePublisher logs mapping errors).
+- Keep data mapping simple and resilient; report mapping errors via the built-in error reporting when appropriate (
+  EventToQueuePublisher logs mapping errors).
 - Ensure stop() is idempotent and always closes resources.
-- For file-like sources, consider read strategies (earliest, committed, latest); see FileEventSource for an example approach.
+- For file-like sources, consider read strategies (earliest, committed, latest); see FileEventSource for an example
+  approach.
 
 ## See also
-- FileEventSource.java and InMemoryEventSource.java for complete, working examples
-- docs/guide/file-and-memory-feeds-example.md for end-to-end wiring with processors and sinks
-- AbstractEventSourceService, AbstractAgentHostedEventSourceService for lifecycle and wiring details
+
+- [FileEventSource.java](../../src/main/java/com/fluxtion/server/connector/file/FileEventSource.java)
+  and [InMemoryEventSource.java](../../src/main/java/com/fluxtion/server/connector/memory/InMemoryEventSource.java) for
+  complete, working examples
+- [docs/guide/file-and-memory-feeds-example.md](file-and-memory-feeds-example.md) for end-to-end wiring with processors
+  and sinks
+- [AbstractEventSourceService](../../src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java), [AbstractAgentHostedEventSourceService](../../src/main/java/com/fluxtion/server/service/extension/AbstractAgentHostedEventSourceService.java)
+  for lifecycle and wiring details
