@@ -11,8 +11,8 @@ When to customize:
 ## 1) Choose a base: implement the interface or extend the helper
 
 You can:
-- Implement the low-level interface directly: [com.fluxtion.server.service.EventToInvokeStrategy](../../src/main/java/com/fluxtion/server/service/EventToInvokeStrategy.java)
-- Or extend the convenience base class: [com.fluxtion.server.dispatch.AbstractEventToInvocationStrategy](../../src/main/java/com/fluxtion/server/dispatch/AbstractEventToInvocationStrategy.java)
+- Implement the low-level interface directly: [EventToInvokeStrategy](../../src/main/java/com/fluxtion/server/service/EventToInvokeStrategy.java)
+- Or extend the convenience base class: [AbstractEventToInvocationStrategy](../../src/main/java/com/fluxtion/server/dispatch/AbstractEventToInvocationStrategy.java)
 
 The helper already manages:
 - Registration/deregistration of processors (thread-safe list)
