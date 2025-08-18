@@ -39,6 +39,12 @@ public final class ServerConfigurator {
         FluxtionServer fluxtionServer = new FluxtionServer(appConfig);
         fluxtionServer.setDefaultErrorHandler(new GlobalErrorHandler());
 
+        // Register any configured event-to-invocation strategies with the flow manager
+        if (appConfig.getEventInvokeStrategies() != null && !appConfig.getEventInvokeStrategies().isEmpty()) {
+            appConfig.getEventInvokeStrategies().forEach((type, factory) ->
+                    fluxtionServer.registerEventMapperFactory(factory, type));
+        }
+
         //root server controller
         fluxtionServer.registerService(new Service<>(fluxtionServer, FluxtionServerController.class, FluxtionServerController.SERVICE_NAME));
 

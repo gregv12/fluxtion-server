@@ -9,11 +9,15 @@ import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
 import com.fluxtion.agrona.concurrent.IdleStrategy;
 import com.fluxtion.agrona.concurrent.YieldingIdleStrategy;
 import com.fluxtion.runtime.EventProcessor;
+import com.fluxtion.server.service.CallBackType;
+import com.fluxtion.server.service.EventToInvokeStrategy;
 import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * Application-level configuration for Fluxtion Server.
@@ -86,6 +90,12 @@ public class AppConfig {
      * {@link #addProcessor(EventProcessor, String)} when explicit groups are not provided.
      */
     private EventProcessorGroupConfig defaultHandlerGroupConfig;
+
+    /**
+     * Optional mapping of callback types to event-to-invocation strategy factories.
+     * If provided, these strategies will be registered with the EventFlowManager during server boot.
+     */
+    private Map<CallBackType, Supplier<EventToInvokeStrategy>> eventInvokeStrategies;
 
     /**
      * Gets the list of event handler groups, initializing if {@code null} and adding
@@ -319,6 +329,7 @@ public class AppConfig {
         private final List<ServiceConfig<?>> services = new ArrayList<>();
         private final List<ThreadConfig> agentThreads = new ArrayList<>();
         private IdleStrategy idleStrategy;
+        private final Map<CallBackType, Supplier<EventToInvokeStrategy>> eventInvokeStrategies = new HashMap<>();
 
         private Builder() {
         }
@@ -390,6 +401,30 @@ public class AppConfig {
         }
 
         /**
+         * Register an EventToInvokeStrategy factory for a specific callback type.
+         *
+         * @param type    callback type this strategy applies to
+         * @param factory supplier that produces the strategy instance
+         * @return this builder
+         */
+        public Builder eventInvokeStrategy(CallBackType type, Supplier<EventToInvokeStrategy> factory) {
+            if (type != null && factory != null) {
+                this.eventInvokeStrategies.put(type, factory);
+            }
+            return this;
+        }
+
+        /**
+         * Convenience for the common ON_EVENT callback type.
+         *
+         * @param factory supplier that produces the strategy instance
+         * @return this builder
+         */
+        public Builder onEventInvokeStrategy(Supplier<EventToInvokeStrategy> factory) {
+            return eventInvokeStrategy(CallBackType.ON_EVENT_CALL_BACK, factory);
+        }
+
+        /**
          * Build an {@link AppConfig} instance from the accumulated values.
          *
          * @return a new {@link AppConfig}
@@ -402,6 +437,7 @@ public class AppConfig {
             if (!services.isEmpty()) cfg.setServices(new ArrayList<>(services));
             if (!agentThreads.isEmpty()) cfg.setAgentThreads(new ArrayList<>(agentThreads));
             if (idleStrategy != null) cfg.setIdleStrategy(idleStrategy);
+            if (!eventInvokeStrategies.isEmpty()) cfg.setEventInvokeStrategies(new HashMap<>(eventInvokeStrategies));
             return cfg;
         }
     }
