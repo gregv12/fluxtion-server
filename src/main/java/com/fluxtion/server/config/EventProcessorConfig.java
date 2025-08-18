@@ -5,10 +5,10 @@
 
 package com.fluxtion.server.config;
 
-import com.fluxtion.runtime.DefaultEventProcessor;
 import com.fluxtion.runtime.EventProcessor;
 import com.fluxtion.runtime.audit.EventLogControlEvent;
 import com.fluxtion.runtime.node.ObjectEventHandlerNode;
+import com.fluxtion.server.internal.ConfigAwareEventProcessor;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
@@ -38,7 +38,7 @@ public class EventProcessorConfig<T extends EventProcessor<?>> {
     @SuppressWarnings({"unchecked"})
     public T getEventHandler() {
         if (eventHandler == null && customHandler != null) {
-            DefaultEventProcessor wrappingProcessor = new DefaultEventProcessor(customHandler);
+            ConfigAwareEventProcessor wrappingProcessor = new ConfigAwareEventProcessor(customHandler);
             eventHandler = (T) wrappingProcessor;
         }
         return eventHandler;
