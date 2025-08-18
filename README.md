@@ -18,7 +18,9 @@ can focus on business logic.
 ## Quick start
 
 - Read the Detailed Overview for concepts, architecture: [overview](docs/guide/overview.md)
-- For sample code see: [example](docs/guide/file-and-memory-feeds-example.md)
+- For sample code see:
+    - [fluent api example](docs/guide/file-and-memory-feeds-example.md)
+    - [yaml configuration example](docs/guide/file-and-memory-feeds-yaml-example.md)
 - For writing plugins see:
     - [event sink plugin](docs/guide/writing-a-message-sink-plugin.md)
     - [event source plugin](docs/guide/writing-an-event-source-plugin.md)
