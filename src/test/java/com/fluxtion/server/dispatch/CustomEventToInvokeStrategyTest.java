@@ -30,26 +30,34 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class CustomEventToInvokeStrategyTest {
 
-    /** Marker interface to be used by the strategy to filter valid targets. Now includes a strongly-typed callback. */
+    /**
+     * Marker interface to be used by the strategy to filter valid targets. Now includes a strongly-typed callback.
+     */
     interface MarkerProcessor {
         void onString(String s);
     }
 
-    /** Test StaticEventProcessor that records received events and asserts ProcessorContext correctness. */
+    /**
+     * Test StaticEventProcessor that records received events and asserts ProcessorContext correctness.
+     */
     static class RecordingProcessor implements StaticEventProcessor, MarkerProcessor {
         final List<Object> received = new ArrayList<>();
+        final List<Object> receivedOnEvent = new ArrayList<>();
         StaticEventProcessor seenCurrentProcessor;
 
         @Override
         public void onString(String s) {
             // ProcessorContext should point to this processor during dispatch
+            System.out.println("Received: " + s + "");
             seenCurrentProcessor = ProcessorContext.currentProcessor();
             received.add(s);
         }
 
         @Override
         public void onEvent(Object event) {
-            // not used by this strategy
+            // capture onEvent deliveries to prove dual-callback behavior with custom CallBackType
+            System.out.println("Received onEvent: " + event + "");
+            receivedOnEvent.add(event);
         }
 
         @Override
@@ -58,23 +66,30 @@ public class CustomEventToInvokeStrategyTest {
         }
     }
 
-    /** A processor that should be rejected by isValidTarget. */
+    /**
+     * A processor that should be rejected by isValidTarget.
+     */
     static class NonMarkedProcessor implements StaticEventProcessor {
         final List<Object> received = new ArrayList<>();
+
         @Override
         public void onEvent(Object event) {
             received.add(event);
         }
     }
 
-    /** Custom strategy implementation showing filtering and transformation, invoking a strongly-typed callback. */
+    /**
+     * Custom strategy implementation showing filtering and transformation, invoking a strongly-typed callback.
+     */
     static class UppercaseStringStrategy extends AbstractEventToInvocationStrategy {
         @Override
         protected void dispatchEvent(Object event, StaticEventProcessor eventProcessor) {
             if (event instanceof String s && eventProcessor instanceof MarkerProcessor marker) {
                 marker.onString(s.toUpperCase());
+            } else {
+                //normal dispatch to onEvent
+                eventProcessor.onEvent(event);
             }
-            // ignore non-String events or non-marker processors
         }
 
         @Override
@@ -124,14 +139,17 @@ public class CustomEventToInvokeStrategyTest {
     // Minimal test doubles for EventSource and Agent to wire a mapping agent
     static class TestEventSource implements EventSource<Object> {
         final List<EventSubscriptionKey<Object>> subscriptions = new ArrayList<>();
+
         @Override
         public void subscribe(EventSubscriptionKey<Object> eventSourceKey) {
             subscriptions.add(eventSourceKey);
         }
+
         @Override
         public void unSubscribe(EventSubscriptionKey<Object> eventSourceKey) {
             subscriptions.remove(eventSourceKey);
         }
+
         @Override
         public void setEventToQueuePublisher(com.fluxtion.server.dispatch.EventToQueuePublisher<Object> targetQueue) {
             // not used directly in this test
@@ -140,9 +158,14 @@ public class CustomEventToInvokeStrategyTest {
 
     static class TestAgent implements Agent {
         @Override
-        public int doWork() { return 0; }
+        public int doWork() {
+            return 0;
+        }
+
         @Override
-        public String roleName() { return "test-agent"; }
+        public String roleName() {
+            return "test-agent";
+        }
     }
 
     // --- Fluent builder API server boot example ---
@@ -165,6 +188,7 @@ public class CustomEventToInvokeStrategyTest {
         var feedCfg = com.fluxtion.server.config.EventFeedConfig.builder()
                 .instance(eventSource)
                 .name("fluentEventFeed")
+                .agent("fluent-agent", new BusySpinIdleStrategy())
                 .broadcast(true)
                 .wrapWithNamedEvent(false)
                 .build();
@@ -177,11 +201,12 @@ public class CustomEventToInvokeStrategyTest {
                 .build();
 
         // Boot server which will register our custom EventToInvokeStrategy from config
-        var server = com.fluxtion.server.FluxtionServer.bootServer(appConfig, rec -> {});
+        var server = com.fluxtion.server.FluxtionServer.bootServer(appConfig, rec -> {
+        });
         try {
 
             // Publish both a String and a non-String event
-            eventSource.publishNow("hello");
+            eventSource.offer("hello");
             eventSource.offer(42);
 
             // Spin-wait briefly for async processing
@@ -192,6 +217,9 @@ public class CustomEventToInvokeStrategyTest {
 
             // Assert our processor received the transformed string via the custom strategy
             assertEquals(List.of("HELLO"), processor.received);
+            // And it still received the raw events via onEvent (demonstrates dual subscription)
+            assertFalse(processor.receivedOnEvent.contains("hello"));
+            assertTrue(processor.receivedOnEvent.contains(42));
             assertSame(processor, processor.seenCurrentProcessor);
         } finally {
             server.stop();
@@ -213,15 +241,20 @@ public class CustomEventToInvokeStrategyTest {
         }
 
         @Override
-        public void init() { }
-
-        @Override
-        public void start() {
-            var key = EventSubscriptionKey.onEvent(feedName);
-            feeds.forEach(f -> f.subscribe(this, key));
+        public void init() {
         }
 
         @Override
-        public void tearDown() { }
+        public void start() {
+            var onEventKey = EventSubscriptionKey.onEvent(feedName);
+            var customKey = EventSubscriptionKey.of(feedName, CallBackType.forClass(MarkerProcessor.class));
+            feeds.forEach(f -> {
+                f.subscribe(this, onEventKey);
+            });
+        }
+
+        @Override
+        public void tearDown() {
+        }
     }
 }

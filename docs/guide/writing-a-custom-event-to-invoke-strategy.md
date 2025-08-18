@@ -25,7 +25,8 @@ With the helper, you only implement:
 
 ## 2) Example: filter targets and transform events (strongly-typed callback)
 
-The following example accepts only processors that implement a MarkerProcessor interface and uppercases String events before delivering them via a strongly-typed callback, not onEvent(Object):
+The following example accepts only processors that implement a MarkerProcessor interface and uppercases String events 
+before delivering them via a strongly-typed callback or onEvent(Object) if the event is not a String:
 
 ```java
 import com.fluxtion.runtime.StaticEventProcessor;
@@ -40,8 +41,10 @@ public class UppercaseStringStrategy extends AbstractEventToInvocationStrategy {
     protected void dispatchEvent(Object event, StaticEventProcessor eventProcessor) {
         if (event instanceof String s && eventProcessor instanceof MarkerProcessor marker) {
             marker.onString(s.toUpperCase());
+        } else {
+            //normal dispatch to onEvent
+            eventProcessor.onEvent(event);
         }
-        // ignore non-String events or non-marker processors
     }
 
     @Override
@@ -58,19 +61,23 @@ Notes:
 
 ## 3) Wire your strategy into the runtime
 
-Register your strategy as a factory for a [CallBackType](../../src/main/java/com/fluxtion/server/service/CallBackType.java). The ON_EVENT_CALL_BACK delivers raw events to processors.
+Register your strategy as a factory for a [CallBackType](../../src/main/java/com/fluxtion/server/service/CallBackType.java). 
 
-Via AppConfig fluent builder (server will register on boot):
+Via AppConfig fluent builder (server will register on boot), and override the default onEvent strategy, ON_EVENT_CALL_BACK,
+delivers raw events to processors via the onEvent(Object) callback.
 ```java
+// Register for the standard onEvent path (optional if you want raw onEvent only)
 AppConfig appConfig = AppConfig.builder()
     .onEventInvokeStrategy(UppercaseStringStrategy::new)
     // add groups, feeds, sinks, services
     .build();
 FluxtionServer server = FluxtionServer.bootServer(appConfig);
 ```
-For a full end-to-end example that boots the server via the fluent AppConfig builder and verifies the custom strategy, see the test method fluentBuilder_bootsServer_and_applies_custom_strategy in [CustomEventToInvokeStrategyTest.java](../../src/test/java/com/fluxtion/server/dispatch/CustomEventToInvokeStrategyTest.java).
+For a full end-to-end example that boots the server via the fluent AppConfig builder and verifies the custom strategy, 
+see the test method fluentBuilder_bootsServer_and_applies_custom_strategy in [CustomEventToInvokeStrategyTest.java](../../src/test/java/com/fluxtion/server/dispatch/CustomEventToInvokeStrategyTest.java).
 
-Via FluxtionServer (register at runtime):
+Via FluxtionServer (register at runtime), beware that custom strategy will not affect queues that are already in use 
+and have been registered before the new invoker strategy is registered.
 ```java
 FluxtionServer server = FluxtionServer.bootServer(appConfig);
 server.registerEventMapperFactory(UppercaseStringStrategy::new, CallBackType.ON_EVENT_CALL_BACK);
