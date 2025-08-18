@@ -8,11 +8,21 @@ architecture, core components, configuration, plugin model, lifecycle, and examp
 ```mermaid
 graph LR
 ES[Event Sources] --> FM[Flow Manager]
-FM --> EH[Event Handlers]
-EH --> ESK[Event Sinks]
+FM --> EH1[Event Handlers]
+FM --> EH2[Event Handlers]
+FM --> EH3[Event Handlers]
+EH1 --> ESK[Event Sinks]
+EH2 --> ESK[Event Sinks]
+EH3 --> ESK[Event Sinks]
 
-    subgraph "Agent Groups"
-        EH
+    subgraph "Agent thread group 1"
+        EH1
+    end
+    subgraph "Agent thread group 2"
+        EH2
+    end
+    subgraph "Agent thread group 3"
+        EH3
     end
 ```
 
@@ -146,20 +156,6 @@ F --> A
 4. Start: Activation of services and processors
 5. Runtime: Event processing and service execution
 6. Management: Dynamic control of components
-
-## Usage Examples
-
-Start from code:
-
-```java
-FluxtionServer server = FluxtionServer.bootServer(appConfig, logRecordListener);
-```
-
-Or use the default bootstrap:
-
-```java
-FluxtionServer server = FluxtionServer.bootServer(logRecordListener);
-```
 
 ## See Also
 

@@ -18,8 +18,19 @@ can focus on business logic.
 ## Quick start
 
 - Read the Detailed Overview for concepts, architecture: [overview](docs/guide/overview.md)
-- For sample code see: [example](docs/guide/file-and-memory-feeds-example.md)
+- For sample code see:
+    - [fluent api example](docs/guide/file-and-memory-feeds-example.md)
+    - [yaml configuration example](docs/guide/file-and-memory-feeds-yaml-example.md)
+- For writing plugins see:
+    - [event sink plugin](docs/guide/writing-a-message-sink-plugin.md)
+    - [event source plugin](docs/guide/writing-an-event-source-plugin.md)
+    - [service plugin](docs/guide/writing-a-service-plugin.md)
+- How-to guides:
+    - [add an admin command](docs/guide/writing-an-admin-command.md)
+    - [using the scheduler service](docs/guide/using-the-scheduler-service.md)
+    - [write a custom EventToInvokeStrategy](docs/guide/writing-a-custom-event-to-invoke-strategy.md)
 - For internals see:
+    - [Threading model](docs/guide/threading-model.md)
     - [Architecture docs](docs/architecture/index.md)
     - [Sequence diagrams](docs/architecture/sequence-diagrams/index.md)
 
@@ -80,6 +91,7 @@ FluxtionServer server = FluxtionServer.bootServer(appConfig, logRecordListener);
 ## Documentation
 
 - Detailed overview and usage: [docs/guide/overview.md](docs/guide/overview.md)
+- Threading model: [docs/guide/threading-model.md](docs/guide/threading-model.md)
 - Architecture: [docs/architecture/index.md](docs/architecture/index.md)
 - Sequence diagrams: [docs/architecture/sequence-diagrams/index.md](docs/architecture/sequence-diagrams/index.md)
 - Event flow: [docs/architecture/event-flow.md](docs/architecture/event-flow.md)
