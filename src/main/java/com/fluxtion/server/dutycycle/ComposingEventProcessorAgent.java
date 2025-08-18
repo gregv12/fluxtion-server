@@ -75,6 +75,13 @@ public class ComposingEventProcessorAgent extends DynamicCompositeAgent implemen
 
     @Override
     public void onStart() {
+        // Best-effort core pinning if configured for this agent group (guard for null during unit tests)
+        if (fluxtionServer != null) {
+            Integer coreId = fluxtionServer.resolveCoreIdForAgentName(roleName());
+            if (coreId != null) {
+                com.fluxtion.server.internal.CoreAffinity.pinCurrentThreadToCore(coreId);
+            }
+        }
         log.info("onStart " + roleName());
         checkForAdded();
         super.onStart();
