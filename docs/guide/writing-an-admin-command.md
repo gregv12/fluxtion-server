@@ -1,8 +1,11 @@
 # Guide: Writing an Admin Command for Fluxtion Server
 
-This guide explains how to add operational/admin commands to your Fluxtion Server application. Admin commands are lightweight functions that you register at runtime and can invoke via a CLI or programmatically to inspect or control the system (list services, stop processors, flush caches, custom health checks, etc.).
+This guide explains how to add operational/admin commands to your Fluxtion Server application. Admin commands are
+lightweight functions that you register at runtime and can invoke via a CLI or programmatically to inspect or control
+the system (list services, stop processors, flush caches, custom health checks, etc.).
 
 You’ll learn:
+
 - What the AdminCommand API is and how it works
 - How to register commands from processors and services using AdminCommandRegistry
 - Command function signature, arguments, and output/error channels
@@ -11,34 +14,46 @@ You’ll learn:
 - Tips, patterns, and references in this repository
 
 ## Key types
+
 - AdminCommandRegistry — central registry to add and invoke commands
-  - package: `com.fluxtion.server.service.admin`
+    - package: `com.fluxtion.server.service.admin`
 - AdminFunction<OUT, ERR> — your command function signature
-  - `void processAdminCommand(List<String> args, Consumer<OUT> out, Consumer<ERR> err)`
+    - `void processAdminCommand(List<String> args, Consumer<OUT> out, Consumer<ERR> err)`
 - AdminCommandRequest — DTO for programmatic invocation (name, args, output consumers)
-- AdminCommandProcessor — service that routes commands through the event flow and hosts built-ins (help/commands/eventSources)
+- AdminCommandProcessor — service that routes commands through the event flow and hosts built-ins (
+  help/commands/eventSources)
 - CliAdminCommandProcessor — optional interactive console to type commands
 - FluxtionServerAdmin — sample “server control” commands (list services/processors, stop processors)
 
 References:
-- src/main/java/com/fluxtion/server/service/admin/AdminCommandRegistry.java
-- src/main/java/com/fluxtion/server/service/admin/AdminFunction.java
-- src/main/java/com/fluxtion/server/service/admin/AdminCommandRequest.java
-- src/main/java/com/fluxtion/server/service/admin/impl/AdminCommandProcessor.java
-- src/main/java/com/fluxtion/server/service/admin/impl/CliAdminCommandProcessor.java
-- src/main/java/com/fluxtion/server/service/servercontrol/FluxtionServerAdmin.java
+
+- [AdminCommandRegistry.java](../../src/main/java/com/fluxtion/server/service/admin/AdminCommandRegistry.java)
+- [AdminFunction.java](../../src/main/java/com/fluxtion/server/service/admin/AdminFunction.java)
+- [AdminCommandRequest.java](../../src/main/java/com/fluxtion/server/service/admin/AdminCommandRequest.java)
+- [AdminCommandProcessor.java](../../src/main/java/com/fluxtion/server/service/admin/impl/AdminCommandProcessor.java)
+- [CliAdminCommandProcessor.java](../../src/main/java/com/fluxtion/server/service/admin/impl/CliAdminCommandProcessor.java)
+- [FluxtionServerAdmin.java](../../src/main/java/com/fluxtion/server/service/servercontrol/FluxtionServerAdmin.java)
 
 ## How it works
-At startup you register an AdminCommandProcessor as a service. Other services and processors can inject the AdminCommandRegistry (via @ServiceRegistered) and register commands. When a command is invoked:
-- If the registering component was an event processor (i.e., currentProcessor present during registration), the command is wired to publish into that processor’s input queue as an AdminCommand event, which is executed by AdminCommandInvoker on the processor’s agent thread (asynchronous, back‑pressure aware).
-- If registered outside a processor context (e.g., a plain service at init/start time), the command executes directly in the caller thread.
 
-This lets you choose between async delivery into a processor’s single-threaded context, or immediate synchronous execution.
+At startup you register an AdminCommandProcessor as a service. Other services and processors can inject the
+AdminCommandRegistry (via @ServiceRegistered) and register commands. When a command is invoked:
+
+- If the registering component was an event processor (i.e., currentProcessor present during registration), the command
+  is wired to publish into that processor’s input queue as an AdminCommand event, which is executed by
+  AdminCommandInvoker on the processor’s agent thread (asynchronous, back‑pressure aware).
+- If registered outside a processor context (e.g., a plain service at init/start time), the command executes directly in
+  the caller thread.
+
+This lets you choose between async delivery into a processor’s single-threaded context, or immediate synchronous
+execution.
 
 ## Registering a command
+
 Register from a processor or a service using @ServiceRegistered to obtain the registry.
 
 Example (from a processor):
+
 ```java
 package com.mycompany.ops;
 
@@ -70,6 +85,7 @@ public class OpsHandler extends ObjectEventHandlerNode {
 ```
 
 Example (from a service):
+
 ```java
 public class OpsService implements com.fluxtion.runtime.lifecycle.Lifecycle {
     private com.fluxtion.server.service.admin.AdminCommandRegistry registry;
@@ -88,6 +104,7 @@ public class OpsService implements com.fluxtion.runtime.lifecycle.Lifecycle {
 ```
 
 ## Wiring admin infrastructure in AppConfig
+
 You need to register the admin services in your application.
 
 ```java
@@ -118,8 +135,10 @@ AppConfig app = AppConfig.builder()
 ```
 
 Notes:
+
 - AdminCommandProcessor exposes default commands: `help`, `?`, `commands`, `eventSources`.
 - FluxtionServerAdmin registers higher-level server operations (list services/processors, stop processors). To use it:
+
 ```java
 ServiceConfig<?> serverAdmin = ServiceConfig.builder()
         .service(new com.fluxtion.server.service.servercontrol.FluxtionServerAdmin())
@@ -134,14 +153,17 @@ app = AppConfig.builder()
 ```
 
 ## Invoking a command
+
 There are two common ways:
 
 1) From the CLI (if CliAdminCommandProcessor is registered)
+
 - At runtime type: `commands` to list available commands
 - Example: `server.processors.list`
 - Example: `ops.echo hello world`
 
 2) Programmatically using AdminCommandRegistry
+
 ```java
 import com.fluxtion.server.service.admin.AdminCommandRequest;
 
@@ -160,26 +182,37 @@ registry.processAdminCommandRequest(request);
 ```
 
 What happens under the hood:
-- The AdminCommandProcessor looks up your registered command. If it was registered inside a processor context, it publishes an AdminCommand event into that processor’s input queue and the AdminCommandInvoker executes it on the processor’s agent thread. Otherwise, it executes immediately in the caller thread.
+
+- The AdminCommandProcessor looks up your registered command. If it was registered inside a processor context, it
+  publishes an AdminCommand event into that processor’s input queue and the AdminCommandInvoker executes it on the
+  processor’s agent thread. Otherwise, it executes immediately in the caller thread.
 
 ## Command function signature and args
+
 Your command implements:
+
 ```java
 void processAdminCommand(List<String> args, Consumer<OUT> out, Consumer<ERR> err)
 ```
+
 - args contains the full tokenized input including the command name at index 0 (e.g., ["ops.echo", "hello", "world"]).
 - Use `out.accept(...)` for normal output, `err.accept(...)` for warnings/errors.
 - Prefer short, dash‑separated names (e.g., `cache.clear`, `server.service.list`).
 
 ## Tips and patterns
-- Keep commands small and fast. If you need to run in a processor context, the infrastructure will deliver your command asynchronously to that single‑threaded agent.
+
+- Keep commands small and fast. If you need to run in a processor context, the infrastructure will deliver your command
+  asynchronously to that single‑threaded agent.
 - Validate args and produce helpful `err` messages; don’t throw unless exceptional.
-- For long operations, consider returning a quick acknowledgement and performing the work asynchronously; stream progress to `out` if appropriate.
+- For long operations, consider returning a quick acknowledgement and performing the work asynchronously; stream
+  progress to `out` if appropriate.
 - Use `commands` and `help` to explore what’s registered at runtime.
 - Combine with FluxtionServerAdmin for common operational tasks.
 
 ## Example end‑to‑end
+
 See:
-- src/test/java/com/fluxtion/server/dispatch/BroadcastCallbackTest.java
-- src/main/java/com/fluxtion/server/service/servercontrol/FluxtionServerAdmin.java
-These show wiring the admin registry, adding commands, and optional CLI usage.
+
+- [BroadcastCallbackTest.java](../../src/test/java/com/fluxtion/server/dispatch/BroadcastCallbackTest.java)
+- [FluxtionServerAdmin.java](../../src/main/java/com/fluxtion/server/service/servercontrol/FluxtionServerAdmin.java)
+  These show wiring the admin registry, adding commands, and optional CLI usage.
