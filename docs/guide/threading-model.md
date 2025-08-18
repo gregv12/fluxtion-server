@@ -205,4 +205,51 @@ public class MySchedulerAwareHandler extends com.fluxtion.runtime.node.ObjectEve
 - Writing an event source plugin: [writing-an-event-source-plugin](writing-an-event-source-plugin.md)
 - Writing a service plugin: [writing-a-service-plugin](writing-a-service-plugin.md)
 - Writing an admin command: [writing-an-admin-command](writing-an-admin-command.md)
+- How to core‑pin agent threads: [how-to-core-pin](how-to-core-pin.md)
 - Architecture + sequence diagrams: [architecture](../architecture/index.md)
+
+## 9) Optional: Core pinning for agent threads
+
+Fluxtion Server supports best-effort CPU core pinning for agent threads. This can help reduce context switches and improve tail latency on systems where CPU affinity is desirable.
+
+Key points:
+- Configure per-agent core pinning using AppConfig’s agent Threads: [ThreadConfig](../../src/main/java/com/fluxtion/server/config/ThreadConfig.java) has an optional coreId field (zero-based CPU index).
+- Pinning is applied inside the agent thread itself during start (onStart) for both processor and service agent groups:
+  - Processor agent: [ComposingEventProcessorAgent](../../src/main/java/com/fluxtion/server/dutycycle/ComposingEventProcessorAgent.java)
+  - Service agent: [ComposingServiceAgent](../../src/main/java/com/fluxtion/server/dutycycle/ComposingServiceAgent.java)
+- Fluxtion uses a lightweight helper [CoreAffinity](../../src/main/java/com/fluxtion/server/internal/CoreAffinity.java) that attempts to pin via reflection to OpenHFT’s Affinity library if present; otherwise it logs and no-ops.
+
+Configure via fluent builder:
+```java
+import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.config.ThreadConfig;
+import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
+
+AppConfig appConfig = AppConfig.builder()
+    // Configure processor agent group thread
+    .addThread(ThreadConfig.builder()
+        .agentName("processor-agent")
+        .idleStrategy(new BusySpinIdleStrategy())
+        .coreId(0) // pin to CPU core 0 (zero-based index)
+        .build())
+    // Configure service agent group thread
+    .addThread(ThreadConfig.builder()
+        .agentName("service-agent")
+        .coreId(2) // pin to CPU core 2
+        .build())
+    // ... add groups/feeds/services as usual
+    .build();
+```
+
+Runtime behavior:
+- When an agent group thread starts, the server resolves the configured core for that agent via FluxtionServer.resolveCoreIdForAgentName and calls CoreAffinity.pinCurrentThreadToCore(coreId). If no coreId is configured, nothing is done.
+- If OpenHFT’s Affinity is not on the classpath, pinning is skipped with an info log.
+
+Optional dependency for pinning:
+- To enable actual OS-level pinning, add the test/runtime dependency on OpenHFT Affinity in your project.
+  See this repository’s POM for an example test-scoped optional dependency: [pom.xml](../../pom.xml) (artifact net.openhft:affinity).
+- A simple optional test that exercises pinning via reflection is provided here: [CoreAffinityOptionalTest](../../src/test/java/com/fluxtion/server/internal/CoreAffinityOptionalTest.java).
+
+Notes:
+- Core IDs are zero-based and depend on your OS/CPU topology.
+- Pinning can improve determinism but may reduce OS scheduling flexibility; benchmark your workload.

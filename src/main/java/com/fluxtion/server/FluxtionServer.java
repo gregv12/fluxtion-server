@@ -515,6 +515,20 @@ public class FluxtionServer implements FluxtionServerController {
     }
 
     /**
+     * Resolve the configured CPU core id for a given agent group name, if any.
+     * Returns null when no core pinning is configured for the agent.
+     */
+    public Integer resolveCoreIdForAgentName(String agentName) {
+        if (appConfig==null || appConfig.getAgentThreads() == null) return null;
+        return appConfig.getAgentThreads().stream()
+                .filter(t -> agentName != null && agentName.equals(t.getAgentName()))
+                .map(com.fluxtion.server.config.ThreadConfig::getCoreId)
+                .filter(java.util.Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
      * Stops the server and all its components.
      * This method stops all event processor agents, agent hosted services, the flowManager, and all registered services.
      * It should be called when the server is no longer needed to free up resources.
