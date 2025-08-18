@@ -23,23 +23,25 @@ With the helper, you only implement:
 - protected void dispatchEvent(Object event, StaticEventProcessor eventProcessor)
 - protected boolean isValidTarget(StaticEventProcessor eventProcessor)
 
-## 2) Example: filter targets and transform events
+## 2) Example: filter targets and transform events (strongly-typed callback)
 
-The following example accepts only processors that implement a MarkerProcessor interface and uppercases String events before delivering them:
+The following example accepts only processors that implement a MarkerProcessor interface and uppercases String events before delivering them via a strongly-typed callback, not onEvent(Object):
 
 ```java
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.server.dispatch.AbstractEventToInvocationStrategy;
 
-public interface MarkerProcessor {}
+public interface MarkerProcessor {
+    void onString(String s);
+}
 
 public class UppercaseStringStrategy extends AbstractEventToInvocationStrategy {
     @Override
     protected void dispatchEvent(Object event, StaticEventProcessor eventProcessor) {
-        if (event instanceof String s) {
-            eventProcessor.onEvent(s.toUpperCase());
+        if (event instanceof String s && eventProcessor instanceof MarkerProcessor marker) {
+            marker.onString(s.toUpperCase());
         }
-        // ignore non-String events
+        // ignore non-String events or non-marker processors
     }
 
     @Override
@@ -50,6 +52,7 @@ public class UppercaseStringStrategy extends AbstractEventToInvocationStrategy {
 ```
 
 Notes:
+- Using an invoker strategy allows your event processors to be strongly typed (e.g., MarkerProcessor.onString), while the strategy takes responsibility for mapping inbound events to the correct callback. This reduces boilerplate and centralizes dispatch logic, which can make future maintenance easier.
 - ProcessorContext is automatically set to the current target processor during dispatch. Inside the processor, you can call ProcessorContext.currentProcessor() if needed.
 - If you call processEvent(event, time), AbstractEventToInvocationStrategy wires a synthetic clock into each target processor via setClockStrategy so that processors can use a provided time source.
 

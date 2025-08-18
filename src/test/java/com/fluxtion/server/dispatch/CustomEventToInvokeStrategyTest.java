@@ -27,8 +27,10 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class CustomEventToInvokeStrategyTest {
 
-    /** Marker interface to be used by the strategy to filter valid targets. */
-    interface MarkerProcessor {}
+    /** Marker interface to be used by the strategy to filter valid targets. Now includes a strongly-typed callback. */
+    interface MarkerProcessor {
+        void onString(String s);
+    }
 
     /** Test StaticEventProcessor that records received events and asserts ProcessorContext correctness. */
     static class RecordingProcessor implements StaticEventProcessor, MarkerProcessor {
@@ -36,10 +38,15 @@ public class CustomEventToInvokeStrategyTest {
         StaticEventProcessor seenCurrentProcessor;
 
         @Override
-        public void onEvent(Object event) {
+        public void onString(String s) {
             // ProcessorContext should point to this processor during dispatch
             seenCurrentProcessor = ProcessorContext.currentProcessor();
-            received.add(event);
+            received.add(s);
+        }
+
+        @Override
+        public void onEvent(Object event) {
+            // not used by this strategy
         }
 
         @Override
@@ -57,14 +64,14 @@ public class CustomEventToInvokeStrategyTest {
         }
     }
 
-    /** Custom strategy implementation showing filtering and transformation. */
+    /** Custom strategy implementation showing filtering and transformation, invoking a strongly-typed callback. */
     static class UppercaseStringStrategy extends AbstractEventToInvocationStrategy {
         @Override
         protected void dispatchEvent(Object event, StaticEventProcessor eventProcessor) {
-            if (event instanceof String s) {
-                eventProcessor.onEvent(s.toUpperCase());
+            if (event instanceof String s && eventProcessor instanceof MarkerProcessor marker) {
+                marker.onString(s.toUpperCase());
             }
-            // ignore non-String events
+            // ignore non-String events or non-marker processors
         }
 
         @Override
