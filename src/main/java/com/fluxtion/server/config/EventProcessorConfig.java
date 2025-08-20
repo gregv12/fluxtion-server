@@ -24,8 +24,6 @@ public class EventProcessorConfig<T extends EventProcessor<?>> {
     private ObjectEventHandlerNode customHandler;
     private Supplier<T> eventHandlerBuilder;
     private EventLogControlEvent.LogLevel logLevel;
-    @Getter(AccessLevel.PRIVATE)
-    @Setter(AccessLevel.NONE)
     private Map<String, Object> configMap = new HashMap<>();
 
     public EventProcessorConfig(ObjectEventHandlerNode customHandler) {
