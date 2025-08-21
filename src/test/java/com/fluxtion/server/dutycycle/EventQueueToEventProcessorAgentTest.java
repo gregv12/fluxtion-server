@@ -8,7 +8,7 @@ package com.fluxtion.server.dutycycle;
 import com.fluxtion.agrona.concurrent.OneToOneConcurrentArrayQueue;
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.event.BroadcastEvent;
-import com.fluxtion.server.dispatch.EventToInvokeStrategy;
+import com.fluxtion.server.service.EventToInvokeStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

@@ -9,6 +9,7 @@ import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.input.SubscriptionManager;
 import com.fluxtion.runtime.node.EventSubscription;
 import com.fluxtion.server.dispatch.*;
+import com.fluxtion.server.service.extension.AbstractEventSourceService;
 import com.fluxtion.server.service.scheduler.SchedulerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,9 +55,9 @@ public class AbstractEventSourceServiceTest {
         assertEquals(serviceName, testService.getServiceName(), "Service name should be set");
         assertSame(testEventToQueuePublisher, testService.getOutput(), "Output should be set");
         assertNotNull(testService.getSubscriptionKey(), "Subscription key should be created");
-        assertEquals(serviceName, testService.getSubscriptionKey().getEventSourceKey().getSourceName(),
+        assertEquals(serviceName, testService.getSubscriptionKey().eventSourceKey().sourceName(),
                 "Subscription key should have the correct source name");
-        assertEquals(CallBackType.ON_EVENT_CALL_BACK, testService.getSubscriptionKey().getCallBackType(),
+        assertEquals(CallBackType.ON_EVENT_CALL_BACK, testService.getSubscriptionKey().callBackType(),
                 "Subscription key should have the correct callback type");
     }
 

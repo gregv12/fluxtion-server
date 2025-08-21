@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
+ * SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -13,6 +13,7 @@ import com.fluxtion.runtime.event.ReplayRecord;
 import com.fluxtion.server.dispatch.EventToInvokeStrategy;
 import com.fluxtion.server.service.metrics.EventProcessingMetrics;
 import com.fluxtion.server.service.metrics.MetricsRegistry;
+import com.fluxtion.server.service.EventToInvokeStrategy;
 import lombok.extern.java.Log;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -80,8 +81,8 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
                     String warnMsg = "event processing failed: agent=" + name +
                             ", attempt=" + attempt +
                             ", eventClass=" + (event == null ? "null" : event.getClass().getName()) +
-                            ", event=" + String.valueOf(event) +
-                            ", error=" + t.toString();
+                            ", event=" + event +
+                            ", error=" + t;
                     logger.warning(warnMsg);
                     com.fluxtion.server.service.error.ErrorReporting.report(
                             "EventQueueToEventProcessorAgent:" + name,
@@ -92,8 +93,8 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
                         String errMsg = "dropping event after retries: agent=" + name +
                                 ", attempts=" + attempt +
                                 ", eventClass=" + (event == null ? "null" : event.getClass().getName()) +
-                                ", event=" + String.valueOf(event) +
-                                ", lastError=" + t.toString();
+                                ", event=" + event +
+                                ", lastError=" + t;
                         logger.severe(errMsg);
                         com.fluxtion.server.service.error.ErrorReporting.report(
                                 "EventQueueToEventProcessorAgent:" + name,

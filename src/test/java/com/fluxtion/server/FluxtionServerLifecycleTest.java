@@ -8,7 +8,8 @@ import com.fluxtion.runtime.lifecycle.Lifecycle;
 import com.fluxtion.runtime.service.Service;
 import com.fluxtion.server.config.AppConfig;
 import com.fluxtion.server.dispatch.EventFlowManager;
-import com.fluxtion.server.dispatch.LifeCycleEventSource;
+import com.fluxtion.server.service.EventSubscriptionKey;
+import com.fluxtion.server.service.LifeCycleEventSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -118,11 +119,11 @@ public class FluxtionServerLifecycleTest {
         }
 
         @Override
-        public void subscribe(com.fluxtion.server.dispatch.EventSubscriptionKey<String> eventSourceKey) {
+        public void subscribe(EventSubscriptionKey<String> eventSourceKey) {
         }
 
         @Override
-        public void unSubscribe(com.fluxtion.server.dispatch.EventSubscriptionKey<String> eventSourceKey) {
+        public void unSubscribe(EventSubscriptionKey<String> eventSourceKey) {
         }
     }
 }

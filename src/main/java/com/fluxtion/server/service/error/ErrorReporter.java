@@ -8,10 +8,14 @@ import java.util.List;
 
 public interface ErrorReporter {
     void addListener(ErrorListener listener);
+
     void removeListener(ErrorListener listener);
+
     void report(ErrorEvent event);
+
     default void report(String source, String message, Throwable error, ErrorEvent.Severity severity) {
         report(new ErrorEvent(source, message, error, severity));
     }
+
     List<ErrorEvent> recent(int limit);
 }

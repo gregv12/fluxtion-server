@@ -6,18 +6,15 @@
 package com.fluxtion.server.dutycycle;
 
 import com.fluxtion.agrona.concurrent.Agent;
-import com.fluxtion.agrona.concurrent.OneToOneConcurrentArrayQueue;
 import com.fluxtion.runtime.StaticEventProcessor;
-import com.fluxtion.runtime.input.EventFeed;
 import com.fluxtion.runtime.lifecycle.Lifecycle;
 import com.fluxtion.runtime.service.Service;
 import com.fluxtion.server.FluxtionServer;
-import com.fluxtion.server.dispatch.CallBackType;
 import com.fluxtion.server.dispatch.EventFlowManager;
-import com.fluxtion.server.dispatch.EventSourceKey;
-import com.fluxtion.server.dispatch.EventSubscriptionKey;
+import com.fluxtion.server.service.CallBackType;
+import com.fluxtion.server.service.EventSourceKey;
+import com.fluxtion.server.service.EventSubscriptionKey;
 import com.fluxtion.server.service.scheduler.DeadWheelScheduler;
-import com.fluxtion.server.service.scheduler.SchedulerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -107,9 +104,9 @@ public class ComposingEventProcessorAgentTest {
         composingEventProcessorAgent.subscribe(testEventProcessor, subscriptionKey);
 
         // Assert
-        assertTrue(testEventFlowManager.getSubscriptions().contains(subscriptionKey), 
+        assertTrue(testEventFlowManager.getSubscriptions().contains(subscriptionKey),
                 "Subscription should be registered with EventFlowManager");
-        assertTrue(testEventQueueToEventProcessor.getRegisteredProcessors().contains(testEventProcessor), 
+        assertTrue(testEventQueueToEventProcessor.getRegisteredProcessors().contains(testEventProcessor),
                 "Processor should be registered with EventQueueToEventProcessor");
     }
 
@@ -126,9 +123,9 @@ public class ComposingEventProcessorAgentTest {
         composingEventProcessorAgent.unSubscribe(testEventProcessor, subscriptionKey);
 
         // Assert
-        assertTrue(testEventFlowManager.getUnsubscriptions().contains(subscriptionKey), 
+        assertTrue(testEventFlowManager.getUnsubscriptions().contains(subscriptionKey),
                 "Unsubscription should be registered with EventFlowManager");
-        assertFalse(testEventQueueToEventProcessor.getRegisteredProcessors().contains(testEventProcessor), 
+        assertFalse(testEventQueueToEventProcessor.getRegisteredProcessors().contains(testEventProcessor),
                 "Processor should be deregistered from EventQueueToEventProcessor");
     }
 
@@ -149,7 +146,7 @@ public class ComposingEventProcessorAgentTest {
         composingEventProcessorAgent.removeAllSubscriptions(testEventProcessor);
 
         // Assert
-        assertFalse(testEventQueueToEventProcessor.getRegisteredProcessors().contains(testEventProcessor), 
+        assertFalse(testEventQueueToEventProcessor.getRegisteredProcessors().contains(testEventProcessor),
                 "Processor should be deregistered from all EventQueueToEventProcessors");
     }
 
@@ -161,9 +158,9 @@ public class ComposingEventProcessorAgentTest {
         composingEventProcessorAgent.onStart();
 
         // Act & Assert
-        assertTrue(composingEventProcessorAgent.isProcessorRegistered("testProcessor"), 
+        assertTrue(composingEventProcessorAgent.isProcessorRegistered("testProcessor"),
                 "Processor should be registered");
-        assertFalse(composingEventProcessorAgent.isProcessorRegistered("nonExistentProcessor"), 
+        assertFalse(composingEventProcessorAgent.isProcessorRegistered("nonExistentProcessor"),
                 "Non-existent processor should not be registered");
     }
 

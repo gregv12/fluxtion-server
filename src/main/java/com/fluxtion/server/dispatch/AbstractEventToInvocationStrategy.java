@@ -1,13 +1,13 @@
 /*
- * SPDX-FileCopyrightText: © 2024 Gregory Higgins <greg.higgins@v12technology.com>
+ * SPDX-FileCopyrightText: © 2025 Gregory Higgins <greg.higgins@v12technology.com>
  * SPDX-License-Identifier: AGPL-3.0-only
- *
  */
 
 package com.fluxtion.server.dispatch;
 
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.feature.Experimental;
+import com.fluxtion.server.service.EventToInvokeStrategy;
 import lombok.extern.java.Log;
 
 import java.util.List;
@@ -28,28 +28,46 @@ import java.util.concurrent.atomic.AtomicLong;
 @Log
 public abstract class AbstractEventToInvocationStrategy implements EventToInvokeStrategy {
 
+    /**
+     * The set of registered target event processors that should receive callbacks from this strategy.
+     */
     protected final List<StaticEventProcessor> eventProcessorSinks = new CopyOnWriteArrayList<>();
+    /**
+     * Per-processor synthetic clocks used to supply a custom time source to processors when dispatching with an explicit time.
+     */
     protected static final Map<StaticEventProcessor, AtomicLong> syntheticClocks = new ConcurrentHashMap<>();
+    /**
+     * Monotonic id generator for instances of this strategy, also used for logging context.
+     */
     protected static final AtomicLong syntheticClock = new AtomicLong();
+    /**
+     * Unique identifier for this strategy instance for tracing/logging purposes.
+     */
     private final long id;
+    /**
+     * Cached flag indicating whether FINE logging is enabled to avoid recomputing per event.
+     */
     private final boolean fineLogEnabled;
 
+    /**
+     * Create a new invocation strategy instance, assigning a unique id and caching log level state.
+     */
     public AbstractEventToInvocationStrategy() {
         this.id = syntheticClock.incrementAndGet();
         fineLogEnabled = log.isLoggable(java.util.logging.Level.FINE);
-        if( fineLogEnabled){
+        if (fineLogEnabled) {
             log.fine(() -> "AbstractEventToInvocationStrategy created with id: " + id);
         }
     }
 
     @Override
     public void processEvent(Object event) {
-        if( fineLogEnabled){
+        if (fineLogEnabled) {
             log.fine(() -> "invokerId: " + id + " processEvent: " + event + " to " + eventProcessorSinks.size() + " processors");
         }
         for (int i = 0, targetQueuesSize = eventProcessorSinks.size(); i < targetQueuesSize; i++) {
             StaticEventProcessor eventProcessor = eventProcessorSinks.get(i);
-            if( fineLogEnabled){
+            if (fineLogEnabled) {
                 log.fine(() -> "invokerId: " + id + " dispatchEvent to " + eventProcessor);
             }
             ProcessorContext.setCurrentProcessor(eventProcessor);

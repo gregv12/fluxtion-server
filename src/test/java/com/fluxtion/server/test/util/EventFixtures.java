@@ -15,7 +15,8 @@ import com.fluxtion.server.config.AppConfig;
 import com.fluxtion.server.config.EventFeedConfig;
 import com.fluxtion.server.config.EventProcessorConfig;
 import com.fluxtion.server.config.EventProcessorGroupConfig;
-import com.fluxtion.server.dispatch.EventSubscriptionKey;
+import com.fluxtion.server.service.EventSubscriptionKey;
+import com.fluxtion.server.service.extension.AbstractEventSourceService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,7 +78,7 @@ public final class EventFixtures {
                 .build();
         AppConfig app = AppConfig.builder()
                 .addEventFeed(feed)
-                .addGroup(group)
+                .addProcessorGroup(group)
                 .build();
         CapturingLogListener logs = new CapturingLogListener(1000);
         FluxtionServer server = FluxtionServer.bootServer(app, logs);
@@ -87,7 +88,7 @@ public final class EventFixtures {
     /**
      * A simple event source stub usable in tests.
      */
-    public static abstract class EventSourceStub<E> extends com.fluxtion.server.service.AbstractEventSourceService<E> {
+    public static abstract class EventSourceStub<E> extends AbstractEventSourceService<E> {
         protected EventSourceStub(String name) {
             super(name);
         }

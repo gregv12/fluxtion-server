@@ -11,8 +11,8 @@ import com.fluxtion.runtime.audit.LogRecord;
 import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.input.EventFeed;
 import com.fluxtion.server.FluxtionServer;
-import com.fluxtion.server.dispatch.EventSubscriptionKey;
-import com.fluxtion.server.service.AbstractEventSourceService;
+import com.fluxtion.server.service.EventSubscriptionKey;
+import com.fluxtion.server.service.extension.AbstractEventSourceService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +21,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Boots FluxtionServer using the new fluent AppConfig builder APIs and verifies an end-to-end event flow.
@@ -68,7 +69,7 @@ public class AppConfigFluentBootTest {
 
         // Build app config via fluent builder
         AppConfig appConfig = AppConfig.builder()
-                .addGroup(groupCfg)
+                .addProcessorGroup(groupCfg)
                 .addEventFeed(feedCfg)
                 .build();
 
@@ -87,13 +88,26 @@ public class AppConfigFluentBootTest {
     // --- Helper types (mirroring EndToEndEventFlowIT minimal setup) ---
     public static class TestEvent {
         private final String message;
-        public TestEvent(String message) { this.message = message; }
-        public String getMessage() { return message; }
-        @Override public String toString() { return "TestEvent{" + message + '}'; }
+
+        public TestEvent(String message) {
+            this.message = message;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        @Override
+        public String toString() {
+            return "TestEvent{" + message + '}';
+        }
     }
 
     private static class TestEventSource extends AbstractEventSourceService<TestEvent> {
-        public TestEventSource(String name) { super(name); }
+        public TestEventSource(String name) {
+            super(name);
+        }
+
         public void publishEvent(TestEvent event) {
             if (output != null) {
                 output.publish(event);
@@ -105,24 +119,54 @@ public class AppConfigFluentBootTest {
         private final CountDownLatch latch;
         private volatile TestEvent last;
         private final List<EventFeed> feeds = new ArrayList<>();
-        public TestEventProcessor(CountDownLatch latch) { this.latch = latch; }
-        public TestEvent getLastProcessedEvent() { return last; }
-        @Override public void addEventFeed(EventFeed eventFeed) { feeds.add(eventFeed); }
-        @Override public void onEvent(Object event) { if (event instanceof TestEvent te) { last = te; latch.countDown(); } }
-        @Override public void init() { }
-        @Override public void start() {
+
+        public TestEventProcessor(CountDownLatch latch) {
+            this.latch = latch;
+        }
+
+        public TestEvent getLastProcessedEvent() {
+            return last;
+        }
+
+        @Override
+        public void addEventFeed(EventFeed eventFeed) {
+            feeds.add(eventFeed);
+        }
+
+        @Override
+        public void onEvent(Object event) {
+            if (event instanceof TestEvent te) {
+                last = te;
+                latch.countDown();
+            }
+        }
+
+        @Override
+        public void init() {
+        }
+
+        @Override
+        public void start() {
             // Subscribe via fluent EventSubscriptionKey
             EventSubscriptionKey<Object> key = EventSubscriptionKey.onEvent("fluentEventFeed");
             feeds.forEach(f -> f.subscribe(this, key));
         }
-        @Override public void tearDown() { }
+
+        @Override
+        public void tearDown() {
+        }
     }
 
     private static class TestLogRecordListener implements LogRecordListener {
         private final List<LogRecord> logRecords = new ArrayList<>();
-        @Override public void processLogRecord(LogRecord logRecord) {
+
+        @Override
+        public void processLogRecord(LogRecord logRecord) {
             if (logRecords.size() < 1000) logRecords.add(logRecord);
         }
-        public List<LogRecord> getLogRecords() { return logRecords; }
+
+        public List<LogRecord> getLogRecords() {
+            return logRecords;
+        }
     }
 }

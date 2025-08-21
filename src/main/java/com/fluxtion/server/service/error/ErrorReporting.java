@@ -11,9 +11,12 @@ package com.fluxtion.server.service.error;
 public final class ErrorReporting {
     private static volatile ErrorReporter reporter = new DefaultErrorReporter();
 
-    private ErrorReporting() {}
+    private ErrorReporting() {
+    }
 
-    public static ErrorReporter getReporter() { return reporter; }
+    public static ErrorReporter getReporter() {
+        return reporter;
+    }
 
     public static void setReporter(ErrorReporter customReporter) {
         if (customReporter != null) reporter = customReporter;

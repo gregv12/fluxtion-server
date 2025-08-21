@@ -9,5 +9,7 @@ package com.fluxtion.server.exception;
  * Thrown on failures during service registration to the FluxtionServer.
  */
 public class ServiceRegistrationException extends FluxtionServerException {
-    public ServiceRegistrationException(String message) { super(message); }
+    public ServiceRegistrationException(String message) {
+        super(message);
+    }
 }

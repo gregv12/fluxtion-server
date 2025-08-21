@@ -9,8 +9,18 @@ package com.fluxtion.server.exception;
  * Base unchecked exception for Fluxtion Server domain.
  */
 public class FluxtionServerException extends RuntimeException {
-    public FluxtionServerException() { }
-    public FluxtionServerException(String message) { super(message); }
-    public FluxtionServerException(String message, Throwable cause) { super(message, cause); }
-    public FluxtionServerException(Throwable cause) { super(cause); }
+    public FluxtionServerException() {
+    }
+
+    public FluxtionServerException(String message) {
+        super(message);
+    }
+
+    public FluxtionServerException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public FluxtionServerException(Throwable cause) {
+        super(cause);
+    }
 }

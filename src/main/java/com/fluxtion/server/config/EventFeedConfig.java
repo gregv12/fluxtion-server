@@ -10,8 +10,8 @@ import com.fluxtion.agrona.concurrent.IdleStrategy;
 import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.input.NamedFeed;
 import com.fluxtion.runtime.service.Service;
-import com.fluxtion.server.dispatch.EventSource;
 import com.fluxtion.server.dutycycle.ServiceAgent;
+import com.fluxtion.server.service.EventSource;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -72,7 +72,9 @@ public class EventFeedConfig<T> {
     }
 
     // -------- Builder API --------
-    public static <T> Builder<T> builder() { return new Builder<>(); }
+    public static <T> Builder<T> builder() {
+        return new Builder<>();
+    }
 
     public static final class Builder<T> {
         private T instance;
@@ -84,14 +86,45 @@ public class EventFeedConfig<T> {
         private String agentName;
         private IdleStrategy idleStrategy;
 
-        private Builder() {}
-        public Builder<T> instance(T instance) { this.instance = instance; return this; }
-        public Builder<T> name(String name) { this.name = name; return this; }
-        public Builder<T> broadcast(boolean broadcast) { this.broadcast = broadcast; return this; }
-        public Builder<T> wrapWithNamedEvent(boolean wrap) { this.wrapWithNamedEvent = wrap; return this; }
-        public Builder<T> slowConsumerStrategy(EventSource.SlowConsumerStrategy strategy) { this.slowConsumerStrategy = strategy; return this; }
-        public Builder<T> valueMapper(Function<T, ?> mapper) { this.valueMapper = mapper; return this; }
-        public Builder<T> agent(String agentName, IdleStrategy idleStrategy) { this.agentName = agentName; this.idleStrategy = idleStrategy; return this; }
+        private Builder() {
+        }
+
+        public Builder<T> instance(T instance) {
+            this.instance = instance;
+            return this;
+        }
+
+        public Builder<T> name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder<T> broadcast(boolean broadcast) {
+            this.broadcast = broadcast;
+            return this;
+        }
+
+        public Builder<T> wrapWithNamedEvent(boolean wrap) {
+            this.wrapWithNamedEvent = wrap;
+            return this;
+        }
+
+        public Builder<T> slowConsumerStrategy(EventSource.SlowConsumerStrategy strategy) {
+            this.slowConsumerStrategy = strategy;
+            return this;
+        }
+
+        public Builder<T> valueMapper(Function<T, ?> mapper) {
+            this.valueMapper = mapper;
+            return this;
+        }
+
+        public Builder<T> agent(String agentName, IdleStrategy idleStrategy) {
+            this.agentName = agentName;
+            this.idleStrategy = idleStrategy;
+            return this;
+        }
+
         public EventFeedConfig<T> build() {
             EventFeedConfig<T> cfg = new EventFeedConfig<>();
             cfg.setInstance(instance);

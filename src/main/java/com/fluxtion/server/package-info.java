@@ -5,18 +5,18 @@
 
 /**
  * Package: server
- *
+ * <p>
  * Responsibility
  * - Entry-point orchestration and lifecycle management for the Fluxtion Server.
- *   Hosts the FluxtionServer class which wires configuration (config package),
- *   event-flow (dispatch), agent groups (dutycycle), and services (service).
- *
+ * Hosts the FluxtionServer class which wires configuration (config package),
+ * event-flow (dispatch), agent groups (dutycycle), and services (service).
+ * <p>
  * Public API
  * - FluxtionServer boot helpers and server control interface exposure.
- *
+ * <p>
  * Allowed dependencies
  * - May depend on: config, dispatch, dutycycle, service, exception.
  * - Must not be referenced by those packages for core logic (avoid cycles); they
- *   should remain orchestrated from here.
+ * should remain orchestrated from here.
  */
 package com.fluxtion.server;

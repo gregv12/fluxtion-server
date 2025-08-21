@@ -5,22 +5,22 @@
 
 /**
  * Package: config
- *
+ * <p>
  * Responsibility
  * - Provides configuration data structures used to assemble a server instance
- *   (AppConfig and related *Config types).
+ * (AppConfig and related *Config types).
  * - Supplies builder APIs to construct complex configurations fluently.
- *
+ * <p>
  * Public API (consumed by other packages)
  * - AppConfig (input to FluxtionServer)
  * - ServiceConfig, EventFeedConfig, EventSinkConfig, EventProcessorGroupConfig,
- *   EventProcessorConfig, ThreadConfig.
- *
+ * EventProcessorConfig, ThreadConfig.
+ * <p>
  * Allowed dependencies
- * - May depend on: com.fluxtion.server.dispatch.EventSource (for EventWrapStrategy),
- *   com.fluxtion.runtime (Service, MessageSink, EventProcessor) for typing.
+ * - May depend on: com.fluxtion.server.service.EventSource (for EventWrapStrategy),
+ * com.fluxtion.runtime (Service, MessageSink, EventProcessor) for typing.
  * - Must not depend on: dutycycle, server orchestration, or admin/service impls.
- *
+ * <p>
  * Notes
  * - Keep these classes as pure data/transformers; no runtime orchestration logic here.
  */

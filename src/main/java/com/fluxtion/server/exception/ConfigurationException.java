@@ -9,6 +9,11 @@ package com.fluxtion.server.exception;
  * Thrown when configuration values are missing or of the wrong type.
  */
 public class ConfigurationException extends FluxtionServerException {
-    public ConfigurationException(String message) { super(message); }
-    public ConfigurationException(String message, Throwable cause) { super(message, cause); }
+    public ConfigurationException(String message) {
+        super(message);
+    }
+
+    public ConfigurationException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

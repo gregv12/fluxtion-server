@@ -44,7 +44,7 @@ public class DemonstrationEventProcessor {
             # --------- EVENT INPUT FEEDS BEGIN CONFIG ---------
             eventFeeds:
               - instance: !!com.fluxtion.server.example.HeartBeatEventFeed
-                  publishIntervalNanos: 750
+                  publishIntervalNanos: 200
                 name: heartBeater
                 agentName: heartBeatPublisher-thread
                 broadcast: true

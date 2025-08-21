@@ -6,9 +6,9 @@
 package com.fluxtion.server.test;
 
 import com.fluxtion.runtime.node.ObjectEventHandlerNode;
-import com.fluxtion.server.dispatch.CallBackType;
-import com.fluxtion.server.dispatch.EventSourceKey;
-import com.fluxtion.server.dispatch.EventSubscriptionKey;
+import com.fluxtion.server.service.CallBackType;
+import com.fluxtion.server.service.EventSourceKey;
+import com.fluxtion.server.service.EventSubscriptionKey;
 import lombok.Getter;
 
 public class SubscriptionEventHandler extends ObjectEventHandlerNode {

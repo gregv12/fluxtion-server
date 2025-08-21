@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Holds per-thread reference to the current StaticEventProcessor being invoked.
- *
+ * <p>
  * This class exists to reduce coupling between components that previously
  * depended on EventFlowManager for accessing a thread-local current processor.
  * Use this instead of EventFlowManager's static current-processor methods.
@@ -20,7 +20,8 @@ public final class ProcessorContext {
 
     private static final ThreadLocal<AtomicReference<StaticEventProcessor>> CURRENT = new ThreadLocal<>();
 
-    private ProcessorContext() {}
+    private ProcessorContext() {
+    }
 
     public static void setCurrentProcessor(StaticEventProcessor eventProcessor) {
         AtomicReference<StaticEventProcessor> ref = CURRENT.get();
@@ -42,6 +43,6 @@ public final class ProcessorContext {
     public static StaticEventProcessor currentProcessor() {
         AtomicReference<StaticEventProcessor> ref = CURRENT.get();
         return ref == null ? null : ref.get();
-        
+
     }
 }

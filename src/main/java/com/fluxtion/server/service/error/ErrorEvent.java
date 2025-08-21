@@ -11,7 +11,7 @@ import java.util.Objects;
  * Represents an error/alert that can be reported and broadcast to listeners.
  */
 public final class ErrorEvent {
-    public enum Severity { INFO, WARNING, ERROR, CRITICAL }
+    public enum Severity {INFO, WARNING, ERROR, CRITICAL}
 
     private final Instant timestamp;
     private final String source;
@@ -27,11 +27,25 @@ public final class ErrorEvent {
         this.severity = severity == null ? Severity.ERROR : severity;
     }
 
-    public Instant getTimestamp() { return timestamp; }
-    public String getSource() { return source; }
-    public String getMessage() { return message; }
-    public Throwable getError() { return error; }
-    public Severity getSeverity() { return severity; }
+    public Instant getTimestamp() {
+        return timestamp;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public Throwable getError() {
+        return error;
+    }
+
+    public Severity getSeverity() {
+        return severity;
+    }
 
     @Override
     public String toString() {

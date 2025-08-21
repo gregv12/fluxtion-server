@@ -10,8 +10,18 @@ import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.server.dispatch.AbstractEventToInvocationStrategy;
 
+/**
+ * Invocation strategy that executes AdminCommand events by calling executeCommand on receipt.
+ */
 @Experimental
 public class AdminCommandInvoker extends AbstractEventToInvocationStrategy {
+
+    /**
+     * Create a new AdminCommandInvoker.
+     */
+    public AdminCommandInvoker() {
+        super();
+    }
 
     @Override
     protected void dispatchEvent(Object event, StaticEventProcessor eventProcessor) {

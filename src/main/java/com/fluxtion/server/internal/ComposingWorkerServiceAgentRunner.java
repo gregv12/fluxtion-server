@@ -6,10 +6,16 @@ package com.fluxtion.server.internal;
 
 import com.fluxtion.agrona.concurrent.AgentRunner;
 import com.fluxtion.server.dutycycle.ComposingServiceAgent;
-import lombok.Value;
 
-@Value
-public class ComposingWorkerServiceAgentRunner {
-    ComposingServiceAgent group;
-    AgentRunner groupRunner;
+/**
+ * Lightweight holder pairing a {@link com.fluxtion.server.dutycycle.ComposingServiceAgent}
+ * with its executing {@link com.fluxtion.agrona.concurrent.AgentRunner}.
+ * <p>
+ * Used by FluxtionServer to track worker service agent groups and their runners
+ * for lifecycle management (start/stop).
+ *
+ * @param group       the composing worker service agent group
+ * @param groupRunner the agent runner executing the group
+ */
+public record ComposingWorkerServiceAgentRunner(ComposingServiceAgent group, AgentRunner groupRunner) {
 }
