@@ -10,7 +10,6 @@ import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.event.BroadcastEvent;
 import com.fluxtion.runtime.event.ReplayRecord;
-import com.fluxtion.server.dispatch.EventToInvokeStrategy;
 import com.fluxtion.server.service.metrics.EventProcessingMetrics;
 import com.fluxtion.server.service.metrics.MetricsRegistry;
 import com.fluxtion.server.service.EventToInvokeStrategy;
