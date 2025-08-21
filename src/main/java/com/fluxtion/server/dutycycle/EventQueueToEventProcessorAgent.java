@@ -60,6 +60,7 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
             int attempt = 0;
             boolean done = false;
             Throwable lastError = null;
+            final long start = System.nanoTime();
             while (!done) {
                 try {
                     if (event instanceof ReplayRecord replayRecord) {
@@ -73,6 +74,9 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
                 } catch (Throwable t) {
                     lastError = t;
                     attempt++;
+                    if (metricsEnabled.getPlain()) {
+                        metrics.recordFailure();
+                    }
                     String warnMsg = "event processing failed: agent=" + name +
                             ", attempt=" + attempt +
                             ", eventClass=" + (event == null ? "null" : event.getClass().getName()) +
@@ -99,37 +103,19 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
                         break;
                     }
                     retryPolicy.backoff(attempt);
+                } finally {
+                    if (metricsEnabled.getPlain()) {
+                        final long duration = System.nanoTime() - start;
+                        metrics.recordLatencyNanos(duration);
+                    }
                 }
-        int processed = 0;
-        // Batch up to a fixed number of events per tick to reduce per-event overhead
-        final int batchLimit = 64;
-        Object event;
-        while (processed < batchLimit && (event = inputQueue.poll()) != null) {
-            final long start = System.nanoTime();
-            try {
-                if (event instanceof ReplayRecord replayRecord) {
-                    eventToInvokeStrategy.processEvent(replayRecord.getEvent(), replayRecord.getWallClockTime());
-                } else if (event instanceof BroadcastEvent broadcastEvent) {
-                    eventToInvokeStrategy.processEvent(broadcastEvent.getEvent());
-                } else {
-                    eventToInvokeStrategy.processEvent(event);
-                }
-            } catch (RuntimeException ex) {
-                if( metricsEnabled.getPlain()){
-                    metrics.recordFailure();
-                }
-                throw ex;
-            } finally {
-                if( metricsEnabled.getPlain()){
-                    final long duration = System.nanoTime() - start;
-                    metrics.recordLatencyNanos(duration);
-                }
+                // Count it as processed even if dropped to avoid infinite loops
+                processed++;
             }
-            // Count it as processed even if dropped to avoid infinite loops
-            processed++;
         }
         return processed;
     }
+
 
     @Override
     public void onClose() {
@@ -141,7 +127,9 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
         return name;
     }
 
-    /** Configure the retry policy for processing events. */
+    /**
+     * Configure the retry policy for processing events.
+     */
     public EventQueueToEventProcessorAgent withRetryPolicy(com.fluxtion.server.dispatch.RetryPolicy retryPolicy) {
         if (retryPolicy != null) {
             this.retryPolicy = retryPolicy;
@@ -149,7 +137,9 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
         return this;
     }
 
-    /** Provide an unsubscribe action to be called when listenerCount() drops to zero. */
+    /**
+     * Provide an unsubscribe action to be called when listenerCount() drops to zero.
+     */
     public EventQueueToEventProcessorAgent withUnsubscribeAction(Runnable unsubscribeAction) {
         this.unsubscribeAction = unsubscribeAction;
         return this;

@@ -32,6 +32,7 @@ public class EventFlowManager {
     private final ConcurrentHashMap<EventSinkKey<?>, ManyToOneConcurrentArrayQueue<?>> eventSinkToQueueMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<com.fluxtion.server.dispatch.CallBackType, Supplier<EventToInvokeStrategy>> eventToInvokerFactoryMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<EventSourceKey_Subscriber<?>, OneToOneConcurrentArrayQueue<Object>> subscriberKeyToQueueMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, EventQueueToEventProcessor> processorEventQueueMap = new ConcurrentHashMap<>();
 
     public EventFlowManager() {
         eventToInvokerFactoryMap.put(CallBackType.ON_EVENT_CALL_BACK, EventToOnEventInvokeStrategy::new);
@@ -119,8 +120,10 @@ public class EventFlowManager {
 
         Runnable unsubscribe = createUnsubscribeAction(sourcePublisher, name, keySubscriber);
 
-        return new EventQueueToEventProcessorAgent(eventQueue, eventMapperSupplier.get(), name)
+        EventQueueToEventProcessorAgent eventQueueToEventProcessorAgent = new EventQueueToEventProcessorAgent(eventQueue, eventMapperSupplier.get(), name)
                 .withUnsubscribeAction(unsubscribe);
+        processorEventQueueMap.put(name, eventQueueToEventProcessorAgent);
+        return eventQueueToEventProcessorAgent;
     }
 
     public <T> EventQueueToEventProcessor getMappingAgent(EventSubscriptionKey<T> subscriptionKey, Agent subscriber) {
