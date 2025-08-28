@@ -9,10 +9,7 @@ import com.fluxtion.runtime.EventProcessor;
 import com.fluxtion.runtime.audit.EventLogControlEvent;
 import com.fluxtion.runtime.node.ObjectEventHandlerNode;
 import com.fluxtion.server.internal.ConfigAwareEventProcessor;
-import lombok.AccessLevel;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,6 +28,7 @@ public class EventProcessorConfig<T extends EventProcessor<?>> {
     }
 
     public EventProcessorConfig() {
+        configMap = new HashMap<>();
     }
 
     @SuppressWarnings({"unchecked"})

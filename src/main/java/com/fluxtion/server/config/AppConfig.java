@@ -9,6 +9,7 @@ import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
 import com.fluxtion.agrona.concurrent.IdleStrategy;
 import com.fluxtion.agrona.concurrent.YieldingIdleStrategy;
 import com.fluxtion.runtime.EventProcessor;
+import com.fluxtion.runtime.node.ObjectEventHandlerNode;
 import com.fluxtion.server.service.CallBackType;
 import com.fluxtion.server.service.EventToInvokeStrategy;
 import lombok.Data;
@@ -223,7 +224,70 @@ public class AppConfig {
         return defaultHandlerGroupConfig;
     }
 
+
     // ---- Improved service registration API ----
+
+    /**
+     * Adds an {@link EventProcessor} to a specified processor group.
+     * If the group does not exist, it will be created.
+     *
+     * @param <T>       concrete processor type
+     * @param groupName name of the processor group
+     * @param processor processor instance to add
+     * @param name      unique name/key under which to register the processor
+     * @return this {@link AppConfig} for fluent chaining
+     */
+    public <T extends EventProcessor<?>> AppConfig addProcessor(String groupName, T processor, String name) {
+        var eventProcessorGroupConfig = getGroupConfig(groupName);
+
+        EventProcessorConfig<T> processorConfig = new EventProcessorConfig<>();
+        processorConfig.setEventHandler(processor);
+        eventProcessorGroupConfig.getEventHandlers().put(name, processorConfig);
+
+        return this;
+    }
+
+    /**
+     * Adds an {@link ObjectEventHandlerNode} to a specified processor group.
+     * If the group does not exist, it will be created.
+     *
+     * @param <T>       concrete handler node type
+     * @param groupName name of the processor group
+     * @param processor handler node instance to add
+     * @param name      unique name/key under which to register the handler
+     * @return this {@link AppConfig} for fluent chaining
+     */
+    public <T extends ObjectEventHandlerNode> AppConfig addProcessor(String groupName, T processor, String name) {
+        EventProcessorGroupConfig eventProcessorGroupConfig = getGroupConfig(groupName);
+
+        EventProcessorConfig<?> processorConfig = new EventProcessorConfig<>();
+        processorConfig.setCustomHandler(processor);
+        Map<String, EventProcessorConfig<?>> eventHandlers1 = eventProcessorGroupConfig.getEventHandlers();
+        eventHandlers1.put(name, processorConfig);
+
+        return this;
+    }
+
+
+    /**
+     * Gets or creates a processor group configuration for the specified group name.
+     * If a group with the given name exists, it is returned. Otherwise, a new group
+     * is created, added to the configuration, and returned.
+     *
+     * @param groupName name of the processor group to get or create
+     * @return existing or newly created {@link EventProcessorGroupConfig} for the group
+     */
+    public EventProcessorGroupConfig getGroupConfig(String groupName) {
+
+        return getEventHandlers().stream()
+                .filter(cfg -> cfg.getAgentName().equals(groupName))
+                .findFirst()
+                .orElseGet(() -> {
+                    var config = EventProcessorGroupConfig.builder().agentName(groupName).build();
+                    getEventHandlers().add(config);
+                    return config;
+                });
+    }
 
     /**
      * Register a simple service by instance and name.
