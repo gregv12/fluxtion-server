@@ -9,6 +9,7 @@ import com.fluxtion.agrona.concurrent.IdleStrategy;
 import com.fluxtion.runtime.audit.EventLogControlEvent;
 import lombok.Data;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Data
@@ -16,7 +17,23 @@ public class EventProcessorGroupConfig {
     private String agentName;
     private IdleStrategy idleStrategy;
     private EventLogControlEvent.LogLevel logLevel;
-    private Map<String, EventProcessorConfig<?>> eventHandlers;
+    private Map<String, EventProcessorConfig<?>> eventHandlers = new HashMap<>();
+
+    public EventProcessorGroupConfig(String agentName) {
+        this.agentName = agentName;
+        eventHandlers = new HashMap<>();
+    }
+
+    public EventProcessorGroupConfig() {
+        eventHandlers = new HashMap<>();
+    }
+
+    public Map<String, EventProcessorConfig<?>> getEventHandlers() {
+        if (eventHandlers == null) {
+            eventHandlers = new HashMap<>();
+        }
+        return eventHandlers;
+    }
 
     public static Builder builder() {
         return new Builder();
@@ -26,7 +43,7 @@ public class EventProcessorGroupConfig {
         private String agentName;
         private IdleStrategy idleStrategy;
         private EventLogControlEvent.LogLevel logLevel;
-        private Map<String, EventProcessorConfig<?>> eventHandlers;
+        private Map<String, EventProcessorConfig<?>> eventHandlers = new HashMap<>();
 
         private Builder() {
         }
