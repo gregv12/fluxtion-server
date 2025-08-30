@@ -48,21 +48,35 @@ public abstract class AbstractEventSourceService<T>
         LifeCycleEventSource<T>,
         EventFlowService {
 
-    /** Unique service name for this event source. */
+    /**
+     * Unique service name for this event source.
+     */
     @Getter
     @Setter
     protected String name;
-    /** Callback type used to map published events to subscriber invocations. */
+    /**
+     * Callback type used to map published events to subscriber invocations.
+     */
     private final CallBackType eventToInvokeType;
-    /** Optional supplier for a custom event-to-invoke mapping strategy. */
+    /**
+     * Optional supplier for a custom event-to-invoke mapping strategy.
+     */
     private final Supplier<EventToInvokeStrategy> eventToInokeStrategySupplier;
-    /** Publisher provided by the EventFlowManager used to emit events to subscribers. */
+    /**
+     * Publisher provided by the EventFlowManager used to emit events to subscribers.
+     */
     protected EventToQueuePublisher<T> output;
-    /** Logical service name as registered with the EventFlowManager. */
+    /**
+     * Logical service name as registered with the EventFlowManager.
+     */
     protected String serviceName;
-    /** Subscription key used by processors to subscribe to this source. */
+    /**
+     * Subscription key used by processors to subscribe to this source.
+     */
     protected EventSubscriptionKey<T> subscriptionKey;
-    /** Scheduler service injected at runtime for time-based operations. */
+    /**
+     * Scheduler service injected at runtime for time-based operations.
+     */
     protected SchedulerService scheduler;
     private EventWrapStrategy eventWrapStrategy = EventWrapStrategy.SUBSCRIPTION_NOWRAP;
     private EventSource.SlowConsumerStrategy slowConsumerStrategy = SlowConsumerStrategy.BACKOFF;
@@ -81,8 +95,8 @@ public abstract class AbstractEventSourceService<T>
     /**
      * Construct an event source with an explicit callback type.
      *
-     * @param name               unique service name
-     * @param eventToInvokeType  callback type for event delivery
+     * @param name              unique service name
+     * @param eventToInvokeType callback type for event delivery
      */
     public AbstractEventSourceService(String name, CallBackType eventToInvokeType) {
         this(name, eventToInvokeType, null);
@@ -91,9 +105,9 @@ public abstract class AbstractEventSourceService<T>
     /**
      * Construct an event source with explicit callback and mapping strategy.
      *
-     * @param name                           unique service name
-     * @param eventToInvokeType              callback type for event delivery
-     * @param eventToInokeStrategySupplier   optional supplier for custom event mapping
+     * @param name                         unique service name
+     * @param eventToInvokeType            callback type for event delivery
+     * @param eventToInokeStrategySupplier optional supplier for custom event mapping
      */
     public AbstractEventSourceService(
             String name,
@@ -140,8 +154,8 @@ public abstract class AbstractEventSourceService<T>
      * If no processor is present in context, logs a warning and does nothing.
      */
     public void subscribe() {
-        log.info("subscribe request");
         var current = com.fluxtion.server.dispatch.ProcessorContext.currentProcessor();
+        log.info("adding subscription for service '" + serviceName + "' to '" + current + "'");
         if (current == null) {
             log.warning("subscribe called with no current processor in context; skipping subscription for service '" + serviceName + "'");
             return;
@@ -158,13 +172,22 @@ public abstract class AbstractEventSourceService<T>
     @Override
     public void registerSubscriber(StaticEventProcessor subscriber) {
         if (eventWrapStrategy == EventWrapStrategy.BROADCAST_NOWRAP || eventWrapStrategy == EventWrapStrategy.BROADCAST_NAMED_EVENT) {
+            log.info("registerSubscriber for broadcast receive " + subscriber);
             subscribe();
         }
     }
 
     @Override
     public void subscribe(StaticEventProcessor subscriber, EventSubscription<?> eventSubscription) {
-        subscribe();
+        log.info("subscribe request for " + eventSubscription + " from " + subscriber);
+        if (serviceName.equals(eventSubscription.filterString())) {
+            log.info("subscribe request for " + eventSubscription + " from " + subscriber
+                    + " matches service name:" + serviceName);
+            subscribe();
+        } else {
+            log.info("ignoring subscribe request for " + eventSubscription + " from " + subscriber
+                    + " does not match service name:" + serviceName);
+        }
     }
 
     @Override
