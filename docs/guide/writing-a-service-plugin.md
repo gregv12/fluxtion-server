@@ -290,7 +290,9 @@ svc.tearDown();
 
 - Message sinks: [Writing a Message Sink Plugin](../guide/writing-a-message-sink-plugin.md)
 - Event sources: [Writing an Event Source Plugin](../guide/writing-an-event-source-plugin.md)
-- Configuration API: [ServiceConfig.java](../../src/main/java/com/fluxtion/server/config/ServiceConfig.java),
+- Configuration
+  API: [ServiceConfig.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/config/ServiceConfig.java),
   `AppConfig.Builder`
-- Bootstrapping: [ServerConfigurator.java](../../src/main/java/com/fluxtion/server/internal/ServerConfigurator.java),
-  `FluxtionServer`
+-
+Bootstrapping: [ServerConfigurator.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/internal/ServerConfigurator.java),
+`FluxtionServer`

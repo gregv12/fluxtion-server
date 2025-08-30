@@ -167,12 +167,13 @@ private void scheduleHeartbeat(long periodMs) {
 
 ## References
 
-- Interface: [SchedulerService.java](../../src/main/java/com/fluxtion/server/service/scheduler/SchedulerService.java)
+-
+Interface: [SchedulerService.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/scheduler/SchedulerService.java)
 - Default
-  implementation: [DeadWheelScheduler.java](../../src/main/java/com/fluxtion/server/service/scheduler/DeadWheelScheduler.java)
+  implementation: [DeadWheelScheduler.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/scheduler/DeadWheelScheduler.java)
 - Trigger
-  helper: [ScheduledTriggerNode.java](../../src/main/java/com/fluxtion/server/service/scheduler/ScheduledTriggerNode.java)
+  helper: [ScheduledTriggerNode.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/scheduler/ScheduledTriggerNode.java)
 - Wiring an event
-  processor: [ComposingEventProcessorAgent.java](../../src/main/java/com/fluxtion/server/dutycycle/ComposingEventProcessorAgent.java)
+  processor: [ComposingEventProcessorAgent.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dutycycle/ComposingEventProcessorAgent.java)
 - Wiring a
-  services: [ComposingServiceAgent.java](../../src/main/java/com/fluxtion/server/dutycycle/ComposingServiceAgent.java)
+  services: [ComposingServiceAgent.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dutycycle/ComposingServiceAgent.java)

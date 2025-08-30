@@ -16,14 +16,16 @@ You’ll learn:
 References in this repository:
 
 - Processor
-  agent: [ComposingEventProcessorAgent](../../src/main/java/com/fluxtion/server/dutycycle/ComposingEventProcessorAgent.java)
-- Service agent: [ComposingServiceAgent](../../src/main/java/com/fluxtion/server/dutycycle/ComposingServiceAgent.java)
+  agent: [ComposingEventProcessorAgent](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dutycycle/ComposingEventProcessorAgent.java)
+- Service
+  agent: [ComposingServiceAgent](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dutycycle/ComposingServiceAgent.java)
 - Scheduler
-  agent: [DeadWheelScheduler](../../src/main/java/com/fluxtion/server/service/scheduler/DeadWheelScheduler.java)
+  agent: [DeadWheelScheduler](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/scheduler/DeadWheelScheduler.java)
 - Event source
-  base: [AbstractEventSourceService](../../src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java) (+
+  base: [AbstractEventSourceService](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java) (+
   agent variant)
-- Queue publisher: [EventToQueuePublisher](../../src/main/java/com/fluxtion/server/dispatch/EventToQueuePublisher.java)
+- Queue
+  publisher: [EventToQueuePublisher](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dispatch/EventToQueuePublisher.java)
 
 ## 1) Big picture
 
@@ -210,16 +212,25 @@ public class MySchedulerAwareHandler extends com.fluxtion.runtime.node.ObjectEve
 
 ## 9) Optional: Core pinning for agent threads
 
-Fluxtion Server supports best-effort CPU core pinning for agent threads. This can help reduce context switches and improve tail latency on systems where CPU affinity is desirable.
+Fluxtion Server supports best-effort CPU core pinning for agent threads. This can help reduce context switches and
+improve tail latency on systems where CPU affinity is desirable.
 
 Key points:
-- Configure per-agent core pinning using AppConfig’s agent Threads: [ThreadConfig](../../src/main/java/com/fluxtion/server/config/ThreadConfig.java) has an optional coreId field (zero-based CPU index).
+
+- Configure per-agent core pinning using AppConfig’s agent
+  Threads: [ThreadConfig](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/config/ThreadConfig.java)
+  has an optional coreId field (zero-based CPU index).
 - Pinning is applied inside the agent thread itself during start (onStart) for both processor and service agent groups:
-  - Processor agent: [ComposingEventProcessorAgent](../../src/main/java/com/fluxtion/server/dutycycle/ComposingEventProcessorAgent.java)
-  - Service agent: [ComposingServiceAgent](../../src/main/java/com/fluxtion/server/dutycycle/ComposingServiceAgent.java)
-- Fluxtion uses a lightweight helper [CoreAffinity](../../src/main/java/com/fluxtion/server/internal/CoreAffinity.java) that attempts to pin via reflection to OpenHFT’s Affinity library if present; otherwise it logs and no-ops.
+    - Processor
+      agent: [ComposingEventProcessorAgent](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dutycycle/ComposingEventProcessorAgent.java)
+    - Service
+      agent: [ComposingServiceAgent](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dutycycle/ComposingServiceAgent.java)
+- Fluxtion uses a lightweight
+  helper [CoreAffinity](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/internal/CoreAffinity.java)
+  that attempts to pin via reflection to OpenHFT’s Affinity library if present; otherwise it logs and no-ops.
 
 Configure via fluent builder:
+
 ```java
 import com.fluxtion.server.config.AppConfig;
 import com.fluxtion.server.config.ThreadConfig;
@@ -242,14 +253,22 @@ AppConfig appConfig = AppConfig.builder()
 ```
 
 Runtime behavior:
-- When an agent group thread starts, the server resolves the configured core for that agent via FluxtionServer.resolveCoreIdForAgentName and calls CoreAffinity.pinCurrentThreadToCore(coreId). If no coreId is configured, nothing is done.
+
+- When an agent group thread starts, the server resolves the configured core for that agent via
+  FluxtionServer.resolveCoreIdForAgentName and calls CoreAffinity.pinCurrentThreadToCore(coreId). If no coreId is
+  configured, nothing is done.
 - If OpenHFT’s Affinity is not on the classpath, pinning is skipped with an info log.
 
 Optional dependency for pinning:
+
 - To enable actual OS-level pinning, add the test/runtime dependency on OpenHFT Affinity in your project.
-  See this repository’s POM for an example test-scoped optional dependency: [pom.xml](../../pom.xml) (artifact net.openhft:affinity).
-- A simple optional test that exercises pinning via reflection is provided here: [CoreAffinityOptionalTest](../../src/test/java/com/fluxtion/server/internal/CoreAffinityOptionalTest.java).
+  See this repository’s POM for an example test-scoped optional
+  dependency: [pom.xml](https://github.com/gregv12/fluxtion-server/blob/main/pom.xml) (artifact
+  net.openhft:affinity).
+- A simple optional test that exercises pinning via reflection is provided
+  here: [CoreAffinityOptionalTest](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/internal/CoreAffinityOptionalTest.java).
 
 Notes:
+
 - Core IDs are zero-based and depend on your OS/CPU topology.
 - Pinning can improve determinism but may reduce OS scheduling flexibility; benchmark your workload.

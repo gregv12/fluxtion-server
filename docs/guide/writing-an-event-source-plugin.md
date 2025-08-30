@@ -12,12 +12,13 @@ Server’s event flow. You will learn how to:
 
 Reference implementations in this repository:
 
-- File-based source: [FileEventSource.java](../../src/main/java/com/fluxtion/server/connector/file/FileEventSource.java)
+- File-based
+  source: [FileEventSource.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/connector/file/FileEventSource.java)
 - In-memory
-  source: [InMemoryEventSource.java](../../src/main/java/com/fluxtion/server/connector/memory/InMemoryEventSource.java)
+  source: [InMemoryEventSource.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/connector/memory/InMemoryEventSource.java)
 - Base
-  classes: [AbstractEventSourceService.java](../../src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java)
-  and [AbstractAgentHostedEventSourceService.java](../../src/main/java/com/fluxtion/server/service/extension/AbstractAgentHostedEventSourceService.java)
+  classes: [AbstractEventSourceService.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java)
+  and [AbstractAgentHostedEventSourceService.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/extension/AbstractAgentHostedEventSourceService.java)
 
 ## When to write a source
 
@@ -274,10 +275,11 @@ assertEquals(List.of("x"), drained.stream().map(Object::toString).toList());
 
 ## See also
 
-- [FileEventSource.java](../../src/main/java/com/fluxtion/server/connector/file/FileEventSource.java)
-  and [InMemoryEventSource.java](../../src/main/java/com/fluxtion/server/connector/memory/InMemoryEventSource.java) for
+- [FileEventSource.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/connector/file/FileEventSource.java)
+  and [InMemoryEventSource.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/connector/memory/InMemoryEventSource.java)
+  for
   complete, working examples
 - [docs/guide/file-and-memory-feeds-example.md](file-and-memory-feeds-example.md) for end-to-end wiring with processors
   and sinks
-- [AbstractEventSourceService](../../src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java), [AbstractAgentHostedEventSourceService](../../src/main/java/com/fluxtion/server/service/extension/AbstractAgentHostedEventSourceService.java)
+- [AbstractEventSourceService](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java), [AbstractAgentHostedEventSourceService](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/extension/AbstractAgentHostedEventSourceService.java)
   for lifecycle and wiring details

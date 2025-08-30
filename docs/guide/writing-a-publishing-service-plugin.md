@@ -1,19 +1,27 @@
 # How to write a publishing Service plugin (processor subscribes via @ServiceRegistered)
 
 This guide shows how to implement a Service plugin that can publish events into the Fluxtion event flow, and how an
-EventProcessor subscribes to that service. The processor receives the service instance via `@ServiceRegistered` and calls
+EventProcessor subscribes to that service. The processor receives the service instance via `@ServiceRegistered` and
+calls
 `service.subscribe()` to start receiving events.
 
 We will:
+
 - Implement a minimal `PublishingService` by extending `AbstractEventSourceService<String>`
-- Implement a processor that injects the service via `@ServiceRegistered`, calls `subscribe()` in `start()`, and forwards events to a sink
+- Implement a processor that injects the service via `@ServiceRegistered`, calls `subscribe()` in `start()`, and
+  forwards events to a sink
 - Wire everything with `AppConfig`, publish a few events via the service, and verify reception in a sink
 
 References in this repository:
-- Example service: [src/test/java/com/fluxtion/server/example/PublishingService.java](../../src/test/java/com/fluxtion/server/example/PublishingService.java)
-- Example processor: [src/test/java/com/fluxtion/server/example/PublishingServiceSubscriberHandler.java](../../src/test/java/com/fluxtion/server/example/PublishingServiceSubscriberHandler.java)
-- Example test: [src/test/java/com/fluxtion/server/example/PublishingServicePluginExampleTest.java](../../src/test/java/com/fluxtion/server/example/PublishingServicePluginExampleTest.java)
-- Service base class: [src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java](../../src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java)
+
+- Example
+  service: [src/test/java/com/fluxtion/server/example/PublishingService.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/PublishingService.java)
+- Example
+  processor: [src/test/java/com/fluxtion/server/example/PublishingServiceSubscriberHandler.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/PublishingServiceSubscriberHandler.java)
+- Example
+  test: [src/test/java/com/fluxtion/server/example/PublishingServicePluginExampleTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/PublishingServicePluginExampleTest.java)
+- Service base
+  class: [src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java)
 
 ## 1) Implement a publishing Service
 
@@ -41,6 +49,7 @@ public class PublishingService extends AbstractEventSourceService<String> {
 ```
 
 Key points:
+
 - The service registers itself with the event flow when the server boots (via `setEventFlowManager` in the base class).
 - `subscribe()` uses the current ProcessorContext to add a subscription for the calling processor.
 
@@ -88,6 +97,7 @@ public class PublishingServiceSubscriberHandler extends ObjectEventHandlerNode {
 ```
 
 Notes:
+
 - `@ServiceRegistered` injects services by type (and optionally name).
 - Calling `subscribe()` from `start()` ensures the processor is subscribed before events are published.
 
@@ -144,6 +154,7 @@ pubService.publish("e2");
 The processor will receive these events via its `handleEvent` and forward them to the sink.
 
 ## When to use this pattern
+
 - You want a reusable service that can push events to processors on-demand (e.g., adapters, gateways, timers).
 - Processors opt-in by calling `service.subscribe()` so the service receives a subscribe request from the processor.
 - You want to leverage Fluxtion’s event flow, backpressure, and dispatching while keeping a clean plugin boundary.

@@ -27,12 +27,12 @@ You’ll learn:
 
 References:
 
-- [AdminCommandRegistry.java](../../src/main/java/com/fluxtion/server/service/admin/AdminCommandRegistry.java)
-- [AdminFunction.java](../../src/main/java/com/fluxtion/server/service/admin/AdminFunction.java)
-- [AdminCommandRequest.java](../../src/main/java/com/fluxtion/server/service/admin/AdminCommandRequest.java)
-- [AdminCommandProcessor.java](../../src/main/java/com/fluxtion/server/service/admin/impl/AdminCommandProcessor.java)
-- [CliAdminCommandProcessor.java](../../src/main/java/com/fluxtion/server/service/admin/impl/CliAdminCommandProcessor.java)
-- [FluxtionServerAdmin.java](../../src/main/java/com/fluxtion/server/service/servercontrol/FluxtionServerAdmin.java)
+- [AdminCommandRegistry.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/admin/AdminCommandRegistry.java)
+- [AdminFunction.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/admin/AdminFunction.java)
+- [AdminCommandRequest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/admin/AdminCommandRequest.java)
+- [AdminCommandProcessor.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/admin/impl/AdminCommandProcessor.java)
+- [CliAdminCommandProcessor.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/admin/impl/CliAdminCommandProcessor.java)
+- [FluxtionServerAdmin.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/servercontrol/FluxtionServerAdmin.java)
 
 ## How it works
 
@@ -213,6 +213,6 @@ void processAdminCommand(List<String> args, Consumer<OUT> out, Consumer<ERR> err
 
 See:
 
-- [BroadcastCallbackTest.java](../../src/test/java/com/fluxtion/server/dispatch/BroadcastCallbackTest.java)
-- [FluxtionServerAdmin.java](../../src/main/java/com/fluxtion/server/service/servercontrol/FluxtionServerAdmin.java)
+- [BroadcastCallbackTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/dispatch/BroadcastCallbackTest.java)
+- [FluxtionServerAdmin.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/servercontrol/FluxtionServerAdmin.java)
   These show wiring the admin registry, adding commands, and optional CLI usage.
