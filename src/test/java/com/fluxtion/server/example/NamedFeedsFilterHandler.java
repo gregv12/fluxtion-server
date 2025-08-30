@@ -12,10 +12,7 @@ import com.fluxtion.runtime.output.MessageSink;
 import java.util.Set;
 
 /**
- * Example processor that only forwards events from specific named EventFeeds.
- * <p>
- * Event feeds are wrapped as NamedFeedEvent by default. This handler inspects the
- * feed name and only forwards events whose feed name matches an allowed set.
+ * Example processor that only subscribes and forwards events from specific named EventFeeds.
  */
 public class NamedFeedsFilterHandler extends ObjectEventHandlerNode {
 
@@ -33,8 +30,7 @@ public class NamedFeedsFilterHandler extends ObjectEventHandlerNode {
 
     @Override
     public void start() {
-        getContext().subscribeToNamedFeed("prices");
-        getContext().subscribeToNamedFeed("news");
+        acceptedFeedNames.forEach(feedName -> getContext().subscribeToNamedFeed(feedName));
     }
 
     @Override
