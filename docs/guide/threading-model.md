@@ -65,9 +65,9 @@ flowchart LR
     Svc -- expiry Runnable --> WS1
     Svc -- expiry Runnable --> ES1
 
-    style ServiceAgentGroup fill:#eef,stroke:#88a
-    style ProcessorAgentGroup fill:#efe,stroke:#8a8
-    style SchedulerAgent fill:#fee,stroke:#a88
+    style ServiceAgentGroup fill:#234,stroke:#88a
+    style ProcessorAgentGroup fill:#418,stroke:#8a8
+    style SchedulerAgent fill:#333,stroke:#a88
 ```
 
 Notes:
