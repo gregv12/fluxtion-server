@@ -26,11 +26,14 @@ can focus on business logic.
     - [event source plugin](docs/guide/writing-an-event-source-plugin.md)
     - [service plugin](docs/guide/writing-a-service-plugin.md)
 - How-to guides:
+    - [subscribe to named event feeds](docs/guide/subscribing-to-named-event-feeds.md)
     - [add an admin command](docs/guide/writing-an-admin-command.md)
     - [using the scheduler service](docs/guide/using-the-scheduler-service.md)
     - [write a custom EventToInvokeStrategy](docs/guide/writing-a-custom-event-to-invoke-strategy.md)
     - [core pin agent threads](docs/guide/how-to-core-pin.md)
     - [inject config into a processor](docs/guide/injecting-config-into-a-processor.md)
+    - [write a publishing service plugin](docs/guide/writing-a-publishing-service-plugin.md)
+    - [typed invoke publishing service plugin](docs/guide/writing-a-typed-invoke-publishing-service-plugin.md)
 - For internals see:
     - [Threading model](docs/guide/threading-model.md)
     - [Architecture docs](docs/architecture/index.md)
