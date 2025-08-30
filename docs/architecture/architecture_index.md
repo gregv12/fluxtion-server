@@ -2,36 +2,39 @@
 
 ## Introduction
 
-This directory contains comprehensive architecture documentation for the Fluxtion Server project. The documentation is organized into several sections, each focusing on a different aspect of the architecture.
+This directory contains comprehensive architecture documentation for the Fluxtion Server project. The documentation is
+organized into several sections, each focusing on a different aspect of the architecture.
 
 ## Table of Contents
 
 1. [Architecture Overview](overview.md)
-   - High-level architecture description
-   - Main components and their relationships
-   - System architecture diagrams
+
+    - High-level architecture description
+    - Main components and their relationships
+    - System architecture diagrams
 
 2. [Component Architecture](components.md)
-   - Detailed description of key components
-   - Component responsibilities
-   - Class diagrams
-   - Component relationships
+
+    - Detailed description of key components
+    - Component responsibilities
+    - Class diagrams
+    - Component relationships
 
 3. [Event Flow Architecture](event-flow.md)
-   - Event flow components
-   - Event processing pipeline
-   - Subscription model
-   - Event types and wrapping
-   - Queue implementation
+    - Event flow components
+    - Event processing pipeline
+    - Subscription model
+    - Event types and wrapping
+    - Queue implementation
 
 4. [Deployment Guide](deployment.md)
-   - Deployment models
-   - Performance considerations
-   - High availability
-   - Monitoring and observability
-   - Security considerations
-   - Configuration management
-   - Deployment checklist
+    - Deployment models
+    - Performance considerations
+    - High availability
+    - Monitoring and observability
+    - Security considerations
+    - Configuration management
+    - Deployment checklist
 
 ## How to Use This Documentation
 
@@ -63,4 +66,6 @@ When contributing to this documentation, please follow these guidelines:
 
 ## Conclusion
 
-This architecture documentation provides a comprehensive overview of the Fluxtion Server project. It serves as a reference for developers, architects, and operators working with the system. By understanding the architecture, you can more effectively develop, extend, and maintain applications built on the Fluxtion Server framework.
+This architecture documentation provides a comprehensive overview of the Fluxtion Server project. It serves as a
+reference for developers, architects, and operators working with the system. By understanding the architecture, you can
+more effectively develop, extend, and maintain applications built on the Fluxtion Server framework.

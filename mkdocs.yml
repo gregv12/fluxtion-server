@@ -51,7 +51,7 @@ extra:
       link: https://github.com/gregv12
 
 nav:
-  - Home: index.md
+  - Home: architecture_index.md
   - Guide:
       - Overview: guide/overview.md
       - Examples:
@@ -70,8 +70,12 @@ nav:
           - Write a custom EventToInvokeStrategy: guide/writing-a-custom-event-to-invoke-strategy.md
           - Core pin agent threads: guide/how-to-core-pin.md
           - Inject config into a processor: guide/injecting-config-into-a-processor.md
-  - Architecture:
-      - Overview: architecture/index.md
+
+  - Architecture and design:
+      - Doc description: architecture/architecture_index.md
+      - Overview: architecture/overview.md
       - Event flow: architecture/event-flow.md
+      - Sequence event subscription: architecture/sequence-diagrams/event-subscription.md
+      - Sequence event processing: architecture/sequence-diagrams/event-processing.md
       - Threading model: guide/threading-model.md
-      - Sequence diagrams: architecture/sequence-diagrams/index.md
+

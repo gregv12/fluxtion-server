@@ -25,7 +25,7 @@ can focus on business logic.
 ## Architecture and Threading model for internals.
 
 - Threading model → [guide/threading-model.md](guide/threading-model.md)
-- Architecture → [architecture/index.md](architecture/index.md)
+- Architecture → [architecture/index.md](architecture/architecture_index.md)
 - Event flow → [architecture/event-flow.md](architecture/event-flow.md)
 - Sequence diagrams → [architecture/sequence-diagrams/index.md](architecture/sequence-diagrams/index.md)
 
