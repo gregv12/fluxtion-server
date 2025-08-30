@@ -1,6 +1,6 @@
-# Guide: Writing a Message Sink Plugin for Fluxtion Server
+# Guide: Writing a Message Sink Plugin for Mongoose server
 
-This guide explains how to implement and integrate a custom message sink (an output connector) for Fluxtion Server. A
+This guide explains how to implement and integrate a custom message sink (an output connector) for Mongoose server. A
 message sink consumes values produced by event processors and forwards them to an external system (e.g., file, database,
 HTTP, Kafka, etc.).
 

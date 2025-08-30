@@ -1,8 +1,8 @@
-# Fluxtion Server Architecture Documentation
+# Mongoose server Architecture Documentation
 
 ## Introduction
 
-This directory contains comprehensive architecture documentation for the Fluxtion Server project. The documentation is
+This directory contains comprehensive architecture documentation for the Mongoose server project. The documentation is
 organized into several sections, each focusing on a different aspect of the architecture.
 
 ## Table of Contents
@@ -66,6 +66,6 @@ When contributing to this documentation, please follow these guidelines:
 
 ## Conclusion
 
-This architecture documentation provides a comprehensive overview of the Fluxtion Server project. It serves as a
+This architecture documentation provides a comprehensive overview of the Mongoose server project. It serves as a
 reference for developers, architects, and operators working with the system. By understanding the architecture, you can
-more effectively develop, extend, and maintain applications built on the Fluxtion Server framework.
+more effectively develop, extend, and maintain applications built on the Mongoose server framework.

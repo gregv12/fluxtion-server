@@ -1,6 +1,6 @@
 # How to core‑pin agent threads
 
-This how‑to shows you how to pin Fluxtion Server agent threads to specific CPU cores for improved determinism and
+This how‑to shows you how to pin Mongoose server agent threads to specific CPU cores for improved determinism and
 reduced context switching on supported platforms.
 
 What you’ll do:
@@ -12,7 +12,7 @@ What you’ll do:
 
 Prerequisites:
 
-- Fluxtion Server 0.2.4+ (this repo) with the built‑in best‑effort pinning hook
+- Mongoose server 0.2.4+ (this repo) with the built‑in best‑effort pinning hook
 - Java 17+
 - Optional: net.openhft:affinity on your classpath to perform actual OS‑level affinity pinning
 

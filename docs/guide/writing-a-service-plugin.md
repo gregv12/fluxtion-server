@@ -1,6 +1,6 @@
-# Guide: Writing a Service Plugin for Fluxtion Server
+# Guide: Writing a Service Plugin for Mongoose server
 
-This guide explains how to implement and integrate a custom Service into Fluxtion Server. A service is a component that
+This guide explains how to implement and integrate a custom Service into Mongoose server. A service is a component that
 is registered with the server and can participate in lifecycle management and dependency injection. Services can be
 simple (Lifecycle only) or worker/agent-hosted (with their own thread). They may also interact with the event flow when
 they implement specific interfaces, but a “service plugin” here focuses on generic, reusable capabilities (admin,

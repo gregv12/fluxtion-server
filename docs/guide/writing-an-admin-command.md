@@ -1,6 +1,6 @@
-# Guide: Writing an Admin Command for Fluxtion Server
+# Guide: Writing an Admin Command for Mongoose server
 
-This guide explains how to add operational/admin commands to your Fluxtion Server application. Admin commands are
+This guide explains how to add operational/admin commands to your Mongoose server application. Admin commands are
 lightweight functions that you register at runtime and can invoke via a CLI or programmatically to inspect or control
 the system (list services, stop processors, flush caches, custom health checks, etc.).
 

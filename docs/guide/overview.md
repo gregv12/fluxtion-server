@@ -1,6 +1,6 @@
-# Fluxtion Server: Concepts, Architecture, and Usage
+# Mongoose server: Concepts, Architecture, and Usage
 
-This document provides a deeper overview of Fluxtion Server beyond the short README summary. It covers the event-driven
+This document provides a deeper overview of Mongoose server beyond the short README summary. It covers the event-driven
 architecture, core components, configuration, plugin model, lifecycle, and example usage.
 
 ## Event Processing Architecture
@@ -71,7 +71,7 @@ EH3 --> ESK[Event Sinks]
 
 ## Configuration (YAML)
 
-You can configure Fluxtion Server with YAML (or programmatically). Example snippet:
+You can configure Mongoose server with YAML (or programmatically). Example snippet:
 
 ```yaml
 # --------- EVENT INPUT FEEDS BEGIN CONFIG ---------
@@ -105,7 +105,7 @@ agentThreads:
 
 ## Plugin-Based Architecture
 
-Fluxtion Server implements a flexible plugin-based architecture across major components.
+Mongoose server implements a flexible plugin-based architecture across major components.
 
 ### Component Types
 

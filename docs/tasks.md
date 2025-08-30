@@ -1,6 +1,6 @@
-# Fluxtion Server Improvement Tasks
+# Mongoose server Improvement Tasks
 
-This document contains a detailed list of actionable improvement tasks for the Fluxtion Server project. The tasks are
+This document contains a detailed list of actionable improvement tasks for the Mongoose server project. The tasks are
 logically ordered and cover both architectural and code-level improvements.
 
 ## Architecture Improvements

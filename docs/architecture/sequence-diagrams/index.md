@@ -1,8 +1,8 @@
-# Fluxtion Server Sequence Diagrams
+# Mongoose server Sequence Diagrams
 
 ## Introduction
 
-This directory contains sequence diagrams that illustrate the key operations in the Fluxtion Server framework. Sequence diagrams are a type of UML diagram that show how objects interact in a particular scenario of a use case. They are particularly useful for understanding the dynamic behavior of a system.
+This directory contains sequence diagrams that illustrate the key operations in the Mongoose server framework. Sequence diagrams are a type of UML diagram that show how objects interact in a particular scenario of a use case. They are particularly useful for understanding the dynamic behavior of a system.
 
 ## Available Sequence Diagrams
 
@@ -32,4 +32,4 @@ The sequence diagrams provide a dynamic view of the system, showing how the comp
 
 ## Conclusion
 
-The sequence diagrams in this directory provide a detailed view of the key operations in Fluxtion Server. They are a valuable resource for understanding how the system works and for diagnosing issues that may arise during development or operation.
+The sequence diagrams in this directory provide a detailed view of the key operations in Mongoose server. They are a valuable resource for understanding how the system works and for diagnosing issues that may arise during development or operation.

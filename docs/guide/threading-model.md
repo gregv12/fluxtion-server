@@ -1,6 +1,6 @@
-# Guide: Fluxtion Server Threading Model
+# Guide: Mongoose server Threading Model
 
-This guide explains how Fluxtion Server uses threads to run your event processors, services, event sources, and the
+This guide explains how Mongoose server uses threads to run your event processors, services, event sources, and the
 built‑in scheduler. It focuses on where your code executes, how agents communicate, and how to design components that
 are correct and performant under the single‑threaded processor model.
 
@@ -29,7 +29,7 @@ References in this repository:
 
 ## 1) Big picture
 
-Fluxtion Server composes several “agents,” each typically running on its own thread:
+Mongoose server composes several “agents,” each typically running on its own thread:
 
 - One or more Processor Agent Groups (each contains one or more StaticEventProcessor instances)
 - One or more Service Agent Groups (each hosts zero or more worker services)
@@ -211,7 +211,7 @@ public class MySchedulerAwareHandler extends ObjectEventHandlerNode {
 
 ## 9) Optional: Core pinning for agent threads
 
-Fluxtion Server supports best-effort CPU core pinning for agent threads. This can help reduce context switches and
+Mongoose server supports best-effort CPU core pinning for agent threads. This can help reduce context switches and
 improve tail latency on systems where CPU affinity is desirable.
 
 Key points:

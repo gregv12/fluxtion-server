@@ -1,4 +1,4 @@
-# Guide: Writing an Event Source Plugin for Fluxtion Server
+# Guide: Writing an Event Source Plugin for Mongoose server
 
 This guide explains how to implement a custom event source (input connector) that publishes events into Fluxtion
 Server’s event flow. You will learn how to:
