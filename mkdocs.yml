@@ -51,7 +51,7 @@ extra:
       link: https://github.com/gregv12
 
 nav:
-  - Home: architecture_index.md
+  - Home: index.md
   - Guide:
       - Overview: guide/overview.md
       - Examples:
