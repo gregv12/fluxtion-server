@@ -107,7 +107,7 @@ JSON string), configure a mapper to transform inputs before `sendToSink` is call
 ```java
 import com.fluxtion.server.config.EventSinkConfig;
 
-EventSinkConfig<MyCustomMessageSink> sinkCfg = EventSinkConfig.<MyCustomMessageSink>builder()
+EventSinkConfig<MyCustomMessageSink> sinkCfg = EventSinkConfig.builder()
         .instance(mySink)
         .name("mySink")
         .valueMapper((Object in) -> toJson(in)) // map to JSON string
@@ -135,7 +135,7 @@ import com.fluxtion.server.config.EventSinkConfig;
 MyCustomMessageSink mySink = new MyCustomMessageSink();
 mySink.setEndpoint("/tmp/out.log");
 
-EventSinkConfig<MyCustomMessageSink> sinkCfg = EventSinkConfig.<MyCustomMessageSink>builder()
+EventSinkConfig<MyCustomMessageSink> sinkCfg = EventSinkConfig.builder()
         .instance(mySink)
         .name("mySink")
         .build();
@@ -150,7 +150,7 @@ AppConfig app = AppConfig.builder()
 ```java
 import com.fluxtion.server.config.ServiceConfig;
 
-ServiceConfig<MyCustomMessageSink> svc = ServiceConfig.<MyCustomMessageSink>builder()
+ServiceConfig<MyCustomMessageSink> svc = ServiceConfig.builder()
         .service(mySink)
         .serviceClass(MyCustomMessageSink.class)
         .name("mySink")
@@ -165,11 +165,11 @@ When using the fluent builder, the server injects registered services into proce
 `@ServiceRegistered`). For example:
 
 ```java
-public class MyHandler extends com.fluxtion.runtime.node.ObjectEventHandlerNode {
-    private com.fluxtion.runtime.output.MessageSink sink;
+public class MyHandler extends ObjectEventHandlerNode {
+    private MessageSink sink;
 
-    @com.fluxtion.runtime.annotations.runtime.ServiceRegistered
-    public void wire(com.fluxtion.runtime.output.MessageSink sink, String name) {
+    @ServiceRegistered
+    public void wire(MessageSink sink, String name) {
         this.sink = sink;
     }
 
@@ -193,10 +193,10 @@ remain simple `Lifecycle` components without an agent.
 To run a sink on its own agent thread via `EventSinkConfig`:
 
 ```java
-EventSinkConfig<MyCustomMessageSink> sinkCfg = EventSinkConfig.<MyCustomMessageSink>builder()
+EventSinkConfig<MyCustomMessageSink> sinkCfg = EventSinkConfig.builder()
         .instance(mySink)
         .name("mySink")
-        .agent("sink-agent-thread", new com.fluxtion.agrona.concurrent.BusySpinIdleStrategy())
+        .agent("sink-agent-thread", new BusySpinIdleStrategy())
         .build();
 
 AppConfig app = AppConfig.builder()
@@ -236,7 +236,8 @@ static class TestableMySink extends MyCustomMessageSink {
 
 ## Reference implementations in this repo
 
-- File sink: [FileMessageSink.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/connector/file/FileMessageSink.java) —
+- File
+  sink: [FileMessageSink.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/connector/file/FileMessageSink.java) —
   appends
   each published message as a line to a file.
 - In-memory sink (for

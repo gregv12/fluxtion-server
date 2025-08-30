@@ -100,15 +100,15 @@ try {
     Files.writeString(inputFile, "file-1\nfile-2\n", StandardCharsets.UTF_8);
 
     // Access the in-memory source via registered services
-    Map<String, com.fluxtion.runtime.service.Service<?>> services = server.registeredServices();
-    @SuppressWarnings("unchecked")
-    InMemoryEventSource<String> registeredMem = (InMemoryEventSource<String>) services.get("inMemFeed").instance();
+    Map<Service<?>> services = server.registeredServices();
+    InMemoryEventSource<String> registeredMem = services.get("inMemFeed").instance();
     registeredMem.offer("mem-1");
     registeredMem.offer("mem-2");
 
     // Allow agents to process. Spin-wait up to a few seconds for output lines.
     List<String> lines = waitForLines(outputFile, 4, 5, TimeUnit.SECONDS);
-    Assertions.assertTrue(lines.containsAll(List.of("file-1", "file-2", "mem-1", "mem-2")),
+    Assertions.assertTrue(
+            lines.containsAll(List.of("file-1", "file-2", "mem-1", "mem-2")),
             () -> "Missing expected lines in sink: " + lines);
 } finally {
     server.stop();

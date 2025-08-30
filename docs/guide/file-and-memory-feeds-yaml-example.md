@@ -98,8 +98,7 @@ try {
 
     // Offer in-memory events via the registered service
     @SuppressWarnings("unchecked")
-    var inMem = (com.fluxtion.server.connector.memory.InMemoryEventSource<String>)
-            server.registeredServices().get("inMemFeed").instance();
+    var inMem = server.registeredServices().get("inMemFeed").instance();
     inMem.offer("mem-1");
     inMem.offer("mem-2");
 

@@ -174,9 +174,8 @@ Common patterns to marshal work back into a processor context:
 Example using `ScheduledTriggerNode`:
 
 ```java
-public class MySchedulerAwareHandler extends com.fluxtion.runtime.node.ObjectEventHandlerNode {
-    private final com.fluxtion.server.service.scheduler.ScheduledTriggerNode trigger =
-            new com.fluxtion.server.service.scheduler.ScheduledTriggerNode();
+public class MySchedulerAwareHandler extends ObjectEventHandlerNode {
+    private final ScheduledTriggerNode trigger = new ScheduledTriggerNode();
 
     // After wiring, call this from handleEvent or during start
     void scheduleTick(long millis) {
