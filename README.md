@@ -33,6 +33,7 @@ can focus on business logic.
     - [core pin agent threads](docs/guide/how-to-core-pin.md)
     - [inject config into a processor](docs/guide/injecting-config-into-a-processor.md)
     - [write a publishing service plugin](docs/guide/writing-a-publishing-service-plugin.md)
+    - [typed invoke publishing service plugin](docs/guide/writing-a-typed-invoke-publishing-service-plugin.md)
 - For internals see:
     - [Threading model](docs/guide/threading-model.md)
     - [Architecture docs](docs/architecture/index.md)
