@@ -1,0 +1,1577 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="High-performance, event-driven server framework">
+      
+      
+      
+        <link rel="canonical" href="https://gregv12.github.io/fluxtion-server/guide/threading-model/">
+      
+      
+        <link rel="prev" href="../../architecture/event-flow/">
+      
+      
+        <link rel="next" href="../../architecture/sequence-diagrams/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.18">
+    
+    
+      
+        <title>Threading model - Fluxtion Server</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#guide-fluxtion-server-threading-model" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Fluxtion Server" class="md-header__button md-logo" aria-label="Fluxtion Server" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Fluxtion Server
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Threading model
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/gregv12/fluxtion-server" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    gregv12/fluxtion-server
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Fluxtion Server" class="md-nav__button md-logo" aria-label="Fluxtion Server" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Fluxtion Server
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/gregv12/fluxtion-server" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    gregv12/fluxtion-server
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Examples
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../file-and-memory-feeds-example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Fluent API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../file-and-memory-feeds-yaml-example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YAML config
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Plugins
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            Plugins
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../writing-a-message-sink-plugin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Event sink plugin
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../writing-an-event-source-plugin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Event source plugin
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../writing-a-service-plugin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Service plugin
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../writing-a-publishing-service-plugin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Publishing service plugin
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../writing-a-typed-invoke-publishing-service-plugin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Typed invoke publishing service plugin
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    How-to
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            How-to
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../subscribing-to-named-event-feeds/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Subscribe to named event feeds
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../writing-an-admin-command/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Add an admin command
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-the-scheduler-service/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Using the scheduler service
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../writing-a-custom-event-to-invoke-strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Write a custom EventToInvokeStrategy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../how-to-core-pin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Core pin agent threads
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../injecting-config-into-a-processor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Inject config into a processor
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../architecture/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Architecture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/event-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Event flow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Threading model
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Threading model
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-big-picture" class="md-nav__link">
+    <span class="md-ellipsis">
+      1) Big picture
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1) Big picture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#componentthread-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Component/Thread overview
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-lifecycle-and-when-things-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      2) Lifecycle and when things start
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2) Lifecycle and when things start">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#startup-sequence-high-level" class="md-nav__link">
+    <span class="md-ellipsis">
+      Startup sequence (high level)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-event-dispatch-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      3) Event dispatch path
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-where-does-my-code-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      4) Where does my code run?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-moving-work-between-threads-safely" class="md-nav__link">
+    <span class="md-ellipsis">
+      5) Moving work between threads safely
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      6) Best practices
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-glossary-of-threads" class="md-nav__link">
+    <span class="md-ellipsis">
+      7) Glossary of threads
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-related-docs" class="md-nav__link">
+    <span class="md-ellipsis">
+      8) Related docs
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-optional-core-pinning-for-agent-threads" class="md-nav__link">
+    <span class="md-ellipsis">
+      9) Optional: Core pinning for agent threads
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/sequence-diagrams/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Sequence diagrams
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-big-picture" class="md-nav__link">
+    <span class="md-ellipsis">
+      1) Big picture
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1) Big picture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#componentthread-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Component/Thread overview
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-lifecycle-and-when-things-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      2) Lifecycle and when things start
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2) Lifecycle and when things start">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#startup-sequence-high-level" class="md-nav__link">
+    <span class="md-ellipsis">
+      Startup sequence (high level)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-event-dispatch-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      3) Event dispatch path
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-where-does-my-code-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      4) Where does my code run?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-moving-work-between-threads-safely" class="md-nav__link">
+    <span class="md-ellipsis">
+      5) Moving work between threads safely
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      6) Best practices
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-glossary-of-threads" class="md-nav__link">
+    <span class="md-ellipsis">
+      7) Glossary of threads
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-related-docs" class="md-nav__link">
+    <span class="md-ellipsis">
+      8) Related docs
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-optional-core-pinning-for-agent-threads" class="md-nav__link">
+    <span class="md-ellipsis">
+      9) Optional: Core pinning for agent threads
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/gregv12/fluxtion-server/edit/main/docs/guide/threading-model.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="guide-fluxtion-server-threading-model">Guide: Fluxtion Server Threading Model<a class="headerlink" href="#guide-fluxtion-server-threading-model" title="Permanent link">&para;</a></h1>
+<p>This guide explains how Fluxtion Server uses threads to run your event processors, services, event sources, and the
+built‑in scheduler. It focuses on where your code executes, how agents communicate, and how to design components that
+are correct and performant under the single‑threaded processor model.</p>
+<p>You’ll learn:</p>
+<ul>
+<li>Agent groups and their threads (processor groups, worker/service groups, scheduler)</li>
+<li>Single‑thread rule for processors and why it matters</li>
+<li>How event sources publish to processors (queues and wrapping)</li>
+<li>Lifecycle timing (init → start → startComplete → stop → tearDown)</li>
+<li>Where callbacks execute (processor thread vs service thread vs scheduler thread)</li>
+<li>How to safely hand work across threads (EventToQueuePublisher, ScheduledTriggerNode)</li>
+</ul>
+<p>References in this repository:</p>
+<ul>
+<li>Processor
+  agent: <a href="../../src/main/java/com/fluxtion/server/dutycycle/ComposingEventProcessorAgent.java">ComposingEventProcessorAgent</a></li>
+<li>Service agent: <a href="../../src/main/java/com/fluxtion/server/dutycycle/ComposingServiceAgent.java">ComposingServiceAgent</a></li>
+<li>Scheduler
+  agent: <a href="../../src/main/java/com/fluxtion/server/service/scheduler/DeadWheelScheduler.java">DeadWheelScheduler</a></li>
+<li>Event source
+  base: <a href="../../src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java">AbstractEventSourceService</a> (+
+  agent variant)</li>
+<li>Queue publisher: <a href="../../src/main/java/com/fluxtion/server/dispatch/EventToQueuePublisher.java">EventToQueuePublisher</a></li>
+</ul>
+<h2 id="1-big-picture">1) Big picture<a class="headerlink" href="#1-big-picture" title="Permanent link">&para;</a></h2>
+<p>Fluxtion Server composes several “agents,” each typically running on its own thread:</p>
+<ul>
+<li>One or more Processor Agent Groups (each contains one or more StaticEventProcessor instances)</li>
+<li>One or more Service Agent Groups (each hosts zero or more worker services)</li>
+<li>One Scheduler Agent (the deadline wheel)</li>
+<li>Optional Agent‑hosted event sources (e.g., FileEventSource)</li>
+</ul>
+<p>Data is handed between agents through lock‑free single‑producer/single‑consumer queues managed by EventFlowManager and
+EventToQueuePublisher. Each processor runs single‑threaded on its agent thread — your processor code is not concurrently
+executed by multiple threads.</p>
+<h3 id="componentthread-overview">Component/Thread overview<a class="headerlink" href="#componentthread-overview" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>flowchart LR
+    subgraph ServiceAgentGroup [Service Agent Group thread]
+        ES1[Agent-hosted Event Source]
+        WS1[Worker Service A]
+        WS2[Worker Service B]
+    end
+
+    subgraph ProcessorAgentGroup [Processor Agent Group thread]
+        P1[StaticEventProcessor #1]
+        P2[StaticEventProcessor #2]
+    end
+
+    subgraph SchedulerAgent [Scheduler Agent thread]
+        Svc[DeadWheelScheduler]
+    end
+
+    ES1 -- publish via EventToQueuePublisher --&gt; Q1[(Queue: fileFeed)] --&gt; P1
+    ES1 -- publish via EventToQueuePublisher --&gt; Q2[(Queue: fileFeed)] --&gt; P2
+    WS1 -- optional publish/events --&gt; Q3[(Queue: serviceFeed)] --&gt; P1
+    Svc -- expiry Runnable --&gt; WS1
+    Svc -- expiry Runnable --&gt; ES1
+
+    style ServiceAgentGroup fill:#eef,stroke:#88a
+    style ProcessorAgentGroup fill:#efe,stroke:#8a8
+    style SchedulerAgent fill:#fee,stroke:#a88
+</code></pre></div>
+<p>Notes:</p>
+<ul>
+<li>Each Agent Group is a thread that can host multiple components.</li>
+<li>Event publication crosses threads via queues. The publisher thread enqueues, the subscriber processor dequeues on its
+  own thread.</li>
+<li>Scheduler expiry actions run on the scheduler agent thread; to affect a processor, schedule a trigger that publishes
+  into the processor or use <code>ScheduledTriggerNode</code>.</li>
+</ul>
+<h2 id="2-lifecycle-and-when-things-start">2) Lifecycle and when things start<a class="headerlink" href="#2-lifecycle-and-when-things-start" title="Permanent link">&para;</a></h2>
+<p>All lifecycle participants (event sources, processors, services) follow this sequence:</p>
+<p>1) <code>init()</code> — light setup
+2) <code>start()</code> — allocate resources; event sources may enable pre‑start caching
+3) <code>startComplete()</code> — system is ready; sources replay caches and switch to publishing
+4) <code>stop()</code> — stop work, flush/close resources
+5) <code>tearDown()</code> — final cleanup</p>
+<p>Processor and service agents add their components and then call <code>startComplete()</code> once the group is active.</p>
+<h3 id="startup-sequence-high-level">Startup sequence (high level)<a class="headerlink" href="#startup-sequence-high-level" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>sequenceDiagram
+    participant CFG as ServerConfigurator
+    participant SVR as FluxtionServer
+    participant PGA as ComposingEventProcessorAgent (thread)
+    participant SGA as ComposingServiceAgent (thread)
+    participant SCH as DeadWheelScheduler (thread)
+
+    CFG-&gt;&gt;SVR: register services / feeds / processors
+    SVR-&gt;&gt;SGA: register worker services
+    SGA-&gt;&gt;SGA: init() services
+    SGA-&gt;&gt;SGA: inject scheduler + services
+    SGA-&gt;&gt;SGA: start() services
+    SGA-&gt;&gt;SGA: add Agent delegates
+
+    SVR-&gt;&gt;PGA: add processors
+    PGA-&gt;&gt;PGA: inject scheduler + services
+    PGA-&gt;&gt;PGA: start() processors
+    PGA-&gt;&gt;PGA: startComplete() processors
+
+    Note over SGA: When group ACTIVE
+    SGA-&gt;&gt;SGA: startComplete() services
+
+    Note over SCH: Scheduler agent thread running doWork()
+</code></pre></div>
+<h2 id="3-event-dispatch-path">3) Event dispatch path<a class="headerlink" href="#3-event-dispatch-path" title="Permanent link">&para;</a></h2>
+<p>Agent‑hosted event sources (e.g., <code>FileEventSource</code>) typically publish on their own thread. The data is mapped/wrapped
+by <code>EventToQueuePublisher</code> and offered to one or more target queues. Processors consume from those queues on their own
+agent thread.</p>
+<div class="highlight"><pre><span></span><code>sequenceDiagram
+    participant SRC as FileEventSource (service agent thread)
+    participant PUB as EventToQueuePublisher
+    participant Q as OneToOneConcurrentArrayQueue
+    participant P as StaticEventProcessor (processor thread)
+
+    SRC-&gt;&gt;PUB: publish(line)
+    PUB-&gt;&gt;PUB: map + wrap (strategy)
+    PUB-&gt;&gt;Q: offer(item)
+    Note right of Q: Cross-thread boundary
+    P-&gt;&gt;Q: poll
+    Q--&gt;&gt;P: item
+    P-&gt;&gt;P: invoke handler(s)
+</code></pre></div>
+<p>Key details:</p>
+<ul>
+<li><code>EventWrapStrategy</code> controls whether items are wrapped in <code>NamedFeedEvent</code> or sent raw.</li>
+<li>If <code>cacheEventLog</code> is enabled in the publisher, events are recorded and replayed on <code>startComplete()</code>.</li>
+<li><code>EventToQueuePublisher</code> bounds spin when queues are contended to avoid blocking publishers; slow consumers are warned.</li>
+</ul>
+<h2 id="4-where-does-my-code-run">4) Where does my code run?<a class="headerlink" href="#4-where-does-my-code-run" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Processor event handlers (e.g., <code>ObjectEventHandlerNode#handleEvent</code>) run on the Processor Agent Group thread.</li>
+<li>Agent‑hosted services and agent‑hosted event sources run their <code>doWork()</code> on the Service Agent Group thread that hosts
+  them.</li>
+<li>Scheduler expiry actions run on the Scheduler Agent thread.</li>
+<li>Admin commands registered within a processor context are delivered into that processor’s queue and executed on its
+  thread; otherwise they execute on the caller thread.</li>
+</ul>
+<p>Implications:</p>
+<ul>
+<li>Inside a processor, your state is single‑threaded — no external synchronization is required for state mutated only by
+  that processor.</li>
+<li>To update a processor from another thread (service, scheduler), publish an event into the processor’s queue. Don’t
+  directly mutate processor state from other threads.</li>
+</ul>
+<h2 id="5-moving-work-between-threads-safely">5) Moving work between threads safely<a class="headerlink" href="#5-moving-work-between-threads-safely" title="Permanent link">&para;</a></h2>
+<p>Common patterns to marshal work back into a processor context:</p>
+<ul>
+<li>Event publication from services/sources using <code>EventToQueuePublisher</code> (via an <code>EventSource</code> or an admin command routed
+  to a processor queue).</li>
+<li>Use <code>ScheduledTriggerNode</code> to schedule a new event cycle into the processor after a delay; the trigger causes
+  <code>fireNewEventCycle()</code> to run on the processor thread.</li>
+</ul>
+<p>Example using <code>ScheduledTriggerNode</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">MySchedulerAwareHandler</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">com</span><span class="p">.</span><span class="na">fluxtion</span><span class="p">.</span><span class="na">runtime</span><span class="p">.</span><span class="na">node</span><span class="p">.</span><span class="na">ObjectEventHandlerNode</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">com</span><span class="p">.</span><span class="na">fluxtion</span><span class="p">.</span><span class="na">server</span><span class="p">.</span><span class="na">service</span><span class="p">.</span><span class="na">scheduler</span><span class="p">.</span><span class="na">ScheduledTriggerNode</span><span class="w"> </span><span class="n">trigger</span><span class="w"> </span><span class="o">=</span>
+<span class="w">            </span><span class="k">new</span><span class="w"> </span><span class="n">com</span><span class="p">.</span><span class="na">fluxtion</span><span class="p">.</span><span class="na">server</span><span class="p">.</span><span class="na">service</span><span class="p">.</span><span class="na">scheduler</span><span class="p">.</span><span class="na">ScheduledTriggerNode</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// After wiring, call this from handleEvent or during start</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">scheduleTick</span><span class="p">(</span><span class="kt">long</span><span class="w"> </span><span class="n">millis</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">trigger</span><span class="p">.</span><span class="na">triggerAfterDelay</span><span class="p">(</span><span class="n">millis</span><span class="p">);</span><span class="w"> </span><span class="c1">// later causes a new event cycle on this processor thread</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="6-best-practices">6) Best practices<a class="headerlink" href="#6-best-practices" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Keep <code>Agent#doWork()</code> non‑blocking; do small chunks and return 0 when idle.</li>
+<li>Don’t call blocking IO from processor event handlers; offload to a worker service and publish results back.</li>
+<li>For periodic tasks, prefer the scheduler (rescheduling pattern) over sleeping in <code>doWork()</code>.</li>
+<li>Guard verbose logging in hot paths with <code>log.isLoggable(...)</code> or cached flags.</li>
+<li>If you need pre‑start replay, enable publisher caching in your source’s <code>start()</code> and call <code>dispatchCachedEventLog()</code>
+  on <code>startComplete()</code>.</li>
+<li>Use meaningful agent group names and idle strategies in <code>AppConfig</code> for observability and performance tuning.</li>
+</ul>
+<h2 id="7-glossary-of-threads">7) Glossary of threads<a class="headerlink" href="#7-glossary-of-threads" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Processor Agent Group thread: runs one or more <code>StaticEventProcessor</code> instances (single‑threaded event handling).</li>
+<li>Service Agent Group thread: runs worker services and agent‑hosted event sources (<code>Agent#doWork</code>).</li>
+<li>Scheduler Agent thread: runs <code>DeadWheelScheduler</code> and executes expiry <code>Runnable</code>s.</li>
+</ul>
+<h2 id="8-related-docs">8) Related docs<a class="headerlink" href="#8-related-docs" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Using the scheduler service: <a href="../using-the-scheduler-service/">using-the-scheduler-service</a></li>
+<li>Writing an event source plugin: <a href="../writing-an-event-source-plugin/">writing-an-event-source-plugin</a></li>
+<li>Writing a service plugin: <a href="../writing-a-service-plugin/">writing-a-service-plugin</a></li>
+<li>Writing an admin command: <a href="../writing-an-admin-command/">writing-an-admin-command</a></li>
+<li>How to core‑pin agent threads: <a href="../how-to-core-pin/">how-to-core-pin</a></li>
+<li>Architecture + sequence diagrams: <a href="../../architecture/">architecture</a></li>
+</ul>
+<h2 id="9-optional-core-pinning-for-agent-threads">9) Optional: Core pinning for agent threads<a class="headerlink" href="#9-optional-core-pinning-for-agent-threads" title="Permanent link">&para;</a></h2>
+<p>Fluxtion Server supports best-effort CPU core pinning for agent threads. This can help reduce context switches and improve tail latency on systems where CPU affinity is desirable.</p>
+<p>Key points:
+- Configure per-agent core pinning using AppConfig’s agent Threads: <a href="../../src/main/java/com/fluxtion/server/config/ThreadConfig.java">ThreadConfig</a> has an optional coreId field (zero-based CPU index).
+- Pinning is applied inside the agent thread itself during start (onStart) for both processor and service agent groups:
+  - Processor agent: <a href="../../src/main/java/com/fluxtion/server/dutycycle/ComposingEventProcessorAgent.java">ComposingEventProcessorAgent</a>
+  - Service agent: <a href="../../src/main/java/com/fluxtion/server/dutycycle/ComposingServiceAgent.java">ComposingServiceAgent</a>
+- Fluxtion uses a lightweight helper <a href="../../src/main/java/com/fluxtion/server/internal/CoreAffinity.java">CoreAffinity</a> that attempts to pin via reflection to OpenHFT’s Affinity library if present; otherwise it logs and no-ops.</p>
+<p>Configure via fluent builder:
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">com.fluxtion.server.config.AppConfig</span><span class="p">;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">com.fluxtion.server.config.ThreadConfig</span><span class="p">;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">com.fluxtion.agrona.concurrent.BusySpinIdleStrategy</span><span class="p">;</span>
+
+<span class="n">AppConfig</span><span class="w"> </span><span class="n">appConfig</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AppConfig</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+<span class="w">    </span><span class="c1">// Configure processor agent group thread</span>
+<span class="w">    </span><span class="p">.</span><span class="na">addThread</span><span class="p">(</span><span class="n">ThreadConfig</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+<span class="w">        </span><span class="p">.</span><span class="na">agentName</span><span class="p">(</span><span class="s">&quot;processor-agent&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="p">.</span><span class="na">idleStrategy</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">BusySpinIdleStrategy</span><span class="p">())</span>
+<span class="w">        </span><span class="p">.</span><span class="na">coreId</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="c1">// pin to CPU core 0 (zero-based index)</span>
+<span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">())</span>
+<span class="w">    </span><span class="c1">// Configure service agent group thread</span>
+<span class="w">    </span><span class="p">.</span><span class="na">addThread</span><span class="p">(</span><span class="n">ThreadConfig</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+<span class="w">        </span><span class="p">.</span><span class="na">agentName</span><span class="p">(</span><span class="s">&quot;service-agent&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="p">.</span><span class="na">coreId</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="c1">// pin to CPU core 2</span>
+<span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">())</span>
+<span class="w">    </span><span class="c1">// ... add groups/feeds/services as usual</span>
+<span class="w">    </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
+</code></pre></div></p>
+<p>Runtime behavior:
+- When an agent group thread starts, the server resolves the configured core for that agent via FluxtionServer.resolveCoreIdForAgentName and calls CoreAffinity.pinCurrentThreadToCore(coreId). If no coreId is configured, nothing is done.
+- If OpenHFT’s Affinity is not on the classpath, pinning is skipped with an info log.</p>
+<p>Optional dependency for pinning:
+- To enable actual OS-level pinning, add the test/runtime dependency on OpenHFT Affinity in your project.
+  See this repository’s POM for an example test-scoped optional dependency: <a href="../../pom.xml">pom.xml</a> (artifact net.openhft:affinity).
+- A simple optional test that exercises pinning via reflection is provided here: <a href="../../src/test/java/com/fluxtion/server/internal/CoreAffinityOptionalTest.java">CoreAffinityOptionalTest</a>.</p>
+<p>Notes:
+- Core IDs are zero-based and depend on your OS/CPU topology.
+- Pinning can improve determinism but may reduce OS scheduling flexibility; benchmark your workload.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/gregv12" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.indexes", "navigation.sections", "content.code.copy", "content.action.edit", "content.tabs.link", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.92b07e13.min.js"></script>
+      
+    
+  </body>
+</html>

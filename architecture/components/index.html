@@ -1,0 +1,1753 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="High-performance, event-driven server framework">
+      
+      
+      
+        <link rel="canonical" href="https://gregv12.github.io/fluxtion-server/architecture/components/">
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.18">
+    
+    
+      
+        <title>Fluxtion Server Component Architecture - Fluxtion Server</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#fluxtion-server-component-architecture" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Fluxtion Server" class="md-header__button md-logo" aria-label="Fluxtion Server" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Fluxtion Server
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Fluxtion Server Component Architecture
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/gregv12/fluxtion-server" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    gregv12/fluxtion-server
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Fluxtion Server" class="md-nav__button md-logo" aria-label="Fluxtion Server" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Fluxtion Server
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/gregv12/fluxtion-server" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    gregv12/fluxtion-server
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Examples
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/file-and-memory-feeds-example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Fluent API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/file-and-memory-feeds-yaml-example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YAML config
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Plugins
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            Plugins
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/writing-a-message-sink-plugin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Event sink plugin
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/writing-an-event-source-plugin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Event source plugin
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/writing-a-service-plugin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Service plugin
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/writing-a-publishing-service-plugin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Publishing service plugin
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/writing-a-typed-invoke-publishing-service-plugin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Typed invoke publishing service plugin
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    How-to
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            How-to
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/subscribing-to-named-event-feeds/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Subscribe to named event feeds
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/writing-an-admin-command/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Add an admin command
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/using-the-scheduler-service/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Using the scheduler service
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/writing-a-custom-event-to-invoke-strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Write a custom EventToInvokeStrategy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/how-to-core-pin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Core pin agent threads
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/injecting-config-into-a-processor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Inject config into a processor
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Architecture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../event-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Event flow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/threading-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Threading model
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sequence-diagrams/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Sequence diagrams
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      Introduction
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      Core Components
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Core Components">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fluxtionserver" class="md-nav__link">
+    <span class="md-ellipsis">
+      FluxtionServer
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="FluxtionServer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      Responsibilities:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#class-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      Class Diagram:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eventflowmanager" class="md-nav__link">
+    <span class="md-ellipsis">
+      EventFlowManager
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="EventFlowManager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Responsibilities:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#class-diagram_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Class Diagram:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eventsource" class="md-nav__link">
+    <span class="md-ellipsis">
+      EventSource
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="EventSource">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Responsibilities:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interface-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interface Diagram:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eventprocessor" class="md-nav__link">
+    <span class="md-ellipsis">
+      EventProcessor
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="EventProcessor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Responsibilities:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#component-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      Component Diagram:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#composingeventprocessoragent" class="md-nav__link">
+    <span class="md-ellipsis">
+      ComposingEventProcessorAgent
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ComposingEventProcessorAgent">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Responsibilities:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#class-diagram_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Class Diagram:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#abstracteventsourceservice" class="md-nav__link">
+    <span class="md-ellipsis">
+      AbstractEventSourceService
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="AbstractEventSourceService">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Responsibilities:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#class-diagram_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Class Diagram:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#component-relationships" class="md-nav__link">
+    <span class="md-ellipsis">
+      Component Relationships
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Component Relationships">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#component-interaction-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      Component Interaction Diagram
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration Components
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration Components">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#appconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      AppConfig
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="AppConfig">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Responsibilities:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#class-diagram_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Class Diagram:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eventprocessorconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      EventProcessorConfig
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="EventProcessorConfig">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Responsibilities:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#class-diagram_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Class Diagram:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      Service Components
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Service Components">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#service" class="md-nav__link">
+    <span class="md-ellipsis">
+      Service
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Service">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Responsibilities:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#class-diagram_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Class Diagram:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#serviceagent" class="md-nav__link">
+    <span class="md-ellipsis">
+      ServiceAgent
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ServiceAgent">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Responsibilities:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interface-diagram_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interface Diagram:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conclusion
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/gregv12/fluxtion-server/edit/main/docs/architecture/components.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="fluxtion-server-component-architecture">Fluxtion Server Component Architecture<a class="headerlink" href="#fluxtion-server-component-architecture" title="Permanent link">&para;</a></h1>
+<h2 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">&para;</a></h2>
+<p>This document provides a detailed description of the key components in the Fluxtion Server architecture and their relationships. Understanding these components is essential for developing, extending, and maintaining applications built on the Fluxtion Server framework.</p>
+<h2 id="core-components">Core Components<a class="headerlink" href="#core-components" title="Permanent link">&para;</a></h2>
+<h3 id="fluxtionserver">FluxtionServer<a class="headerlink" href="#fluxtionserver" title="Permanent link">&para;</a></h3>
+<p>The FluxtionServer class is the central component that bootstraps and manages the entire system. It serves as the main controller and coordinates the interactions between all other components.</p>
+<h4 id="responsibilities">Responsibilities:<a class="headerlink" href="#responsibilities" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Loading and applying configuration</li>
+<li>Managing the lifecycle of event processors and services</li>
+<li>Registering event sources, event processors, and services</li>
+<li>Coordinating the event flow through the EventFlowManager</li>
+</ul>
+<h4 id="class-diagram">Class Diagram:<a class="headerlink" href="#class-diagram" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>┌───────────────────────────────────────┐
+│            FluxtionServer             │
+├───────────────────────────────────────┤
+│ - flowManager: EventFlowManager       │
+│ - appConfig: AppConfig                │
+│ - composingEventProcessorAgents: Map  │
+│ - composingServiceAgents: Map         │
+│ - registeredServices: Map             │
+├───────────────────────────────────────┤
+│ + bootServer()                        │
+│ + registerEventSource()               │
+│ + registerService()                   │
+│ + registerWorkerService()             │
+│ + addEventProcessor()                 │
+│ + init()                              │
+│ + start()                             │
+└───────────────────────────────────────┘
+</code></pre></div>
+<h3 id="eventflowmanager">EventFlowManager<a class="headerlink" href="#eventflowmanager" title="Permanent link">&para;</a></h3>
+<p>The EventFlowManager is responsible for managing the flow of events between sources and processors. It acts as the central hub for event routing.</p>
+<h4 id="responsibilities_1">Responsibilities:<a class="headerlink" href="#responsibilities_1" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Registering event sources and their associated queues</li>
+<li>Managing subscriptions between event sources and processors</li>
+<li>Routing events from sources to appropriate processors</li>
+<li>Providing the infrastructure for event flow</li>
+</ul>
+<h4 id="class-diagram_1">Class Diagram:<a class="headerlink" href="#class-diagram_1" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>┌───────────────────────────────────────┐
+│           EventFlowManager            │
+├───────────────────────────────────────┤
+│ - eventSourceToQueueMap: Map          │
+│ - eventSinkToQueueMap: Map            │
+│ - eventToInvokerFactoryMap: Map       │
+│ - subscriberKeyToQueueMap: Map        │
+├───────────────────────────────────────┤
+│ + registerEventSource()               │
+│ + registerEventSink()                 │
+│ + subscribe()                         │
+│ + unSubscribe()                       │
+│ + registerEventMapperFactory()        │
+│ + getMappingAgent()                   │
+└───────────────────────────────────────┘
+</code></pre></div>
+<h3 id="eventsource">EventSource<a class="headerlink" href="#eventsource" title="Permanent link">&para;</a></h3>
+<p>The EventSource interface defines components that generate events. These can be external systems, internal timers, or other event generators.</p>
+<h4 id="responsibilities_2">Responsibilities:<a class="headerlink" href="#responsibilities_2" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Generating events from various sources</li>
+<li>Publishing events to the event flow system</li>
+<li>Managing subscriptions from event processors</li>
+</ul>
+<h4 id="interface-diagram">Interface Diagram:<a class="headerlink" href="#interface-diagram" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>┌───────────────────────────────────────┐
+│            EventSource&lt;T&gt;             │
+├───────────────────────────────────────┤
+│ + subscribe()                         │
+│ + unSubscribe()                       │
+│ + setEventToQueuePublisher()          │
+│ + setEventWrapStrategy()              │
+│ + setSlowConsumerStrategy()           │
+│ + setDataMapper()                     │
+└───────────────────────────────────────┘
+</code></pre></div>
+<h3 id="eventprocessor">EventProcessor<a class="headerlink" href="#eventprocessor" title="Permanent link">&para;</a></h3>
+<p>Event processors consume and process events. They are managed by the ComposingEventProcessorAgent and implement business logic for handling events.</p>
+<h4 id="responsibilities_3">Responsibilities:<a class="headerlink" href="#responsibilities_3" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Subscribing to event sources</li>
+<li>Processing events according to business logic</li>
+<li>Generating output or side effects</li>
+</ul>
+<h4 id="component-diagram">Component Diagram:<a class="headerlink" href="#component-diagram" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>┌───────────────────────────────────────┐
+│          StaticEventProcessor         │
+├───────────────────────────────────────┤
+│ + onEvent()                           │
+│ + init()                              │
+│ + tearDown()                          │
+│ + addEventFeed()                      │
+│ + registerService()                   │
+└───────────────────────────────────────┘
+</code></pre></div>
+<h3 id="composingeventprocessoragent">ComposingEventProcessorAgent<a class="headerlink" href="#composingeventprocessoragent" title="Permanent link">&para;</a></h3>
+<p>The ComposingEventProcessorAgent manages a group of event processors. It handles the lifecycle of processors and routes events to them.</p>
+<h4 id="responsibilities_4">Responsibilities:<a class="headerlink" href="#responsibilities_4" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Managing the lifecycle of event processors</li>
+<li>Routing events to appropriate processors</li>
+<li>Handling subscriptions to event sources</li>
+</ul>
+<h4 id="class-diagram_2">Class Diagram:<a class="headerlink" href="#class-diagram_2" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>┌───────────────────────────────────────┐
+│     ComposingEventProcessorAgent      │
+├───────────────────────────────────────┤
+│ - eventFlowManager: EventFlowManager  │
+│ - registeredEventProcessors: Map      │
+│ - queueProcessorMap: Map              │
+├───────────────────────────────────────┤
+│ + addNamedEventProcessor()            │
+│ + removeEventProcessorByName()        │
+│ + registerSubscriber()                │
+│ + subscribe()                         │
+│ + unSubscribe()                       │
+└───────────────────────────────────────┘
+</code></pre></div>
+<h3 id="abstracteventsourceservice">AbstractEventSourceService<a class="headerlink" href="#abstracteventsourceservice" title="Permanent link">&para;</a></h3>
+<p>The AbstractEventSourceService is a base class for services that act as event sources. It provides common functionality for event source services.</p>
+<h4 id="responsibilities_5">Responsibilities:<a class="headerlink" href="#responsibilities_5" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Implementing the EventSource interface</li>
+<li>Managing the lifecycle of the service</li>
+<li>Publishing events to the event flow system</li>
+</ul>
+<h4 id="class-diagram_3">Class Diagram:<a class="headerlink" href="#class-diagram_3" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>┌───────────────────────────────────────┐
+│     AbstractEventSourceService&lt;T&gt;     │
+├───────────────────────────────────────┤
+│ - name: String                        │
+│ - output: EventToQueuePublisher&lt;T&gt;    │
+│ - subscriptionKey: EventSubscriptionKey│
+├───────────────────────────────────────┤
+│ + setEventFlowManager()               │
+│ + init()                              │
+│ + subscribe()                         │
+│ + tearDown()                          │
+└───────────────────────────────────────┘
+</code></pre></div>
+<h2 id="component-relationships">Component Relationships<a class="headerlink" href="#component-relationships" title="Permanent link">&para;</a></h2>
+<h3 id="component-interaction-diagram">Component Interaction Diagram<a class="headerlink" href="#component-interaction-diagram" title="Permanent link">&para;</a></h3>
+<p>The following diagram illustrates the relationships between the key components:</p>
+<div class="highlight"><pre><span></span><code>┌───────────────┐     ┌───────────────┐     ┌───────────────┐
+│               │     │               │     │               │
+│FluxtionServer │────▶│EventFlowManager────▶│EventSource    │
+│               │     │               │     │               │
+└───────┬───────┘     └───────────────┘     └───────┬───────┘
+        │                                           │
+        │                                           │
+        ▼                                           ▼
+┌───────────────┐                          ┌───────────────┐
+│               │                          │               │
+│ComposingEvent │◀─────────────────────────│EventToQueue   │
+│ProcessorAgent │                          │Publisher      │
+└───────┬───────┘                          └───────────────┘
+        │
+        │
+        ▼
+┌───────────────┐
+│               │
+│EventProcessor │
+│               │
+└───────────────┘
+</code></pre></div>
+<h2 id="configuration-components">Configuration Components<a class="headerlink" href="#configuration-components" title="Permanent link">&para;</a></h2>
+<h3 id="appconfig">AppConfig<a class="headerlink" href="#appconfig" title="Permanent link">&para;</a></h3>
+<p>The AppConfig class holds the configuration for the entire system. It is loaded from a YAML file and used to configure all components.</p>
+<h4 id="responsibilities_6">Responsibilities:<a class="headerlink" href="#responsibilities_6" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Storing configuration for event sources, processors, and services</li>
+<li>Providing access to configuration parameters</li>
+<li>Supporting configuration updates</li>
+</ul>
+<h4 id="class-diagram_4">Class Diagram:<a class="headerlink" href="#class-diagram_4" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>┌───────────────────────────────────────┐
+│              AppConfig                │
+├───────────────────────────────────────┤
+│ - eventFeeds: List&lt;EventFeedConfig&gt;   │
+│ - eventSinks: List&lt;EventSinkConfig&gt;   │
+│ - services: List&lt;ServiceConfig&gt;       │
+│ - eventHandlers: List&lt;EventProcessorGroupConfig&gt;│
+├───────────────────────────────────────┤
+│ + lookupIdleStrategy()                │
+│ + getIdleStrategyOrDefault()          │
+└───────────────────────────────────────┘
+</code></pre></div>
+<h3 id="eventprocessorconfig">EventProcessorConfig<a class="headerlink" href="#eventprocessorconfig" title="Permanent link">&para;</a></h3>
+<p>The EventProcessorConfig class configures individual event processors. It specifies how events are processed and what handlers are used.</p>
+<h4 id="responsibilities_7">Responsibilities:<a class="headerlink" href="#responsibilities_7" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Configuring event processors</li>
+<li>Specifying event handlers</li>
+<li>Setting logging levels</li>
+</ul>
+<h4 id="class-diagram_5">Class Diagram:<a class="headerlink" href="#class-diagram_5" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>┌───────────────────────────────────────┐
+│        EventProcessorConfig&lt;T&gt;        │
+├───────────────────────────────────────┤
+│ - eventHandler: T                     │
+│ - customHandler: ObjectEventHandlerNode│
+│ - eventHandlerBuilder: Supplier&lt;T&gt;    │
+│ - logLevel: LogLevel                  │
+│ - configMap: Map&lt;String, Object&gt;      │
+├───────────────────────────────────────┤
+│ + getEventHandler()                   │
+│ + getConfigMap()                      │
+│ + getConfig()                         │
+└───────────────────────────────────────┘
+</code></pre></div>
+<h2 id="service-components">Service Components<a class="headerlink" href="#service-components" title="Permanent link">&para;</a></h2>
+<h3 id="service">Service<a class="headerlink" href="#service" title="Permanent link">&para;</a></h3>
+<p>The Service class represents a service in the system. Services can provide various functionalities and can be event sources, event processors, or standalone services.</p>
+<h4 id="responsibilities_8">Responsibilities:<a class="headerlink" href="#responsibilities_8" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Providing functionality to the system</li>
+<li>Managing the lifecycle of the service</li>
+<li>Interacting with other components</li>
+</ul>
+<h4 id="class-diagram_6">Class Diagram:<a class="headerlink" href="#class-diagram_6" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>┌───────────────────────────────────────┐
+│              Service&lt;T&gt;               │
+├───────────────────────────────────────┤
+│ - instance: T                         │
+│ - serviceClass: Class&lt;?&gt;              │
+│ - serviceName: String                 │
+├───────────────────────────────────────┤
+│ + init()                              │
+│ + start()                             │
+│ + stop()                              │
+│ + tearDown()                          │
+└───────────────────────────────────────┘
+</code></pre></div>
+<h3 id="serviceagent">ServiceAgent<a class="headerlink" href="#serviceagent" title="Permanent link">&para;</a></h3>
+<p>The ServiceAgent interface represents a service that runs in its own thread as an agent. It provides a way to run services in a dedicated thread.</p>
+<h4 id="responsibilities_9">Responsibilities:<a class="headerlink" href="#responsibilities_9" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Running a service in a dedicated thread</li>
+<li>Managing the lifecycle of the service</li>
+<li>Interacting with other components</li>
+</ul>
+<h4 id="interface-diagram_1">Interface Diagram:<a class="headerlink" href="#interface-diagram_1" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>┌───────────────────────────────────────┐
+│             ServiceAgent&lt;T&gt;           │
+├───────────────────────────────────────┤
+│ + getAgentGroup()                     │
+│ + getIdleStrategy()                   │
+│ + getService()                        │
+└───────────────────────────────────────┘
+</code></pre></div>
+<h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">&para;</a></h2>
+<p>The component architecture of Fluxtion Server provides a flexible and extensible framework for building event-driven applications. The clear separation of concerns between components allows for easy customization and extension, while the well-defined interfaces ensure consistent behavior across the system.</p>
+<p>Understanding these components and their relationships is essential for effectively using and extending the Fluxtion Server framework. This document serves as a reference for developers working with the framework, providing insights into the design and implementation of the system.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/gregv12" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.indexes", "navigation.sections", "content.code.copy", "content.action.edit", "content.tabs.link", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.92b07e13.min.js"></script>
+      
+    
+  </body>
+</html>
