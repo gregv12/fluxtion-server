@@ -39,7 +39,6 @@ public class NamedFeedsFilterHandler extends ObjectEventHandlerNode {
 
     @Override
     protected boolean handleEvent(Object event) {
-        System.out.println("Received event:" + event);
         if (sink == null || event == null) {
             return true;
         }

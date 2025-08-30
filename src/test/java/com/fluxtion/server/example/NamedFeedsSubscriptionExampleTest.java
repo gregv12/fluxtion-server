@@ -7,17 +7,14 @@ package com.fluxtion.server.example;
 
 import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
 import com.fluxtion.runtime.audit.LogRecordListener;
+import com.fluxtion.runtime.output.MessageSink;
 import com.fluxtion.server.FluxtionServer;
 import com.fluxtion.server.config.*;
-import com.fluxtion.server.connector.file.FileMessageSink;
 import com.fluxtion.server.connector.memory.InMemoryEventSource;
+import com.fluxtion.server.connector.memory.InMemoryMessageSink;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -28,17 +25,10 @@ import java.util.concurrent.TimeUnit;
  */
 public class NamedFeedsSubscriptionExampleTest {
 
-    @TempDir
-    Path tempDir;
-
     @Test
     public void subscribe_to_selected_named_feeds_only() throws Exception {
-        Path outputFile = tempDir.resolve("output").resolve("filtered.log");
-        Files.createDirectories(outputFile.getParent());
-
-        // Sink
-        FileMessageSink fileSink = new FileMessageSink();
-        fileSink.setFilename(outputFile.toString());
+        // In-memory sink
+        InMemoryMessageSink memSink = new InMemoryMessageSink();
 
         // Feeds: three named in-memory sources
         InMemoryEventSource<String> prices = new InMemoryEventSource<>();
@@ -75,9 +65,9 @@ public class NamedFeedsSubscriptionExampleTest {
                 .agent("news-agent", new BusySpinIdleStrategy())
                 .build();
 
-        EventSinkConfig<FileMessageSink> sinkCfg = EventSinkConfig.<FileMessageSink>builder()
-                .instance(fileSink)
-                .name("fileSink")
+        EventSinkConfig<MessageSink<?>> sinkCfg = EventSinkConfig.<MessageSink<?>>builder()
+                .instance(memSink)
+                .name("memSink")
                 .build();
 
         AppConfig appConfig = AppConfig.builder()
@@ -99,8 +89,8 @@ public class NamedFeedsSubscriptionExampleTest {
             news.offer("n1");
             news.offer("n2");
 
-            // Wait for output lines; should include only p1,p2,n1,n2
-            List<String> lines = waitForLines(outputFile, 4, 5, TimeUnit.SECONDS);
+            // Wait for sink messages; should include only p1,p2,n1,n2
+            List<Object> lines = waitForMessages(memSink, 4, 5, TimeUnit.SECONDS);
             Assertions.assertTrue(lines.containsAll(List.of("p1", "p2", "n1", "n2")),
                     () -> "Missing expected lines in sink: " + lines);
             // Ensure orders were ignored
@@ -111,17 +101,15 @@ public class NamedFeedsSubscriptionExampleTest {
         }
     }
 
-    private static List<String> waitForLines(Path file, int minLines, long timeout, TimeUnit unit) throws Exception {
+    private static List<Object> waitForMessages(InMemoryMessageSink sink, int minCount, long timeout, TimeUnit unit) throws Exception {
         long end = System.nanoTime() + unit.toNanos(timeout);
         while (System.nanoTime() < end) {
-            if (Files.exists(file)) {
-                List<String> lines = Files.readAllLines(file, StandardCharsets.UTF_8);
-                if (lines.size() >= minLines) {
-                    return lines;
-                }
+            List<Object> lines = sink.getMessages();
+            if (lines.size() >= minCount) {
+                return lines;
             }
             Thread.sleep(50);
         }
-        return Files.exists(file) ? Files.readAllLines(file, StandardCharsets.UTF_8) : List.of();
+        return sink.getMessages();
     }
 }
