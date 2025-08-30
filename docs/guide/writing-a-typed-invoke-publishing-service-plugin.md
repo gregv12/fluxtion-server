@@ -76,36 +76,58 @@ public class PublishingServiceTyped extends AbstractEventSourceService<String> {
 ```java
 package com.fluxtion.server.example;
 
+import com.fluxtion.runtime.DefaultEventProcessor;
 import com.fluxtion.runtime.annotations.runtime.ServiceRegistered;
 import com.fluxtion.runtime.node.ObjectEventHandlerNode;
 import com.fluxtion.runtime.output.MessageSink;
 
-public class PublishingServiceTypedSubscriberHandler extends ObjectEventHandlerNode implements PublishingServiceListener {
+public class PublishingServiceTypedSubscriberHandler extends DefaultEventProcessor
+        implements PublishingServiceListener {
 
-    private PublishingServiceTyped service;
-    private MessageSink<String> sink;
+    private final TypedHandler typedHandler;
 
-    @ServiceRegistered
-    public void wire(PublishingServiceTyped service, String name) {
-        this.service = service;
-    }
-
-    @ServiceRegistered
-    public void sink(MessageSink<String> sink, String name) {
-        this.sink = sink;
-    }
-
-    @Override
-    public void start() {
-        if (service != null) {
-            service.subscribe();
-        }
+    public PublishingServiceTypedSubscriberHandler(TypedHandler typedHandler) {
+        super(typedHandler);
+        this.typedHandler = typedHandler;
     }
 
     @Override
     public void onServiceEvent(String event) {
-        if (sink != null) {
-            sink.accept(event);
+        typedHandler.onServiceEvent(event);
+    }
+
+    public static class TypedHandler extends ObjectEventHandlerNode implements PublishingServiceListener {
+
+        private PublishingServiceTyped service;
+        private MessageSink<String> sink;
+
+        @ServiceRegistered
+        public void wire(PublishingServiceTyped service, String name) {
+            this.service = service;
+        }
+
+        @ServiceRegistered
+        public void sink(MessageSink<String> sink, String name) {
+            this.sink = sink;
+        }
+
+        @Override
+        public void start() {
+            if (service != null) {
+                service.subscribe();
+            }
+        }
+
+        @Override
+        public void tearDown() {
+            // No-op
+        }
+
+        @Override
+        public void onServiceEvent(String event) {
+            if (sink != null) {
+                sink.accept(event);
+            }
         }
     }
 }
@@ -117,18 +139,18 @@ The test boots a server, registers the typed service and a processor that implem
 
 ```java
 PublishingServiceTyped pubService = new PublishingServiceTyped("pubServiceTyped");
-PublishingServiceTypedSubscriberHandler handler = new PublishingServiceTypedSubscriberHandler();
+PublishingServiceTypedSubscriberHandler handler = new PublishingServiceTypedSubscriberHandler(new PublishingServiceTypedSubscriberHandler.TypedHandler());
 
 EventProcessorGroupConfig processorGroup = EventProcessorGroupConfig.builder()
         .agentName("processor-agent")
-        .put("typed-subscriber-processor", new EventProcessorConfig(handler))
+        .put("typed-subscriber-processor", EventProcessorConfig.builder().handler(handler).build())
         .build();
 
 ServiceConfig<PublishingServiceTyped> svcCfg = ServiceConfig.<PublishingServiceTyped>builder()
         .service(pubService)
         .serviceClass(PublishingServiceTyped.class)
         .name("pubServiceTyped")
-        .agent("service-agent", new BusySpinIdleStrategy())
+        //.agent("service-agent", new BusySpinIdleStrategy()) // optional: uncomment to give the service its own agent
         .build();
 
 AppConfig appConfig = AppConfig.builder()
