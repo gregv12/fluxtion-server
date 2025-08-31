@@ -7,23 +7,45 @@ architecture, core components, configuration, plugin model, lifecycle, and examp
 
 ```mermaid
 graph LR
-ES[Event Sources] --> FM[Flow Manager]
-SVCA[Service A] --> EH1
-EH1 --> SVCA
-FM --> EH1[Event Handlers]
-FM --> EH2[Event Handlers]
-FM --> EH3[Event Handlers]
-EH1 --> ESK[Event Sinks]
-EH2 --> ESK[Event Sinks]
-EH3 --> ESK[Event Sinks]
+    classDef invis fill:transparent,stroke:transparent,color:transparent;
+    anchor(( )):::invis
 
+    anchor --> SVCA[Service A]
+    linkStyle 0 stroke:transparent,opacity:0;
+
+    ES[Event Sources] --> FM[Flow Manager]
+    ES2[Event Source A] --> FM[Flow Manager]
+    ES3[Event Source B] --> FM[Flow Manager]
+    SVCA[Service A] --> FM
+    EH1 --> SVCA
+    FM --> EH1[Event Handlers 
+    business logic]
+    FM --> EH2[Event Handlers 
+    business logic]
+    FM --> EH3[Event Handlers 
+    business logic]
+    EH1 --> ESK[Event Sinks]
+    EH2 --> ESK[Event Sinks]
+    EH3 --> ESK[Event Sinks]
+
+
+   subgraph "Agent thread group 2"
+        ES2
+        ES3
+    end
+    
     subgraph "Agent thread group 1"
+        ES
+    end
+    
+
+    subgraph "Agent thread group 3"
         EH1
     end
-    subgraph "Agent thread group 2"
+    subgraph "Agent thread group 4"
         EH2
     end
-    subgraph "Agent thread group 3"
+    subgraph "Agent thread group 5"
         EH3
     end
 ```
@@ -33,7 +55,7 @@ EH3 --> ESK[Event Sinks]
 ### Event Processing
 
 - Event Sources: Producers that generate events
-- Event Processors: Custom handlers for processing specific event types
+- Event Handlers: Custom handlers for processing specific event types
 - Event Sinks: Consumers that receive processed events
 - Event Flow Manager: Coordinates event routing and processing
 
@@ -59,12 +81,12 @@ EH3 --> ESK[Event Sinks]
     - Can run as standard services or agents
     - Examples: market data feeds, sensors, external integrations
 
-2. Event Handlers
+2. Event Handlers (Business Logic)
     - Organized into named groups, each with its own thread/idle strategy/log level
     - Features: dynamic add/remove, configuration injection, audit logging
     - Receive callbacks when feeds publish events; can use registered services; can publish to sinks
 
-3. Event Sinks
+3. Event Sinks (Outputs)
     - Receive processed events and handle output distribution (DB, network, monitoring)
     - Can operate as services or agents
 
