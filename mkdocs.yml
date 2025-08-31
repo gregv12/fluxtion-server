@@ -59,11 +59,11 @@ nav:
   - Guide:
       - Overview: guide/overview.md
       - 5-minute handler tutorial: guide/five-minute-event-handler-tutorial.md
-      - Plugin extension: guide/plugin_extension_architecture.md
-      - Examples:
+      - Plugin extension mechanism: guide/plugin_extension_architecture.md
+      - Event handler examples:
           - Fluent API: guide/file-and-memory-feeds-example.md
           - YAML config: guide/file-and-memory-feeds-yaml-example.md
-      - Plugins:
+      - Plugin examples:
           - Event sink plugin: plugin/writing-a-message-sink-plugin.md
           - Event source plugin: plugin/writing-an-event-source-plugin.md
           - Service plugin: plugin/writing-a-service-plugin.md
