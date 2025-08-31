@@ -8,6 +8,8 @@ architecture, core components, configuration, plugin model, lifecycle, and examp
 ```mermaid
 graph LR
 ES[Event Sources] --> FM[Flow Manager]
+SVCA[Service A] --> EH1
+EH1 --> SVCA
 FM --> EH1[Event Handlers]
 FM --> EH2[Event Handlers]
 FM --> EH3[Event Handlers]

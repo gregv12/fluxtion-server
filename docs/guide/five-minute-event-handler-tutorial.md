@@ -7,7 +7,8 @@ This quick tutorial shows how to write business logic in an event handler while 
 - Publish results to a sink
 - Run it end‑to‑end using the provided test code
 
-Focus: writing business logic in the handler. Infrastructure (feeds/sinks/agents) is configured separately and injected/wired at boot.
+Focus: writing business logic in the handler. Infrastructure (feeds/sinks/agents) is configured separately and
+injected/wired at boot.
 
 ## What we’ll build
 
@@ -15,14 +16,47 @@ Focus: writing business logic in the handler. Infrastructure (feeds/sinks/agents
 - One in‑memory sink to collect outputs
 - A handler that subscribes only to the feeds it cares about and forwards the payloads (your logic goes here)
 
+### Components and event flow
+
+```mermaid
+graph LR
+    subgraph "Inbound Feeds (agents)"
+        P[prices feed] --> FM[Flow Manager]
+        N[news feed] --> FM
+    end
+
+    subgraph "Processor agent"
+        FM --. events .--> H[NamedFeedsFilterHandler 
+        Business Logic]
+    end
+
+    H -- publish --> S[InMemoryMessageSink]
+
+    %% Styling (optional)
+
+
+    class P,N feed;
+    class H proc;
+    class S sink;
+
+    %% Notes
+    note1( subscribeByName 'prices','news' )
+    H -. subscription .-> FM
+```
+
 End‑to‑end runnable code (already in the repo):
 
-- Handler: [NamedFeedsFilterHandler.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsFilterHandler.java)
-- Wiring + test: [NamedFeedsSubscriptionExampleTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java)
+-
+
+Handler: [NamedFeedsFilterHandler.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsFilterHandler.java)
+
+- Wiring +
+  test: [NamedFeedsSubscriptionExampleTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java)
 
 ## 1) Write the handler (business logic only)
 
-Extend ObjectEventHandlerNode and use @ServiceRegistered to inject a MessageSink<String>. Subscribe to the feeds you care about by name in start(). Your event handling stays focused on domain logic; no IO code here.
+Extend ObjectEventHandlerNode and use @ServiceRegistered to inject a MessageSink<String>. Subscribe to the feeds you
+care about by name in start(). Your event handling stays focused on domain logic; no IO code here.
 
 ```java
 package com.fluxtion.server.example;
@@ -64,7 +98,8 @@ public class NamedFeedsFilterHandler extends ObjectEventHandlerNode {
 }
 ```
 
-Key point: the handler depends on MessageSink<String> (an interface) and feed names, not on concrete IO types or threads.
+Key point: the handler depends on MessageSink<String> (an interface) and feed names, not on concrete IO types or
+threads.
 
 ## 2) Add two feeds and one sink (infrastructure)
 
@@ -116,11 +151,13 @@ AppConfig appConfig = AppConfig.builder()
 FluxtionServer server = FluxtionServer.bootServer(appConfig, rec -> {});
 ```
 
-Complete and runnable version [NamedFeedsSubscriptionExampleTest](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java)
+Complete and runnable
+version [NamedFeedsSubscriptionExampleTest](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java)
 
 ## 3) Run and verify
 
-Publish events into the feeds and observe the sink outputs. Only messages from subscribed feeds are forwarded by the handler.
+Publish events into the feeds and observe the sink outputs. Only messages from subscribed feeds are forwarded by the
+handler.
 
 ```java
 prices.offer("p1");
@@ -131,7 +168,8 @@ news.offer("n2");
 // Expect: p1, p2, n1, n2 in the sink (order may vary slightly depending on timing)
 ```
 
-The test waits for the sink to receive the expected messages and asserts the result. You can adapt the handler to implement your own domain rules (e.g., convert prices into BUY/SELL decisions) without touching the feed or sink code.
+The test waits for the sink to receive the expected messages and asserts the result. You can adapt the handler to
+implement your own domain rules (e.g., convert prices into BUY/SELL decisions) without touching the feed or sink code.
 
 ## 4) Keep business logic separate from infrastructure
 
@@ -141,9 +179,14 @@ The test waits for the sink to receive the expected messages and asserts the res
 - Use @ServiceRegistered to inject services/sinks by interface
 - Subscribe to named feeds rather than concrete sources
 
-This separation lets you swap feeds/sinks (Kafka, files, HTTP), add services (scheduler, admin), or change threading—without editing your business logic.
+This separation lets you swap feeds/sinks (Kafka, files, HTTP), add services (scheduler, admin), or change
+threading—without editing your business logic.
 
 ## Source code
 
-- Handler: [NamedFeedsFilterHandler.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsFilterHandler.java)
-- Wiring + test: [NamedFeedsSubscriptionExampleTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java)
+-
+
+Handler: [NamedFeedsFilterHandler.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsFilterHandler.java)
+
+- Wiring +
+  test: [NamedFeedsSubscriptionExampleTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java)
