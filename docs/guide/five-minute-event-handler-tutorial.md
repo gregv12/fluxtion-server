@@ -46,12 +46,8 @@ graph TD
 
 End‑to‑end runnable code (already in the repo):
 
-*
-
-Handler: [NamedFeedsFilterHandler.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsFilterHandler.java)
-
-* Wiring +
-  test: [NamedFeedsSubscriptionExampleTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java)
+* Handler: [NamedFeedsFilterHandler.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsFilterHandler.java)
+* Wiring + test: [NamedFeedsSubscriptionExampleTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java)
 
 ## 1) Write the handler (business logic only)
 
