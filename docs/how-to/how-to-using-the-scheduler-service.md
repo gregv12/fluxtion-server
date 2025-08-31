@@ -1,4 +1,4 @@
-# Guide: Using the Scheduler Service in Fluxtion Server
+# Guide: Using the Scheduler Service in Mongoose server
 
 This guide explains how to use the built‑in scheduler to run actions in the future or after a delay. The scheduler is
 exposed to processors and services as `SchedulerService` and implemented by `DeadWheelScheduler` under the hood.
@@ -38,7 +38,7 @@ The default implementation is `com.fluxtion.server.service.scheduler.DeadWheelSc
 
 ## How the scheduler is wired in
 
-You do not need to manually register a scheduler. Fluxtion Server provides one and injects it into:
+You do not need to manually register a scheduler. Mongoose server provides one and injects it into:
 
 - Each StaticEventProcessor hosted in an agent group
 - Each worker service (agent‑hosted service)
@@ -167,12 +167,13 @@ private void scheduleHeartbeat(long periodMs) {
 
 ## References
 
-- Interface: [SchedulerService.java](../../src/main/java/com/fluxtion/server/service/scheduler/SchedulerService.java)
+- Scheduler
+  interface  [SchedulerService.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/scheduler/SchedulerService.java)
 - Default
-  implementation: [DeadWheelScheduler.java](../../src/main/java/com/fluxtion/server/service/scheduler/DeadWheelScheduler.java)
+  implementation: [DeadWheelScheduler.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/scheduler/DeadWheelScheduler.java)
 - Trigger
-  helper: [ScheduledTriggerNode.java](../../src/main/java/com/fluxtion/server/service/scheduler/ScheduledTriggerNode.java)
+  helper: [ScheduledTriggerNode.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/scheduler/ScheduledTriggerNode.java)
 - Wiring an event
-  processor: [ComposingEventProcessorAgent.java](../../src/main/java/com/fluxtion/server/dutycycle/ComposingEventProcessorAgent.java)
+  processor: [ComposingEventProcessorAgent.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dutycycle/ComposingEventProcessorAgent.java)
 - Wiring a
-  services: [ComposingServiceAgent.java](../../src/main/java/com/fluxtion/server/dutycycle/ComposingServiceAgent.java)
+  services: [ComposingServiceAgent.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dutycycle/ComposingServiceAgent.java)

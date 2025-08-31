@@ -1,6 +1,6 @@
-# Guide: Fluxtion Server Threading Model
+# Guide: Mongoose server Threading Model
 
-This guide explains how Fluxtion Server uses threads to run your event processors, services, event sources, and the
+This guide explains how Mongoose server uses threads to run your event processors, services, event sources, and the
 built‑in scheduler. It focuses on where your code executes, how agents communicate, and how to design components that
 are correct and performant under the single‑threaded processor model.
 
@@ -16,18 +16,20 @@ You’ll learn:
 References in this repository:
 
 - Processor
-  agent: [ComposingEventProcessorAgent](../../src/main/java/com/fluxtion/server/dutycycle/ComposingEventProcessorAgent.java)
-- Service agent: [ComposingServiceAgent](../../src/main/java/com/fluxtion/server/dutycycle/ComposingServiceAgent.java)
+  agent: [ComposingEventProcessorAgent](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dutycycle/ComposingEventProcessorAgent.java)
+- Service
+  agent: [ComposingServiceAgent](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dutycycle/ComposingServiceAgent.java)
 - Scheduler
-  agent: [DeadWheelScheduler](../../src/main/java/com/fluxtion/server/service/scheduler/DeadWheelScheduler.java)
+  agent: [DeadWheelScheduler](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/scheduler/DeadWheelScheduler.java)
 - Event source
-  base: [AbstractEventSourceService](../../src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java) (+
+  base: [AbstractEventSourceService](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java) (+
   agent variant)
-- Queue publisher: [EventToQueuePublisher](../../src/main/java/com/fluxtion/server/dispatch/EventToQueuePublisher.java)
+- Queue
+  publisher: [EventToQueuePublisher](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dispatch/EventToQueuePublisher.java)
 
 ## 1) Big picture
 
-Fluxtion Server composes several “agents,” each typically running on its own thread:
+Mongoose server composes several “agents,” each typically running on its own thread:
 
 - One or more Processor Agent Groups (each contains one or more StaticEventProcessor instances)
 - One or more Service Agent Groups (each hosts zero or more worker services)
@@ -63,9 +65,9 @@ flowchart LR
     Svc -- expiry Runnable --> WS1
     Svc -- expiry Runnable --> ES1
 
-    style ServiceAgentGroup fill:#eef,stroke:#88a
-    style ProcessorAgentGroup fill:#efe,stroke:#8a8
-    style SchedulerAgent fill:#fee,stroke:#a88
+    style ServiceAgentGroup fill:#234,stroke:#88a
+    style ProcessorAgentGroup fill:#418,stroke:#8a8
+    style SchedulerAgent fill:#333,stroke:#a88
 ```
 
 Notes:
@@ -172,9 +174,8 @@ Common patterns to marshal work back into a processor context:
 Example using `ScheduledTriggerNode`:
 
 ```java
-public class MySchedulerAwareHandler extends com.fluxtion.runtime.node.ObjectEventHandlerNode {
-    private final com.fluxtion.server.service.scheduler.ScheduledTriggerNode trigger =
-            new com.fluxtion.server.service.scheduler.ScheduledTriggerNode();
+public class MySchedulerAwareHandler extends ObjectEventHandlerNode {
+    private final ScheduledTriggerNode trigger = new ScheduledTriggerNode();
 
     // After wiring, call this from handleEvent or during start
     void scheduleTick(long millis) {
@@ -201,25 +202,34 @@ public class MySchedulerAwareHandler extends com.fluxtion.runtime.node.ObjectEve
 
 ## 8) Related docs
 
-- Using the scheduler service: [using-the-scheduler-service](using-the-scheduler-service.md)
-- Writing an event source plugin: [writing-an-event-source-plugin](writing-an-event-source-plugin.md)
-- Writing a service plugin: [writing-a-service-plugin](writing-a-service-plugin.md)
-- Writing an admin command: [writing-an-admin-command](writing-an-admin-command.md)
-- How to core‑pin agent threads: [how-to-core-pin](how-to-core-pin.md)
-- Architecture + sequence diagrams: [architecture](../architecture/index.md)
+- Using the scheduler service: [using-the-scheduler-service](../how-to/how-to-using-the-scheduler-service.md)
+- Writing an event source plugin: [writing-an-event-source-plugin](../plugin/writing-an-event-source-plugin.md)
+- Writing a service plugin: [writing-a-service-plugin](../plugin/writing-a-service-plugin.md)
+- Writing an admin command: [writing-an-admin-command](../how-to/writing-an-admin-command.md)
+- How to core‑pin agent threads: [how-to-core-pin](../how-to/how-to-core-pin.md)
+- Architecture + sequence diagrams: [architecture](architecture_index.md)
 
 ## 9) Optional: Core pinning for agent threads
 
-Fluxtion Server supports best-effort CPU core pinning for agent threads. This can help reduce context switches and improve tail latency on systems where CPU affinity is desirable.
+Mongoose server supports best-effort CPU core pinning for agent threads. This can help reduce context switches and
+improve tail latency on systems where CPU affinity is desirable.
 
 Key points:
-- Configure per-agent core pinning using AppConfig’s agent Threads: [ThreadConfig](../../src/main/java/com/fluxtion/server/config/ThreadConfig.java) has an optional coreId field (zero-based CPU index).
+
+- Configure per-agent core pinning using AppConfig’s agent
+  Threads: [ThreadConfig](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/config/ThreadConfig.java)
+  has an optional coreId field (zero-based CPU index).
 - Pinning is applied inside the agent thread itself during start (onStart) for both processor and service agent groups:
-  - Processor agent: [ComposingEventProcessorAgent](../../src/main/java/com/fluxtion/server/dutycycle/ComposingEventProcessorAgent.java)
-  - Service agent: [ComposingServiceAgent](../../src/main/java/com/fluxtion/server/dutycycle/ComposingServiceAgent.java)
-- Fluxtion uses a lightweight helper [CoreAffinity](../../src/main/java/com/fluxtion/server/internal/CoreAffinity.java) that attempts to pin via reflection to OpenHFT’s Affinity library if present; otherwise it logs and no-ops.
+    - Processor
+      agent: [ComposingEventProcessorAgent](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dutycycle/ComposingEventProcessorAgent.java)
+    - Service
+      agent: [ComposingServiceAgent](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dutycycle/ComposingServiceAgent.java)
+- Fluxtion uses a lightweight
+  helper [CoreAffinity](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/internal/CoreAffinity.java)
+  that attempts to pin via reflection to OpenHFT’s Affinity library if present; otherwise it logs and no-ops.
 
 Configure via fluent builder:
+
 ```java
 import com.fluxtion.server.config.AppConfig;
 import com.fluxtion.server.config.ThreadConfig;
@@ -242,14 +252,22 @@ AppConfig appConfig = AppConfig.builder()
 ```
 
 Runtime behavior:
-- When an agent group thread starts, the server resolves the configured core for that agent via FluxtionServer.resolveCoreIdForAgentName and calls CoreAffinity.pinCurrentThreadToCore(coreId). If no coreId is configured, nothing is done.
+
+- When an agent group thread starts, the server resolves the configured core for that agent via
+  FluxtionServer.resolveCoreIdForAgentName and calls CoreAffinity.pinCurrentThreadToCore(coreId). If no coreId is
+  configured, nothing is done.
 - If OpenHFT’s Affinity is not on the classpath, pinning is skipped with an info log.
 
 Optional dependency for pinning:
+
 - To enable actual OS-level pinning, add the test/runtime dependency on OpenHFT Affinity in your project.
-  See this repository’s POM for an example test-scoped optional dependency: [pom.xml](../../pom.xml) (artifact net.openhft:affinity).
-- A simple optional test that exercises pinning via reflection is provided here: [CoreAffinityOptionalTest](../../src/test/java/com/fluxtion/server/internal/CoreAffinityOptionalTest.java).
+  See this repository’s POM for an example test-scoped optional
+  dependency: [pom.xml](https://github.com/gregv12/fluxtion-server/blob/main/pom.xml) (artifact
+  net.openhft:affinity).
+- A simple optional test that exercises pinning via reflection is provided
+  here: [CoreAffinityOptionalTest](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/internal/CoreAffinityOptionalTest.java).
 
 Notes:
+
 - Core IDs are zero-based and depend on your OS/CPU topology.
 - Pinning can improve determinism but may reduce OS scheduling flexibility; benchmark your workload.

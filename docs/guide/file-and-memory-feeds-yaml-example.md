@@ -98,8 +98,7 @@ try {
 
     // Offer in-memory events via the registered service
     @SuppressWarnings("unchecked")
-    var inMem = (com.fluxtion.server.connector.memory.InMemoryEventSource<String>)
-            server.registeredServices().get("inMemFeed").instance();
+    var inMem = server.registeredServices().get("inMemFeed").instance();
     inMem.offer("mem-1");
     inMem.offer("mem-2");
 
@@ -111,7 +110,7 @@ try {
 
 ## 4) Complete, runnable test
 
-See [YamlConfigFeedsExampleTest](./../../src/test/java/com/fluxtion/server/example/YamlConfigFeedsExampleTest.java)
+See [YamlConfigFeedsExampleTest](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/YamlConfigFeedsExampleTest.java)
 for a full end-to-end test that builds the YAML string programmatically with temporary file paths, boots the server,
 stimulates both sources, and asserts the sink content.
 

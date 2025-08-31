@@ -12,7 +12,7 @@ The processor receives events from both sources and writes them to a file sink.
 ## 1) Create a custom handler
 
 Extend ObjectEventHandlerNode and inject the FileMessageSink using @ServiceRegistered, see
-[BuilderApiExampleHandler](./../../src/test/java/com/fluxtion/server/example/BuilderApiExampleHandler.java).
+[BuilderApiExampleHandler](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/BuilderApiExampleHandler.java).
 In handleEvent, forward the incoming event to the sink:
 
 ```java
@@ -100,15 +100,15 @@ try {
     Files.writeString(inputFile, "file-1\nfile-2\n", StandardCharsets.UTF_8);
 
     // Access the in-memory source via registered services
-    Map<String, com.fluxtion.runtime.service.Service<?>> services = server.registeredServices();
-    @SuppressWarnings("unchecked")
-    InMemoryEventSource<String> registeredMem = (InMemoryEventSource<String>) services.get("inMemFeed").instance();
+    Map<Service<?>> services = server.registeredServices();
+    InMemoryEventSource<String> registeredMem = services.get("inMemFeed").instance();
     registeredMem.offer("mem-1");
     registeredMem.offer("mem-2");
 
     // Allow agents to process. Spin-wait up to a few seconds for output lines.
     List<String> lines = waitForLines(outputFile, 4, 5, TimeUnit.SECONDS);
-    Assertions.assertTrue(lines.containsAll(List.of("file-1", "file-2", "mem-1", "mem-2")),
+    Assertions.assertTrue(
+            lines.containsAll(List.of("file-1", "file-2", "mem-1", "mem-2")),
             () -> "Missing expected lines in sink: " + lines);
 } finally {
     server.stop();
@@ -116,7 +116,7 @@ try {
 ```
 
 The example
-test [BuilderApiFluentExampleTest](./../../src/test/java/com/fluxtion/server/example/BuilderApiFluentExampleTest.java)
+test [BuilderApiFluentExampleTest](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/BuilderApiFluentExampleTest.java)
 demonstrates the complete flow and asserts that the sink contains these
 events from both sources:
 

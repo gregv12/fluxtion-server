@@ -1,8 +1,8 @@
-# Fluxtion Server Event Flow Architecture
+# Mongoose server Event Flow Architecture
 
 ## Introduction
 
-The event flow architecture is a core aspect of the Fluxtion Server framework. It defines how events are generated, routed, and processed throughout the system. This document provides a detailed explanation of the event flow architecture, including the components involved and their interactions.
+The event flow architecture is a core aspect of the Mongoose server framework. It defines how events are generated, routed, and processed throughout the system. This document provides a detailed explanation of the event flow architecture, including the components involved and their interactions.
 
 ## Event Flow Components
 
@@ -41,7 +41,7 @@ The event flow architecture consists of the following key components:
 
 ## Event Flow Process
 
-The event flow process in Fluxtion Server follows these steps:
+The event flow process in Mongoose server follows these steps:
 
 1. **Event Generation**: An EventSource generates an event, which could be from an external system, a timer, or another internal component.
 
@@ -57,7 +57,7 @@ The event flow process in Fluxtion Server follows these steps:
 
 ## Subscription Model
 
-Fluxtion Server uses a subscription model to connect event sources with event processors:
+Mongoose server uses a subscription model to connect event sources with event processors:
 
 1. **EventSubscriptionKey**: Identifies a subscription between an event source and a processor.
 
@@ -86,7 +86,7 @@ Fluxtion Server uses a subscription model to connect event sources with event pr
 
 ## Event Types and Wrapping
 
-Fluxtion Server supports different event wrapping strategies:
+Mongoose server supports different event wrapping strategies:
 
 1. **SUBSCRIPTION_NOWRAP**: Events are passed directly to subscribers without wrapping.
 2. **SUBSCRIPTION_NAMED_EVENT**: Events are wrapped with source information before passing to subscribers.
@@ -95,7 +95,7 @@ Fluxtion Server supports different event wrapping strategies:
 
 ## Slow Consumer Handling
 
-Fluxtion Server provides strategies for handling slow consumers:
+Mongoose server provides strategies for handling slow consumers:
 
 1. **DISCONNECT**: Disconnect slow consumers to prevent system slowdown.
 2. **EXIT_PROCESS**: Exit the process if a consumer is too slow.
@@ -103,7 +103,7 @@ Fluxtion Server provides strategies for handling slow consumers:
 
 ## Queue Implementation
 
-The event queues in Fluxtion Server are implemented using:
+The event queues in Mongoose server are implemented using:
 
 1. **ManyToOneConcurrentArrayQueue**: For multiple producers and a single consumer.
 2. **OneToOneConcurrentArrayQueue**: For a single producer and a single consumer.
@@ -120,4 +120,4 @@ Error handling in the event flow follows these patterns:
 
 ## Conclusion
 
-The event flow architecture of Fluxtion Server provides a flexible and efficient mechanism for routing events between sources and processors. Its subscription-based model allows for dynamic configuration of event flows, while its queue-based implementation ensures thread-safe communication between components.
+The event flow architecture of Mongoose server provides a flexible and efficient mechanism for routing events between sources and processors. Its subscription-based model allows for dynamic configuration of event flows, while its queue-based implementation ensures thread-safe communication between components.

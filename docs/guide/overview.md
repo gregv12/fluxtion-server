@@ -1,29 +1,44 @@
-# Fluxtion Server: Concepts, Architecture, and Usage
+# Mongoose server: Concepts, Architecture, and Usage
 
-This document provides a deeper overview of Fluxtion Server beyond the short README summary. It covers the event-driven
+This document provides a deeper overview of Mongoose server beyond the short README summary. It covers the event-driven
 architecture, core components, configuration, plugin model, lifecycle, and example usage.
 
 ## Event Processing Architecture
 
 ```mermaid
-graph LR
-ES[Event Sources] --> FM[Flow Manager]
-FM --> EH1[Event Handlers]
-FM --> EH2[Event Handlers]
-FM --> EH3[Event Handlers]
-EH1 --> ESK[Event Sinks]
-EH2 --> ESK[Event Sinks]
-EH3 --> ESK[Event Sinks]
+graph TD
 
+    ES[Event Sources] --> FM[Flow Manager]
+    ES2[Event Source A] --> FM[Flow Manager]
+    ES3[Event Source B] --> FM[Flow Manager]
+
+    SVCA[Service A] --> FM
+    EH1 --> SVCA
+
+    FM --> EH1[Event Handlers 
+    business logic]
+    FM --> EH2[Event Handlers 
+    business logic]
+
+    EH1 --> ESK[Event Sinks]
+    EH2 --> ESK[Event Sinks]
+
+   subgraph "Agent thread group 2"
+        ES2
+        ES3
+    end
+    
     subgraph "Agent thread group 1"
+        ES
+    end
+
+    subgraph "Agent thread group 3"
         EH1
     end
-    subgraph "Agent thread group 2"
+    subgraph "Agent thread group 4"
         EH2
     end
-    subgraph "Agent thread group 3"
-        EH3
-    end
+
 ```
 
 ## Core Components
@@ -31,7 +46,7 @@ EH3 --> ESK[Event Sinks]
 ### Event Processing
 
 - Event Sources: Producers that generate events
-- Event Processors: Custom handlers for processing specific event types
+- Event Handlers: Custom handlers for processing specific event types
 - Event Sinks: Consumers that receive processed events
 - Event Flow Manager: Coordinates event routing and processing
 
@@ -57,21 +72,26 @@ EH3 --> ESK[Event Sinks]
     - Can run as standard services or agents
     - Examples: market data feeds, sensors, external integrations
 
-2. Event Handlers
+2. Event Handlers (Business Logic)
     - Organized into named groups, each with its own thread/idle strategy/log level
     - Features: dynamic add/remove, configuration injection, audit logging
     - Receive callbacks when feeds publish events; can use registered services; can publish to sinks
 
-3. Event Sinks
+3. Event Sinks (Outputs)
     - Receive processed events and handle output distribution (DB, network, monitoring)
     - Can operate as services or agents
 
-4. Flow Manager
+4. Services (Functions)
+    - Container-managed components providing shared functionality
+    - Automatically injected into event handlers via @ServiceRegistered
+    - Examples: caches, connection pools, request/response api integration, etc.
+
+5. Flow Manager (Dispatcher)
     - Central coordination component routing events and managing dispatch strategies
 
 ## Configuration (YAML)
 
-You can configure Fluxtion Server with YAML (or programmatically). Example snippet:
+You can configure Mongoose server with YAML (or programmatically). Example snippet:
 
 ```yaml
 # --------- EVENT INPUT FEEDS BEGIN CONFIG ---------
@@ -105,7 +125,7 @@ agentThreads:
 
 ## Plugin-Based Architecture
 
-Fluxtion Server implements a flexible plugin-based architecture across major components.
+Mongoose server implements a flexible plugin-based architecture across major components.
 
 ### Component Types
 
@@ -159,7 +179,7 @@ F --> A
 
 ## See Also
 
-- [Architecture index](../architecture/index.md)
+- [Architecture index](../architecture/architecture_index.md)
 - [Architecture overview](../architecture/overview.md)
 - [Components](../architecture/components.md)
 - [Event flow](../architecture/event-flow.md)

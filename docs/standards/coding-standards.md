@@ -1,8 +1,8 @@
-# Fluxtion Server Coding Standards and Best Practices
+# Mongoose server Coding Standards and Best Practices
 
 ## Introduction
 
-This document outlines the coding standards and best practices for the Fluxtion Server project. Following these standards ensures consistency across the codebase, improves code quality, and makes the codebase more maintainable.
+This document outlines the coding standards and best practices for the Mongoose server project. Following these standards ensures consistency across the codebase, improves code quality, and makes the codebase more maintainable.
 
 ## Table of Contents
 

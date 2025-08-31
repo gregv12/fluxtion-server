@@ -1,8 +1,8 @@
-# Fluxtion Server Component Architecture
+# Mongoose server Component Architecture
 
 ## Introduction
 
-This document provides a detailed description of the key components in the Fluxtion Server architecture and their relationships. Understanding these components is essential for developing, extending, and maintaining applications built on the Fluxtion Server framework.
+This document provides a detailed description of the key components in the Mongoose server architecture and their relationships. Understanding these components is essential for developing, extending, and maintaining applications built on the Mongoose server framework.
 
 ## Core Components
 
@@ -303,6 +303,6 @@ The ServiceAgent interface represents a service that runs in its own thread as a
 
 ## Conclusion
 
-The component architecture of Fluxtion Server provides a flexible and extensible framework for building event-driven applications. The clear separation of concerns between components allows for easy customization and extension, while the well-defined interfaces ensure consistent behavior across the system.
+The component architecture of Mongoose server provides a flexible and extensible framework for building event-driven applications. The clear separation of concerns between components allows for easy customization and extension, while the well-defined interfaces ensure consistent behavior across the system.
 
-Understanding these components and their relationships is essential for effectively using and extending the Fluxtion Server framework. This document serves as a reference for developers working with the framework, providing insights into the design and implementation of the system.
+Understanding these components and their relationships is essential for effectively using and extending the Mongoose server framework. This document serves as a reference for developers working with the framework, providing insights into the design and implementation of the system.
