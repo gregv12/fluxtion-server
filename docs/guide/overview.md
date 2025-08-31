@@ -90,7 +90,12 @@ graph LR
     - Receive processed events and handle output distribution (DB, network, monitoring)
     - Can operate as services or agents
 
-4. Flow Manager
+4. Services (Functions)
+    - Container-managed components providing shared functionality
+    - Automatically injected into event handlers via @ServiceRegistered
+    - Examples: caches, connection pools, request/response api integration, etc.
+
+5. Flow Manager (Dispatcher)
     - Central coordination component routing events and managing dispatch strategies
 
 ## Configuration (YAML)
