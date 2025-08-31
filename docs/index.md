@@ -20,7 +20,7 @@ can focus on business logic.
 - Start with the [Overview](guide/overview.md) to learn concepts and architecture. 
 - See [Examples](guide/file-and-memory-feeds-example.md) for quick hands-on guidance.
 - See [Plugins](guide/writing-a-message-sink-plugin.md) for advice on writing plugins.
-- Use [How-to guides](guide/subscribing-to-named-event-feeds.md) for common tasks and extensions.
+- Use [How-to guides](how-to/how-to-subscribing-to-named-event-feeds.md) for common tasks and extensions.
 
 ## Architecture and Threading model for internals.
 

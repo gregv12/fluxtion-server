@@ -75,7 +75,7 @@ Notes:
 ## 3) Wire your strategy into the runtime
 
 Register your strategy as a factory for
-a [CallBackType](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/CallBackType.java).
+ a [CallBackType](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/CallBackType.java).
 
 Via AppConfig fluent builder (server will register on boot), and override the default onEvent strategy,
 ON_EVENT_CALL_BACK,

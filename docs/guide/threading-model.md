@@ -202,7 +202,7 @@ public class MySchedulerAwareHandler extends ObjectEventHandlerNode {
 
 ## 8) Related docs
 
-- Using the scheduler service: [using-the-scheduler-service](using-the-scheduler-service.md)
+- Using the scheduler service: [using-the-scheduler-service](../how-to/how-to-using-the-scheduler-service.md)
 - Writing an event source plugin: [writing-an-event-source-plugin](writing-an-event-source-plugin.md)
 - Writing a service plugin: [writing-a-service-plugin](writing-a-service-plugin.md)
 - Writing an admin command: [writing-an-admin-command](../how-to/writing-an-admin-command.md)

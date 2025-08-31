@@ -68,11 +68,11 @@ nav:
           - Service plugin as event feed: guide/writing-a-publishing-service-plugin.md
           - Service plugin with custom dispatch: guide/writing-a-typed-invoke-publishing-service-plugin.md
       - How-to:
-          - Subscribe to named event feeds: guide/subscribing-to-named-event-feeds.md
-          - Using the scheduler service: guide/using-the-scheduler-service.md
-          - Inject config into a processor: guide/injecting-config-into-a-processor.md
+          - Subscribe to named event feeds: how-to/how-to-subscribing-to-named-event-feeds.md
+          - Using the scheduler service: how-to/how-to-using-the-scheduler-service.md
+          - Inject config into a processor: how-to/how-to-injecting-config-into-a-processor.md
           - Add an admin command: how-to/writing-an-admin-command.md
-          - Write a custom EventToInvokeStrategy: guide/writing-a-custom-event-to-invoke-strategy.md
+          - Write a custom EventToInvokeStrategy: how-to/how-to-writing-a-custom-event-to-invoke-strategy.md
           - Core pin agent threads: how-to/how-to-core-pin.md
 
   - Architecture and design:
