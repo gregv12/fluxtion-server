@@ -112,5 +112,5 @@ Notes:
 
 ## 6) Related reading
 
-- [Threading overview and agent lifecycles](threading-model.md#optional-core-pinning-for-agent-threads)
+- [Threading overview and agent lifecycles](../guide/threading-model.md#optional-core-pinning-for-agent-threads)
 - [Fluent AppConfig examples](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/BuilderApiFluentExampleTest.java)
