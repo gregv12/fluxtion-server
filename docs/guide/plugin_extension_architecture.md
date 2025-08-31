@@ -51,6 +51,7 @@ cache loader).
 - Integration: Accessed in processors via dependency injection using `@ServiceRegistered` methods.
 
 See also:
+
 - Guide: Service plugin — plugin/writing-a-service-plugin.md
 - SchedulerService and DeadWheelScheduler implementation
 
@@ -64,6 +65,7 @@ metrics).
   interfaces (e.g., `MessageSink<T>`).
 
 See also:
+
 - Guide: Message sink plugin — plugin/writing-a-message-sink-plugin.md
 
 ## Wiring plugins into your application
@@ -77,6 +79,7 @@ at boot. The fluent builder is the recommended approach:
 - Processor groups: `AppConfig.builder().addProcessorGroup(EventProcessorGroupConfig)`
 
 Key concepts:
+
 - Agent groups: Feeds and services run on their own agent thread; processors run in processor agent groups.
 - Injection: `@ServiceRegistered` methods allow services (including sinks) to be injected into processors.
 - Subscription: Processors declare interest in feeds by name using `getContext().subscribeToNamedFeed(name)`.
