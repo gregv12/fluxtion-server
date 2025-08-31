@@ -76,12 +76,11 @@ nav:
           - Add an admin command: how-to/writing-an-admin-command.md
           - Write a custom EventToInvokeStrategy: how-to/how-to-writing-a-custom-event-to-invoke-strategy.md
           - Core pin agent threads: how-to/how-to-core-pin.md
-
-  - Architecture and design:
-      - Doc description: architecture/architecture_index.md
-      - Overview: architecture/overview.md
-      - Event flow: architecture/event-flow.md
-      - Sequence event subscription: architecture/sequence-diagrams/event-subscription.md
-      - Sequence event processing: architecture/sequence-diagrams/event-processing.md
-      - Threading model: architecture/threading-model.md
+      - Architecture and design:
+          - Doc description: architecture/architecture_index.md
+          - Overview: architecture/overview.md
+          - Event flow: architecture/event-flow.md
+          - Sequence event subscription: architecture/sequence-diagrams/event-subscription.md
+          - Sequence event processing: architecture/sequence-diagrams/event-processing.md
+          - Threading model: architecture/threading-model.md
 
