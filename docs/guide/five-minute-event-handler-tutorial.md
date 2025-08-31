@@ -19,7 +19,7 @@ injected/wired at boot.
 ### Components and event flow
 
 ```mermaid
-graph LR
+graph TD
     subgraph "Inbound Feeds (agents)"
         P[prices feed] --> FM[Flow Manager]
         N[news feed] --> FM
@@ -46,11 +46,9 @@ graph LR
 
 End‑to‑end runnable code (already in the repo):
 
--
-
+*
 Handler: [NamedFeedsFilterHandler.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsFilterHandler.java)
-
-- Wiring +
+* Wiring +
   test: [NamedFeedsSubscriptionExampleTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java)
 
 ## 1) Write the handler (business logic only)
