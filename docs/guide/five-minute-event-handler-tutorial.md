@@ -16,10 +16,9 @@ Focus: writing business logic in the handler. Infrastructure (feeds/sinks/agents
 - A handler that subscribes only to the feeds it cares about and forwards the payloads (your logic goes here)
 
 End‑to‑end runnable code (already in the repo):
-- Handler: src/test/java/com/fluxtion/server/example/NamedFeedsFilterHandler.java
-  - GitHub link: https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsFilterHandler.java
-- Wiring + test: src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java
-  - GitHub link: https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java
+
+- Handler: [NamedFeedsFilterHandler.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsFilterHandler.java)
+- Wiring + test: [NamedFeedsSubscriptionExampleTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java)
 
 ## 1) Write the handler (business logic only)
 
@@ -117,7 +116,7 @@ AppConfig appConfig = AppConfig.builder()
 FluxtionServer server = FluxtionServer.bootServer(appConfig, rec -> {});
 ```
 
-Complete, runnable version: https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java
+Complete and runnable version [NamedFeedsSubscriptionExampleTest](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java)
 
 ## 3) Run and verify
 
@@ -145,7 +144,6 @@ The test waits for the sink to receive the expected messages and asserts the res
 This separation lets you swap feeds/sinks (Kafka, files, HTTP), add services (scheduler, admin), or change threading—without editing your business logic.
 
 ## Source code
-- Handler: src/test/java/com/fluxtion/server/example/NamedFeedsFilterHandler.java
-  - https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsFilterHandler.java
-- Wiring + test: src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java
-  - https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java
+
+- Handler: [NamedFeedsFilterHandler.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsFilterHandler.java)
+- Wiring + test: [NamedFeedsSubscriptionExampleTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java)

@@ -58,7 +58,7 @@ nav:
   - Home: index.md
   - Guide:
       - Overview: guide/overview.md
-      - 5-minute event handler tutorial: guide/five-minute-event-handler-tutorial.md
+      - 5-minute handler tutorial: guide/five-minute-event-handler-tutorial.md
       - Plugin extension: guide/plugin_extension_architecture.md
       - Examples:
           - Fluent API: guide/file-and-memory-feeds-example.md
