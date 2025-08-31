@@ -8,17 +8,15 @@ architecture, core components, configuration, plugin model, lifecycle, and examp
 ```mermaid
 graph TD
 
-    ES[Event Sources] --> FM[Flow Manager]
+    ES[Event Source 1] --> FM[Flow Manager]
     ES2[Event Source A] --> FM[Flow Manager]
     ES3[Event Source B] --> FM[Flow Manager]
 
     SVCA[Service A] --> FM
     EH1 --> SVCA
 
-    FM --> EH1[Event Handlers 
-    business logic]
-    FM --> EH2[Event Handlers 
-    business logic]
+    FM --> EH1[Event Handlers <br>business logic]
+    FM --> EH2[Event Handlers <br>business logic]
 
     EH1 --> ESK[Event Sinks]
     EH2 --> ESK[Event Sinks]
