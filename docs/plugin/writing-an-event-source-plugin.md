@@ -279,7 +279,7 @@ assertEquals(List.of("x"), drained.stream().map(Object::toString).toList());
   and [InMemoryEventSource.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/connector/memory/InMemoryEventSource.java)
   for
   complete, working examples
-- [docs/guide/file-and-memory-feeds-example.md](file-and-memory-feeds-example.md) for end-to-end wiring with processors
+- [docs/guide/file-and-memory-feeds-example.md](../guide/file-and-memory-feeds-example.md) for end-to-end wiring with processors
   and sinks
 - [AbstractEventSourceService](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java), [AbstractAgentHostedEventSourceService](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/extension/AbstractAgentHostedEventSourceService.java)
   for lifecycle and wiring details

@@ -19,12 +19,12 @@ can focus on business logic.
 
 - Start with the [Overview](guide/overview.md) to learn concepts and architecture. 
 - See [Examples](guide/file-and-memory-feeds-example.md) for quick hands-on guidance.
-- See [Plugins](guide/writing-a-message-sink-plugin.md) for advice on writing plugins.
+- See [Plugins](plugin/writing-a-message-sink-plugin.md) for advice on writing plugins.
 - Use [How-to guides](how-to/how-to-subscribing-to-named-event-feeds.md) for common tasks and extensions.
 
 ## Architecture and Threading model for internals.
 
-- Threading model → [guide/threading-model.md](guide/threading-model.md)
+- Threading model → [architecture/threading-model.md](architecture/threading-model.md)
 - Architecture → [architecture/index.md](architecture/architecture_index.md)
 - Event flow → [architecture/event-flow.md](architecture/event-flow.md)
 - Sequence diagrams → [architecture/sequence-diagrams/index.md](architecture/sequence-diagrams/index.md)

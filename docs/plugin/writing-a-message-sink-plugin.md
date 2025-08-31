@@ -243,7 +243,7 @@ static class TestableMySink extends MyCustomMessageSink {
 - In-memory sink (for
   testing): [InMemoryMessageSink.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/connector/memory/InMemoryMessageSink.java) —
   accumulates messages in memory.
-- End-to-end usage: [file-and-memory-feeds-example.md](file-and-memory-feeds-example.md) — shows processor wiring and
+- End-to-end usage: [file-and-memory-feeds-example.md](../guide/file-and-memory-feeds-example.md) — shows processor wiring and
   registering sinks with `EventSinkConfig`.
 
 With this structure, you can implement custom sinks for any target in a few lines, register them with `AppConfig`, and
