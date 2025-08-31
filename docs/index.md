@@ -11,13 +11,15 @@ get to a working system quickly without reinventing common building blocks.
 
 ## Why Mongoose Server?
 
+* Process multiple event feeds: Merge data from many real-time sources and process in a single-threaded application
+  handler.
 * Performance: Agent‑based concurrency with configurable idle strategies enables very high throughput and predictable
   latency.
-* Ease of development: Compose processors and services, configure via YAML or Java, and get built‑in lifecycle and
+* Ease of development: Compose processors and services, configured via YAML or Java with built in service injection.
+* Plugin ecosystem: community plugins, including support for Kafka, aeron, chronicle, and more.
   service injection.
 * Plugin architecture: Clean extension points for event feeds, sinks, services, and dispatch strategies so you can
   tailor the runtime.
-* Plugin ecosystem: community plugins, including support for Kafka, aeron, chronicle, and more.
 * Operational control: Admin commands, scheduling, logging/audit support, and dynamic registration make operations
   simpler.
 
