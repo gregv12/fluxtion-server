@@ -27,7 +27,12 @@ organized into several sections, each focusing on a different aspect of the arch
     - Event types and wrapping
     - Queue implementation
 
-4. [Deployment Guide](deployment.md)
+4. [Agent Execution](agent-execution.md)
+    - What agent execution is and how it differs from user threads
+    - How agents are supported in Mongoose Server
+    - When to choose agent execution; execution contexts (handlers vs services/feeds/sinks)
+
+5. [Deployment Guide](deployment.md)
     - Deployment models
     - Performance considerations
     - High availability

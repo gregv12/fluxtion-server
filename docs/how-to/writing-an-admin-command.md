@@ -141,7 +141,7 @@ Notes:
 
 ```java
 ServiceConfig<?> serverAdmin = ServiceConfig.builder()
-        .service(new com.fluxtion.server.service.servercontrol.FluxtionServerAdmin())
+        .service(new FluxtionServerAdmin())
         .name("serverAdmin")
         .build();
 
@@ -174,9 +174,8 @@ request.setOutput(System.out::println);
 request.setErrOutput(System.err::println);
 
 // obtain the registry from FluxtionServer.registeredServices()
-com.fluxtion.runtime.service.Service<?> svc = server.registeredServices().get("adminService");
-com.fluxtion.server.service.admin.AdminCommandRegistry registry =
-        (com.fluxtion.server.service.admin.AdminCommandRegistry) svc.instance();
+Service<?> svc = server.registeredServices().get("adminService");
+AdminCommandRegistry registry = (AdminCommandRegistry) svc.instance();
 
 registry.processAdminCommandRequest(request);
 ```

@@ -43,7 +43,7 @@ executed by multiple threads.
 ### Component/Thread overview
 
 ```mermaid
-flowchart LR
+flowchart TD
     subgraph ServiceAgentGroup [Service Agent Group thread]
         ES1[Agent-hosted Event Source]
         WS1[Worker Service A]
@@ -82,11 +82,11 @@ Notes:
 
 All lifecycle participants (event sources, processors, services) follow this sequence:
 
-1) `init()` — light setup
-2) `start()` — allocate resources; event sources may enable pre‑start caching
-3) `startComplete()` — system is ready; sources replay caches and switch to publishing
-4) `stop()` — stop work, flush/close resources
-5) `tearDown()` — final cleanup
+- `init()` — light setup
+- `start()` — allocate resources; event sources may enable pre‑start caching
+- `startComplete()` — system is ready; sources replay caches and switch to publishing
+- `stop()` — stop work, flush/close resources
+- `tearDown()` — final cleanup
 
 Processor and service agents add their components and then call `startComplete()` once the group is active.
 
@@ -96,9 +96,9 @@ Processor and service agents add their components and then call `startComplete()
 sequenceDiagram
     participant CFG as ServerConfigurator
     participant SVR as FluxtionServer
-    participant PGA as ComposingEventProcessorAgent (thread)
-    participant SGA as ComposingServiceAgent (thread)
-    participant SCH as DeadWheelScheduler (thread)
+    participant PGA as ComposingEventProcessorAgent <br>(thread)
+    participant SGA as ComposingServiceAgent <br>(thread)
+    participant SCH as DeadWheelScheduler <br>(thread)
 
     CFG->>SVR: register services / feeds / processors
     SVR->>SGA: register worker services
@@ -126,10 +126,10 @@ agent thread.
 
 ```mermaid
 sequenceDiagram
-    participant SRC as FileEventSource (service agent thread)
+    participant SRC as FileEventSource <br>(service agent thread)
     participant PUB as EventToQueuePublisher
     participant Q as OneToOneConcurrentArrayQueue
-    participant P as StaticEventProcessor (processor thread)
+    participant P as StaticEventProcessor <br>(processor thread)
 
     SRC->>PUB: publish(line)
     PUB->>PUB: map + wrap (strategy)
@@ -271,3 +271,95 @@ Notes:
 
 - Core IDs are zero-based and depend on your OS/CPU topology.
 - Pinning can improve determinism but may reduce OS scheduling flexibility; benchmark your workload.
+
+## 10) Idle strategies and host environment impact
+
+Agent threads in Mongoose server run a continuous doWork() loop governed by an IdleStrategy. The chosen strategy has
+significant effects on latency, CPU utilization, power/thermal behavior, and how the OS or container schedules your
+application. Choose deliberately per agent group.
+
+Common strategies (from com.fluxtion.agrona.concurrent, compatible with Agrona styles):
+
+- BusySpinIdleStrategy — tight loop, no yielding. Lowest median latency when work arrives, highest constant CPU usage.
+- YieldingIdleStrategy — spin briefly, then Thread.yield(). Lower CPU pressure than pure busy spin; more scheduler
+  friendly.
+- BackoffIdleStrategy — progressive spin/yield/park sequence. Good latency/CPU balance for mixed workloads.
+- SleepingIdleStrategy — sleeps for a configured period when idle. Very low CPU during idle, higher wake-up latency.
+- NoOpIdleStrategy — do not idle (return immediately). Use only when an outer loop handles idling.
+
+Effects on the host environment:
+
+- CPU utilization and heat
+    - Busy spin holds a CPU core at near 100% even when idle. Expect higher power draw, fan noise (laptops), and thermal
+      throttling risk under sustained load.
+    - Yield/backoff reduce average CPU when idle; sleeping minimizes it.
+- Latency and jitter
+    - Busy spin typically provides the lowest queuing latency and the tightest p50–p99 latency distribution.
+    - Yield/backoff introduce small, scheduler-dependent jitter; sleeping introduces millisecond-level wake-up delays
+      unless tuned very carefully.
+- OS scheduler interaction
+    - Busy spin competes aggressively for CPU time; on oversubscribed hosts it can starve other processes or itself be
+      preempted, causing unpredictable jitter. Consider core pinning and setting process/thread priority where
+      appropriate.
+    - Yielding strategies cooperate with the scheduler and play nicer alongside other workloads.
+- Containers and CPU quotas (cgroups/Kubernetes)
+    - With CPU limits, busy spin will quickly consume its quota and be throttled, causing bursty latency (periods of
+      fast
+      processing followed by enforced idle). Backoff or sleep strategies tend to produce smoother performance under
+      quotas.
+    - If you request fewer CPUs than busy-spinning threads, expect contention and throttling. Align thread count with
+      requested CPU shares/limits.
+- Power management and scaling
+    - On laptops/cloud VMs, busy spin may prevent CPUs from entering low-power states and can inhibit turbo frequency
+      boosts for other cores. Sleeping/backoff allow deeper C-states and can reduce cost in autoscaling setups.
+- GC and background services
+    - Fully busy-spun cores can reduce headroom for GC, JIT compilation, or sidecar processes. Yield/backoff free slices
+      for these activities especially on shared nodes.
+
+Guidance: choosing an idle strategy per agent
+
+- Latency-critical processors (market data, control loops): Prefer BusySpinIdleStrategy on dedicated cores or pinned
+  threads. Benchmark p99.9 and tail behavior.
+- Mixed IO/compute services: Use BackoffIdleStrategy to balance responsiveness with CPU efficiency.
+- Mostly idle background workers or development: Use YieldingIdleStrategy or SleepingIdleStrategy to conserve CPU.
+- Under CPU limits/containers: Start with BackoffIdleStrategy; avoid pure busy spin unless cores are dedicated and
+  limits are configured to match.
+
+Configuration examples
+
+YAML-style (conceptual):
+
+```yaml
+agentThreads:
+  - agentName: market-data
+    idleStrategy: !!com.fluxtion.agrona.concurrent.BusySpinIdleStrategy {}
+  - agentName: background-workers
+    idleStrategy: !!com.fluxtion.agrona.concurrent.BackoffIdleStrategy { }
+```
+
+Java builder:
+
+```java
+import com.fluxtion.server.config.ThreadConfig;
+import com.fluxtion.agrona.concurrent.BackoffIdleStrategy;
+import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
+
+appConfig = appConfig.toBuilder()
+    .addThread(ThreadConfig.builder()
+        .agentName("market-data")
+        .idleStrategy(new BusySpinIdleStrategy())
+        .build())
+    .addThread(ThreadConfig.builder()
+        .agentName("background-workers")
+        .idleStrategy(new BackoffIdleStrategy())
+        .build())
+    .build();
+```
+
+Observability and testing
+
+- Record CPU usage and latency histograms per agent group when tuning. Validate behavior under the same CPU quotas and
+  node types as production.
+- Watch for throttling metrics in Kubernetes (cfs_throttled_*); heavy busy spin under limits will cause periodic stalls.
+- Consider pairing critical busy-spinning agents with core pinning (see section 9) to reduce interference and context
+  switches.

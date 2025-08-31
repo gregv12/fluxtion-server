@@ -44,14 +44,17 @@ import com.fluxtion.server.config.ConfigListener;
 import com.fluxtion.server.config.ConfigMap;
 import com.fluxtion.server.config.EventProcessorConfig;
 
-class MyConfigAwareHandler extends ObjectEventHandlerNode implements ConfigListener {
+class MyConfigAwareHandler 
+        extends ObjectEventHandlerNode 
+        implements ConfigListener {
+    
     private String greeting;
     private int threshold;
 
     @Override
     public boolean initialConfig(ConfigMap config) {
-        this.greeting = config.getOrDefault(com.fluxtion.server.config.ConfigKey.of("greeting", String.class), "");
-        this.threshold = config.getOrDefault(com.fluxtion.server.config.ConfigKey.of("threshold", Integer.class), 0);
+        this.greeting = config.getOrDefault(ConfigKey.of("greeting", String.class), "");
+        this.threshold = config.getOrDefault(ConfigKey.of("threshold", Integer.class), 0);
         return true;
     }
 

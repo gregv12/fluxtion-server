@@ -1,4 +1,4 @@
-# 5‑minute tutorial: Processing events in a handler (business‑logic first)
+# 5‑minute tutorial: Processing events in a handler with business logic
 
 This quick tutorial shows how to write business logic in an event handler while keeping infrastructure separate. You’ll:
 
@@ -26,7 +26,7 @@ graph TD
     end
 
     subgraph "Processor agent"
-        FM --. events .--> H[NamedFeedsFilterHandler 
+        FM -- events --> H[NamedFeedsFilterHandler 
         Business Logic]
     end
 
@@ -46,8 +46,10 @@ graph TD
 
 End‑to‑end runnable code (already in the repo):
 
-* Handler: [NamedFeedsFilterHandler.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsFilterHandler.java)
-* Wiring + test: [NamedFeedsSubscriptionExampleTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java)
+* Feed
+  Handler: [NamedFeedsFilterHandler.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsFilterHandler.java)
+* Wiring +
+  test: [NamedFeedsSubscriptionExampleTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java)
 
 ## 1) Write the handler (business logic only)
 
@@ -180,5 +182,7 @@ threading—without editing your business logic.
 
 ## Source code
 
-- Handler: [NamedFeedsFilterHandler.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsFilterHandler.java)
-- Wiring +  test: [NamedFeedsSubscriptionExampleTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java)
+* Feed
+  Handler: [NamedFeedsFilterHandler.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsFilterHandler.java)
+* Wiring +
+  test: [NamedFeedsSubscriptionExampleTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java)
