@@ -58,7 +58,7 @@ nav:
   - Home: index.md
   - Guide:
       - Overview: guide/overview.md
-      - Plugin extension: plugin/overview.md
+      - Plugin extension: guide/plugin_extension_architecture.md
       - Examples:
           - Fluent API: guide/file-and-memory-feeds-example.md
           - YAML config: guide/file-and-memory-feeds-yaml-example.md
