@@ -96,9 +96,9 @@ Processor and service agents add their components and then call `startComplete()
 sequenceDiagram
     participant CFG as ServerConfigurator
     participant SVR as FluxtionServer
-    participant PGA as ComposingEventProcessorAgent (thread)
-    participant SGA as ComposingServiceAgent (thread)
-    participant SCH as DeadWheelScheduler (thread)
+    participant PGA as ComposingEventProcessorAgent <br>(thread)
+    participant SGA as ComposingServiceAgent <br>(thread)
+    participant SCH as DeadWheelScheduler <br>(thread)
 
     CFG->>SVR: register services / feeds / processors
     SVR->>SGA: register worker services
@@ -126,10 +126,10 @@ agent thread.
 
 ```mermaid
 sequenceDiagram
-    participant SRC as FileEventSource (service agent thread)
+    participant SRC as FileEventSource <br>(service agent thread)
     participant PUB as EventToQueuePublisher
     participant Q as OneToOneConcurrentArrayQueue
-    participant P as StaticEventProcessor (processor thread)
+    participant P as StaticEventProcessor <br>(processor thread)
 
     SRC->>PUB: publish(line)
     PUB->>PUB: map + wrap (strategy)
