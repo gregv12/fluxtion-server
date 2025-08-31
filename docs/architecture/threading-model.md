@@ -43,7 +43,7 @@ executed by multiple threads.
 ### Component/Thread overview
 
 ```mermaid
-flowchart LR
+flowchart TD
     subgraph ServiceAgentGroup [Service Agent Group thread]
         ES1[Agent-hosted Event Source]
         WS1[Worker Service A]
@@ -82,11 +82,11 @@ Notes:
 
 All lifecycle participants (event sources, processors, services) follow this sequence:
 
-1) `init()` — light setup
-2) `start()` — allocate resources; event sources may enable pre‑start caching
-3) `startComplete()` — system is ready; sources replay caches and switch to publishing
-4) `stop()` — stop work, flush/close resources
-5) `tearDown()` — final cleanup
+- `init()` — light setup
+- `start()` — allocate resources; event sources may enable pre‑start caching
+- `startComplete()` — system is ready; sources replay caches and switch to publishing
+- `stop()` — stop work, flush/close resources
+- `tearDown()` — final cleanup
 
 Processor and service agents add their components and then call `startComplete()` once the group is active.
 
@@ -281,7 +281,8 @@ application. Choose deliberately per agent group.
 Common strategies (from com.fluxtion.agrona.concurrent, compatible with Agrona styles):
 
 - BusySpinIdleStrategy — tight loop, no yielding. Lowest median latency when work arrives, highest constant CPU usage.
-- YieldingIdleStrategy — spin briefly, then Thread.yield(). Lower CPU pressure than pure busy spin; more scheduler friendly.
+- YieldingIdleStrategy — spin briefly, then Thread.yield(). Lower CPU pressure than pure busy spin; more scheduler
+  friendly.
 - BackoffIdleStrategy — progressive spin/yield/park sequence. Good latency/CPU balance for mixed workloads.
 - SleepingIdleStrategy — sleeps for a configured period when idle. Very low CPU during idle, higher wake-up latency.
 - NoOpIdleStrategy — do not idle (return immediately). Use only when an outer loop handles idling.
@@ -289,28 +290,31 @@ Common strategies (from com.fluxtion.agrona.concurrent, compatible with Agrona s
 Effects on the host environment:
 
 - CPU utilization and heat
-  - Busy spin holds a CPU core at near 100% even when idle. Expect higher power draw, fan noise (laptops), and thermal
-    throttling risk under sustained load.
-  - Yield/backoff reduce average CPU when idle; sleeping minimizes it.
+    - Busy spin holds a CPU core at near 100% even when idle. Expect higher power draw, fan noise (laptops), and thermal
+      throttling risk under sustained load.
+    - Yield/backoff reduce average CPU when idle; sleeping minimizes it.
 - Latency and jitter
-  - Busy spin typically provides the lowest queuing latency and the tightest p50–p99 latency distribution.
-  - Yield/backoff introduce small, scheduler-dependent jitter; sleeping introduces millisecond-level wake-up delays
-    unless tuned very carefully.
+    - Busy spin typically provides the lowest queuing latency and the tightest p50–p99 latency distribution.
+    - Yield/backoff introduce small, scheduler-dependent jitter; sleeping introduces millisecond-level wake-up delays
+      unless tuned very carefully.
 - OS scheduler interaction
-  - Busy spin competes aggressively for CPU time; on oversubscribed hosts it can starve other processes or itself be
-    preempted, causing unpredictable jitter. Consider core pinning and setting process/thread priority where appropriate.
-  - Yielding strategies cooperate with the scheduler and play nicer alongside other workloads.
+    - Busy spin competes aggressively for CPU time; on oversubscribed hosts it can starve other processes or itself be
+      preempted, causing unpredictable jitter. Consider core pinning and setting process/thread priority where
+      appropriate.
+    - Yielding strategies cooperate with the scheduler and play nicer alongside other workloads.
 - Containers and CPU quotas (cgroups/Kubernetes)
-  - With CPU limits, busy spin will quickly consume its quota and be throttled, causing bursty latency (periods of fast
-    processing followed by enforced idle). Backoff or sleep strategies tend to produce smoother performance under quotas.
-  - If you request fewer CPUs than busy-spinning threads, expect contention and throttling. Align thread count with
-    requested CPU shares/limits.
+    - With CPU limits, busy spin will quickly consume its quota and be throttled, causing bursty latency (periods of
+      fast
+      processing followed by enforced idle). Backoff or sleep strategies tend to produce smoother performance under
+      quotas.
+    - If you request fewer CPUs than busy-spinning threads, expect contention and throttling. Align thread count with
+      requested CPU shares/limits.
 - Power management and scaling
-  - On laptops/cloud VMs, busy spin may prevent CPUs from entering low-power states and can inhibit turbo frequency
-    boosts for other cores. Sleeping/backoff allow deeper C-states and can reduce cost in autoscaling setups.
+    - On laptops/cloud VMs, busy spin may prevent CPUs from entering low-power states and can inhibit turbo frequency
+      boosts for other cores. Sleeping/backoff allow deeper C-states and can reduce cost in autoscaling setups.
 - GC and background services
-  - Fully busy-spun cores can reduce headroom for GC, JIT compilation, or sidecar processes. Yield/backoff free slices
-    for these activities especially on shared nodes.
+    - Fully busy-spun cores can reduce headroom for GC, JIT compilation, or sidecar processes. Yield/backoff free slices
+      for these activities especially on shared nodes.
 
 Guidance: choosing an idle strategy per agent
 

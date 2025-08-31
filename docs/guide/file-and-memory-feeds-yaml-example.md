@@ -21,10 +21,10 @@ Source: `src/test/java/com/fluxtion/server/example/BuilderApiExampleHandler.java
 ```java
 public class BuilderApiExampleHandler extends ObjectEventHandlerNode {
 
-    private com.fluxtion.runtime.output.MessageSink fileSink;
+    private MessageSink fileSink;
 
-    @com.fluxtion.runtime.annotations.runtime.ServiceRegistered
-    public void wire(com.fluxtion.runtime.output.MessageSink fileSink, String name) {
+    @ServiceRegistered
+    public void wire(MessageSink fileSink, String name) {
         this.fileSink = fileSink;
     }
 
