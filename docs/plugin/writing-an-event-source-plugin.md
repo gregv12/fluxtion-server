@@ -77,7 +77,8 @@ import lombok.extern.java.Log;
 import java.util.List;
 
 @Log
-public class MyAgentSource extends AbstractAgentHostedEventSourceService<Object> {
+public class MyAgentSource 
+        extends AbstractAgentHostedEventSourceService<Object> {
 
     private boolean publishToQueue;
 
@@ -87,7 +88,8 @@ public class MyAgentSource extends AbstractAgentHostedEventSourceService<Object>
 
     @Override
     public void start() {
-        // Enable pre-start caching if you need to read historic/backlog before serving live
+        // Enable pre-start caching if you need to read historic/backlog 
+        // before serving live
         output.setCacheEventLog(true); // optional
         publishToQueue = false;        // cache until startComplete
         // Open resources (files, sockets, clients) here
@@ -118,7 +120,8 @@ public class MyAgentSource extends AbstractAgentHostedEventSourceService<Object>
     }
 
     private Object readNextOrNull() {
-        // TODO: implement a non-blocking read that returns null when no data is available
+        // TODO: implement a non-blocking read that returns null 
+        //  when no data is available
         return null;
     }
 
@@ -129,7 +132,7 @@ public class MyAgentSource extends AbstractAgentHostedEventSourceService<Object>
 
     @Override
     public <T> NamedFeedEvent<T>[] eventLog() {
-        List<com.fluxtion.runtime.event.NamedFeedEvent> log = (List) output.getEventLog();
+        List<NamedFeedEvent> log = (List) output.getEventLog();
         return log.toArray(new NamedFeedEvent[0]);
     }
 }
@@ -155,7 +158,7 @@ public class MyCallbackSource extends AbstractEventSourceService<String> {
         // If you expect callbacks to start arriving before the server is fully ready
         output.setCacheEventLog(true);
         publishToQueue = false;
-        // Register your external callbacks here, e.g., client.onMessage(this::onData)
+        // Register external callbacks here, e.g., client.onMessage(this::onData)
     }
 
     @Override
@@ -206,9 +209,11 @@ MyAgentSource src = new MyAgentSource();
 EventFeedConfig<?> feed = EventFeedConfig.builder()
         .instance(src)
         .name("myFeed")
-        .broadcast(true)                 // or false
-        .wrapWithNamedEvent(true)        // often preferred for auditing/metadata
-        .agent("my-source-agent", new BusySpinIdleStrategy()) // required if source is Agent-hosted
+        // false to require explicit subscription or true to allow broadcast
+        .broadcast(true)
+        .wrapWithNamedEvent(true)        
+        // required if source is Agent-hosted
+        .agent("my-source-agent", new BusySpinIdleStrategy()) 
         .build();
 
 AppConfig app = AppConfig.builder()
@@ -279,7 +284,8 @@ assertEquals(List.of("x"), drained.stream().map(Object::toString).toList());
   and [InMemoryEventSource.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/connector/memory/InMemoryEventSource.java)
   for
   complete, working examples
-- [docs/guide/file-and-memory-feeds-example.md](../guide/file-and-memory-feeds-example.md) for end-to-end wiring with processors
+- [docs/guide/file-and-memory-feeds-example.md](../guide/file-and-memory-feeds-example.md) for end-to-end wiring with
+  processors
   and sinks
 - [AbstractEventSourceService](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java), [AbstractAgentHostedEventSourceService](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/extension/AbstractAgentHostedEventSourceService.java)
   for lifecycle and wiring details
