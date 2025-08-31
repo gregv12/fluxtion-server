@@ -82,5 +82,6 @@ nav:
           - Event flow: architecture/event-flow.md
           - Sequence event subscription: architecture/sequence-diagrams/event-subscription.md
           - Sequence event processing: architecture/sequence-diagrams/event-processing.md
+          - Agent Execution: architecture/agent-execution.md
           - Threading model: architecture/threading-model.md
 
