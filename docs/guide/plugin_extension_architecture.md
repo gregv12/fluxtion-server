@@ -104,7 +104,7 @@ To ensure clean separation:
 Example injection in a processor:
 
 ```java
-public class PricingHandler extends com.fluxtion.runtime.node.ObjectEventHandlerNode {
+public class PricingHandler extends ObjectEventHandlerNode {
     private MessageSink<String> out;
     private SchedulerService scheduler;
 
