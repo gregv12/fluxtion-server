@@ -18,9 +18,9 @@ You’ll learn:
 
 References in this repository:
 
-- `src/main/java/com/fluxtion/server/config/ServiceConfig.java`
-- `src/main/java/com/fluxtion/server/internal/ServerConfigurator.java`
-- `src/main/java/com/fluxtion/server/FluxtionServer.java`
+- [ServiceConfig.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/config/ServiceConfig.java)
+- [ServerConfigurator.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/internal/ServerConfigurator.java)
+- [FluxtionServer.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/FluxtionServer.java)
 
 ## When to write a service
 
@@ -294,5 +294,6 @@ svc.tearDown();
   API: [ServiceConfig.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/config/ServiceConfig.java),
   `AppConfig.Builder`
 -
+
 Bootstrapping: [ServerConfigurator.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/internal/ServerConfigurator.java),
 `FluxtionServer`

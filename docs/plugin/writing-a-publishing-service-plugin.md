@@ -15,13 +15,13 @@ We will:
 References in this repository:
 
 - Example
-  service: [src/test/java/com/fluxtion/server/example/PublishingService.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/PublishingService.java)
+  service: [PublishingService.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/PublishingService.java)
 - Example
-  processor: [src/test/java/com/fluxtion/server/example/PublishingServiceSubscriberHandler.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/PublishingServiceSubscriberHandler.java)
+  processor: [PublishingServiceSubscriberHandler.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/PublishingServiceSubscriberHandler.java)
 - Example
-  test: [src/test/java/com/fluxtion/server/example/PublishingServicePluginExampleTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/PublishingServicePluginExampleTest.java)
+  test: [PublishingServicePluginExampleTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/PublishingServicePluginExampleTest.java)
 - Service base
-  class: [src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java)
+  class: [AbstractEventSourceService.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java)
 
 ## 1) Implement a publishing Service
 

@@ -167,8 +167,8 @@ private void scheduleHeartbeat(long periodMs) {
 
 ## References
 
--
-Interface: [SchedulerService.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/scheduler/SchedulerService.java)
+- Scheduler
+  interface  [SchedulerService.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/scheduler/SchedulerService.java)
 - Default
   implementation: [DeadWheelScheduler.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/scheduler/DeadWheelScheduler.java)
 - Trigger

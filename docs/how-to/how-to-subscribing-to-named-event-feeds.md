@@ -13,9 +13,9 @@ sink, ignoring orders entirely.
 ## Sample code
 
 - Test
-  source: [src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java)
+  source: [NamedFeedsSubscriptionExampleTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java)
 - Processor
-  node: [src/test/java/com/fluxtion/server/example/NamedFeedsFilterHandler.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsFilterHandler.java)
+  node: [NamedFeedsFilterHandler.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsFilterHandler.java)
 
 ### Processor handler that subscribes to specific feed names
 

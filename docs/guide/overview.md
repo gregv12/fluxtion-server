@@ -6,28 +6,22 @@ architecture, core components, configuration, plugin model, lifecycle, and examp
 ## Event Processing Architecture
 
 ```mermaid
-graph LR
-    classDef invis fill:transparent,stroke:transparent,color:transparent;
-    anchor(( )):::invis
-
-    anchor --> SVCA[Service A]
-    linkStyle 0 stroke:transparent,opacity:0;
+graph TD
 
     ES[Event Sources] --> FM[Flow Manager]
     ES2[Event Source A] --> FM[Flow Manager]
     ES3[Event Source B] --> FM[Flow Manager]
+
     SVCA[Service A] --> FM
     EH1 --> SVCA
+
     FM --> EH1[Event Handlers 
     business logic]
     FM --> EH2[Event Handlers 
     business logic]
-    FM --> EH3[Event Handlers 
-    business logic]
+
     EH1 --> ESK[Event Sinks]
     EH2 --> ESK[Event Sinks]
-    EH3 --> ESK[Event Sinks]
-
 
    subgraph "Agent thread group 2"
         ES2
@@ -37,7 +31,6 @@ graph LR
     subgraph "Agent thread group 1"
         ES
     end
-    
 
     subgraph "Agent thread group 3"
         EH1
@@ -45,9 +38,7 @@ graph LR
     subgraph "Agent thread group 4"
         EH2
     end
-    subgraph "Agent thread group 5"
-        EH3
-    end
+
 ```
 
 ## Core Components

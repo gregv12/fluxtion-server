@@ -14,11 +14,16 @@ What you will learn:
 
 References in this repository:
 
-- Typed service: src/test/java/com/fluxtion/server/example/PublishingServiceTyped.java
-- Listener interface: src/test/java/com/fluxtion/server/example/PublishingServiceListener.java
-- Typed processor: src/test/java/com/fluxtion/server/example/PublishingServiceTypedSubscriberHandler.java
-- End-to-end test: src/test/java/com/fluxtion/server/example/PublishingServiceTypedInvokeExampleTest.java
-- Base service support: src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java
+- Typed
+  service: [PublishingService.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/PublishingServiceTyped.java)
+- Listener
+  interface: [PublishingServiceListener.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/PublishingServiceListener.java)
+- Typed
+  processor: [PublishingServiceTypedSubscriberHandler.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/PublishingServiceTypedSubscriberHandler.java)
+- End-to-end
+  test: [PublishingServiceTypedInvokeExampleTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/PublishingServiceTypedInvokeExampleTest.java)
+- Base service
+  support: [AbstractEventSourceService.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java)
 
 ## 1) Define a listener interface
 
