@@ -17,10 +17,10 @@ can focus on business logic.
 
 ## Documentation is organized into the following sections:
 
-- Start with the Overview to learn concepts and architecture. [Overview](guide/overview.md)
-- See Examples for quick hands-on guidance.
-- See Plugins for advice on writing plugins.
-- Use How-to guides for common tasks and extensions.
+- Start with the [Overview](guide/overview.md) to learn concepts and architecture. 
+- See [Examples](guide/file-and-memory-feeds-example.md) for quick hands-on guidance.
+- See [Plugins](guide/writing-a-message-sink-plugin.md) for advice on writing plugins.
+- Use [How-to guides](guide/subscribing-to-named-event-feeds.md) for common tasks and extensions.
 
 ## Architecture and Threading model for internals.
 
