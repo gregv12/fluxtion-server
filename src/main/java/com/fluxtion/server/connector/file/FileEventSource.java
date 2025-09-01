@@ -128,13 +128,13 @@ public class FileEventSource extends AbstractAgentHostedEventSourceService {
         // preserve once/tail semantics as derived above; do not unconditionally force tailing
 
         output.setCacheEventLog(cacheEventLog);
+        tail |= readStrategy == ReadStrategy.ONCE_EARLIEST;
         if (cacheEventLog) {
             if (infoEnabled) {
                 log.log(Level.INFO, "cacheEventLog: " + cacheEventLog);
             }
             startComplete.set(true);
             publishToQueue = false;
-            tail |= readStrategy == ReadStrategy.ONCE_EARLIEST;
 //            boolean oldTail = tail;
             doWork();
             startComplete.set(false);
@@ -225,7 +225,7 @@ public class FileEventSource extends AbstractAgentHostedEventSourceService {
                     }
                 }
             }
-//            tail |= readStrategy != ReadStrategy.ONCE_EARLIEST;
+            tail |= readStrategy != ReadStrategy.ONCE_EARLIEST;
 
             return readCount;
 

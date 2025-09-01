@@ -4,6 +4,9 @@
  */
 package com.fluxtion.server.connector.file;
 
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
 import com.fluxtion.agrona.concurrent.OneToOneConcurrentArrayQueue;
 import com.fluxtion.server.config.ReadStrategy;
 import com.fluxtion.server.dispatch.EventToQueuePublisher;
@@ -37,11 +40,11 @@ public class FileEventSourceReadStrategyTest {
         CapturingPublisher(String name){ super(name); addTargetQueue(q, "out"); }
     }
 
-    private FileEventSource newSource(ReadStrategy strategy) {
+    private FileEventSource newSource(ReadStrategy strategy, boolean cache) {
         FileEventSource src = new FileEventSource(256);
         src.setFilename(dataFile.toString());
         src.setReadStrategy(strategy);
-        src.setCacheEventLog(true); // cache pre-start, dispatch on startComplete
+        src.setCacheEventLog(cache); // configurable cache behavior
         CapturingPublisher pub = new CapturingPublisher("fileEventFeed");
         src.setOutput(pub);
         return src;
@@ -64,10 +67,11 @@ public class FileEventSourceReadStrategyTest {
         Files.deleteIfExists(dataFile);
     }
 
-    @Test
-    void earliest_reads_from_start_and_tails() throws Exception {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void earliest_reads_from_start_and_tails(boolean cache) throws Exception {
         Files.writeString(dataFile, "a1\na2\n", StandardCharsets.UTF_8);
-        FileEventSource src = newSource(ReadStrategy.EARLIEST);
+        FileEventSource src = newSource(ReadStrategy.EARLIEST, cache);
         CapturingPublisher pub = new CapturingPublisher("fileEventFeed");
         src.setOutput(pub);
 
@@ -83,11 +87,12 @@ public class FileEventSourceReadStrategyTest {
         src.stop();
     }
 
-    @Test
-    void committed_persists_pointer_between_runs() throws Exception {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void committed_persists_pointer_between_runs(boolean cache) throws Exception {
         // run1
         Files.writeString(dataFile, "c1\nc2\n", StandardCharsets.UTF_8);
-        FileEventSource src1 = newSource(ReadStrategy.COMMITED);
+        FileEventSource src1 = newSource(ReadStrategy.COMMITED, cache);
         CapturingPublisher pub1 = new CapturingPublisher("fileEventFeed");
         src1.setOutput(pub1);
         src1.onStart(); src1.start(); src1.startComplete(); src1.doWork();
@@ -98,7 +103,7 @@ public class FileEventSourceReadStrategyTest {
         src1.stop();
 
         // run2 resumes at pointer, only new
-        FileEventSource src2 = newSource(ReadStrategy.COMMITED);
+        FileEventSource src2 = newSource(ReadStrategy.COMMITED, cache);
         CapturingPublisher pub2 = new CapturingPublisher("fileEventFeed");
         src2.setOutput(pub2);
         src2.onStart(); src2.start(); src2.startComplete(); src2.doWork();
@@ -109,10 +114,11 @@ public class FileEventSourceReadStrategyTest {
         src2.stop();
     }
 
-    @Test
-    void latest_starts_at_eof_and_only_emits_new_lines() throws Exception {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void latest_starts_at_eof_and_only_emits_new_lines(boolean cache) throws Exception {
         Files.writeString(dataFile, "l1\nl2\n", StandardCharsets.UTF_8);
-        FileEventSource src = newSource(ReadStrategy.LATEST);
+        FileEventSource src = newSource(ReadStrategy.LATEST, cache);
         CapturingPublisher pub = new CapturingPublisher("fileEventFeed");
         src.setOutput(pub);
         src.onStart(); src.start(); src.startComplete(); src.doWork();
@@ -125,10 +131,11 @@ public class FileEventSourceReadStrategyTest {
         src.stop();
     }
 
-    @Test
-    void once_earliest_reads_existing_then_stops() throws Exception {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void once_earliest_reads_existing_then_stops(boolean cache) throws Exception {
         Files.writeString(dataFile, "o1\no2\n", StandardCharsets.UTF_8);
-        FileEventSource src = newSource(ReadStrategy.ONCE_EARLIEST);
+        FileEventSource src = newSource(ReadStrategy.ONCE_EARLIEST, cache);
         CapturingPublisher pub = new CapturingPublisher("fileEventFeed");
         src.setOutput(pub);
         src.onStart(); src.start(); src.startComplete(); src.doWork();
@@ -140,10 +147,11 @@ public class FileEventSourceReadStrategyTest {
         src.stop();
     }
 
-    @Test
-    void once_latest_emits_only_new_if_any_then_stops() throws Exception {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void once_latest_emits_only_new_if_any_then_stops(boolean cache) throws Exception {
         Files.writeString(dataFile, "x1\nx2\n", StandardCharsets.UTF_8);
-        FileEventSource src = newSource(ReadStrategy.ONCE_LATEST);
+        FileEventSource src = newSource(ReadStrategy.ONCE_LATEST, cache);
         CapturingPublisher pub = new CapturingPublisher("fileEventFeed");
         src.setOutput(pub);
         src.onStart(); src.start(); src.startComplete(); src.doWork();
