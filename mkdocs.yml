@@ -73,6 +73,7 @@ nav:
           - Subscribe to named event feeds: how-to/how-to-subscribing-to-named-event-feeds.md
           - Using the scheduler service: how-to/how-to-using-the-scheduler-service.md
           - Inject config into a processor: how-to/how-to-injecting-config-into-a-processor.md
+          - Schedule re-entrant events: how-to/how-to-scheduler-processAsNewEventCycle.md
           - Add an admin command: how-to/writing-an-admin-command.md
           - Write a custom EventToInvokeStrategy: how-to/how-to-writing-a-custom-event-to-invoke-strategy.md
           - Core pin agent threads: how-to/how-to-core-pin.md
