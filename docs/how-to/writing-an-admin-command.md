@@ -1,6 +1,6 @@
-# Guide: Writing an Admin Command for Fluxtion Server
+# Guide: Writing an Admin Command for Mongoose server
 
-This guide explains how to add operational/admin commands to your Fluxtion Server application. Admin commands are
+This guide explains how to add operational/admin commands to your Mongoose server application. Admin commands are
 lightweight functions that you register at runtime and can invoke via a CLI or programmatically to inspect or control
 the system (list services, stop processors, flush caches, custom health checks, etc.).
 
@@ -27,12 +27,12 @@ You’ll learn:
 
 References:
 
-- [AdminCommandRegistry.java](../../src/main/java/com/fluxtion/server/service/admin/AdminCommandRegistry.java)
-- [AdminFunction.java](../../src/main/java/com/fluxtion/server/service/admin/AdminFunction.java)
-- [AdminCommandRequest.java](../../src/main/java/com/fluxtion/server/service/admin/AdminCommandRequest.java)
-- [AdminCommandProcessor.java](../../src/main/java/com/fluxtion/server/service/admin/impl/AdminCommandProcessor.java)
-- [CliAdminCommandProcessor.java](../../src/main/java/com/fluxtion/server/service/admin/impl/CliAdminCommandProcessor.java)
-- [FluxtionServerAdmin.java](../../src/main/java/com/fluxtion/server/service/servercontrol/FluxtionServerAdmin.java)
+- [AdminCommandRegistry.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/admin/AdminCommandRegistry.java)
+- [AdminFunction.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/admin/AdminFunction.java)
+- [AdminCommandRequest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/admin/AdminCommandRequest.java)
+- [AdminCommandProcessor.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/admin/impl/AdminCommandProcessor.java)
+- [CliAdminCommandProcessor.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/admin/impl/CliAdminCommandProcessor.java)
+- [FluxtionServerAdmin.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/servercontrol/FluxtionServerAdmin.java)
 
 ## How it works
 
@@ -141,7 +141,7 @@ Notes:
 
 ```java
 ServiceConfig<?> serverAdmin = ServiceConfig.builder()
-        .service(new com.fluxtion.server.service.servercontrol.FluxtionServerAdmin())
+        .service(new FluxtionServerAdmin())
         .name("serverAdmin")
         .build();
 
@@ -174,9 +174,8 @@ request.setOutput(System.out::println);
 request.setErrOutput(System.err::println);
 
 // obtain the registry from FluxtionServer.registeredServices()
-com.fluxtion.runtime.service.Service<?> svc = server.registeredServices().get("adminService");
-com.fluxtion.server.service.admin.AdminCommandRegistry registry =
-        (com.fluxtion.server.service.admin.AdminCommandRegistry) svc.instance();
+Service<?> svc = server.registeredServices().get("adminService");
+AdminCommandRegistry registry = (AdminCommandRegistry) svc.instance();
 
 registry.processAdminCommandRequest(request);
 ```
@@ -213,6 +212,6 @@ void processAdminCommand(List<String> args, Consumer<OUT> out, Consumer<ERR> err
 
 See:
 
-- [BroadcastCallbackTest.java](../../src/test/java/com/fluxtion/server/dispatch/BroadcastCallbackTest.java)
-- [FluxtionServerAdmin.java](../../src/main/java/com/fluxtion/server/service/servercontrol/FluxtionServerAdmin.java)
+- [BroadcastCallbackTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/dispatch/BroadcastCallbackTest.java)
+- [FluxtionServerAdmin.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/servercontrol/FluxtionServerAdmin.java)
   These show wiring the admin registry, adding commands, and optional CLI usage.

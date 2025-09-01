@@ -1,19 +1,29 @@
 # How to write a publishing Service plugin that uses a typed invoke strategy
 
-This guide extends the basic publishing service example by delivering events via a strongly-typed interface on the event processor. Instead of always calling onEvent(Object), the service configures a custom EventToInvokeStrategy and a CallBackType bound to an interface. Only processors that implement that interface will be targeted, and the strategy invokes the typed method.
+This guide extends the basic publishing service example by delivering events via a strongly-typed interface on the event
+processor. Instead of always calling onEvent(Object), the service configures a custom EventToInvokeStrategy and a
+CallBackType bound to an interface. Only processors that implement that interface will be targeted, and the strategy
+invokes the typed method.
 
 What you will learn:
+
 - Define a listener interface that processors can implement (e.g., PublishingServiceListener)
 - Configure a service to use CallBackType.forClass(PublishingServiceListener.class)
 - Provide an EventToInvokeStrategy that calls listener.onServiceEvent(String)
 - Subscribe from the processor via @ServiceRegistered and service.subscribe()
 
 References in this repository:
-- Typed service: src/test/java/com/fluxtion/server/example/PublishingServiceTyped.java
-- Listener interface: src/test/java/com/fluxtion/server/example/PublishingServiceListener.java
-- Typed processor: src/test/java/com/fluxtion/server/example/PublishingServiceTypedSubscriberHandler.java
-- End-to-end test: src/test/java/com/fluxtion/server/example/PublishingServiceTypedInvokeExampleTest.java
-- Base service support: src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java
+
+- Typed
+  service: [PublishingService.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/PublishingServiceTyped.java)
+- Listener
+  interface: [PublishingServiceListener.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/PublishingServiceListener.java)
+- Typed
+  processor: [PublishingServiceTypedSubscriberHandler.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/PublishingServiceTypedSubscriberHandler.java)
+- End-to-end
+  test: [PublishingServiceTypedInvokeExampleTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/PublishingServiceTypedInvokeExampleTest.java)
+- Base service
+  support: [AbstractEventSourceService.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/extension/AbstractEventSourceService.java)
 
 ## 1) Define a listener interface
 
@@ -28,6 +38,7 @@ public interface PublishingServiceListener {
 ## 2) Implement a typed publishing service
 
 Extend AbstractEventSourceService<String> and configure:
+
 - CallBackType.forClass(PublishingServiceListener.class) as the callback type
 - A supplier of a custom EventToInvokeStrategy that calls the typed method
 
@@ -135,7 +146,8 @@ public class PublishingServiceTypedSubscriberHandler extends DefaultEventProcess
 
 ## 4) Wire and test
 
-The test boots a server, registers the typed service and a processor that implements the listener, then publishes events:
+The test boots a server, registers the typed service and a processor that implements the listener, then publishes
+events:
 
 ```java
 PublishingServiceTyped pubService = new PublishingServiceTyped("pubServiceTyped");
@@ -167,6 +179,7 @@ pubService.publish("t2");
 The processor receives these via onServiceEvent and can forward them to a sink.
 
 ## Why use typed invokes?
+
 - Explicit contracts between service and processor via an interface
 - Compile-time safety for callback signatures
 - Ability to filter eligible processors by interface

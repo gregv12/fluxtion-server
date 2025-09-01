@@ -1,14 +1,14 @@
-# Fluxtion Server Architecture Overview
+# Mongoose server Architecture Overview
 
 ## Introduction
 
-Fluxtion Server is an event-driven application framework designed to process events from various sources, route them to
+Mongoose server is an event-driven application framework designed to process events from various sources, route them to
 appropriate handlers, and manage the lifecycle of event processors and services. This document provides a comprehensive
-overview of the Fluxtion Server architecture, including component diagrams and descriptions of key components.
+overview of the Mongoose server architecture, including component diagrams and descriptions of key components.
 
 ## High-Level Architecture
 
-Fluxtion Server follows an event-driven architecture pattern where events flow from sources to processors through a
+Mongoose server follows an event-driven architecture pattern where events flow from sources to processors through a
 managed event flow system. The architecture consists of the following main components:
 
 1. **FluxtionServer** - The main server class that bootstraps and manages the entire system
@@ -21,7 +21,7 @@ managed event flow system. The architecture consists of the following main compo
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                         Fluxtion Server                             │
+│                         Mongoose server                             │
 │                                                                     │
 │  ┌───────────────┐       ┌───────────────┐      ┌───────────────┐   │
 │  │  Event Sources│──────▶│ Event Flow    │─────▶│ Event         │   │
@@ -85,7 +85,7 @@ Services provide various functionalities to the system. They can be:
 
 ## Event Flow Architecture
 
-The event flow in Fluxtion Server follows this pattern:
+The event flow in Mongoose server follows this pattern:
 
 1. Event sources generate events
 2. Events are published to the EventFlowManager
@@ -111,7 +111,7 @@ The event flow in Fluxtion Server follows this pattern:
 
 ## Configuration System
 
-Fluxtion Server uses a configuration system based on YAML files. The configuration defines:
+Mongoose server uses a configuration system based on YAML files. The configuration defines:
 
 - Event sources and their properties
 - Event processors and their grouping
@@ -120,7 +120,7 @@ Fluxtion Server uses a configuration system based on YAML files. The configurati
 
 ## Lifecycle Management
 
-Fluxtion Server manages the lifecycle of components through these phases:
+Mongoose server manages the lifecycle of components through these phases:
 
 1. **Initialization** - Components are created and initialized
 2. **Start** - Components are started and begin processing
@@ -130,7 +130,7 @@ Fluxtion Server manages the lifecycle of components through these phases:
 
 ## Threading Model
 
-Fluxtion Server uses a threading model based on agents:
+Mongoose server uses a threading model based on agents:
 
 - Each event processor group runs in its own thread
 - Services can run in their own threads or be hosted by agents
@@ -138,6 +138,6 @@ Fluxtion Server uses a threading model based on agents:
 
 ## Conclusion
 
-The Fluxtion Server architecture provides a flexible and scalable framework for building event-driven applications. Its
+The Mongoose server architecture provides a flexible and scalable framework for building event-driven applications. Its
 component-based design allows for easy extension and customization, while the event flow management system ensures
 efficient routing and processing of events.

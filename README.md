@@ -1,5 +1,7 @@
 # Fluxtion Server
 
+# [Main Documentation](https://gregv12.github.io/fluxtion-server/)
+
 Fluxtion Server is a high‑performance, event‑driven server framework for building scalable, composable event processing
 applications. It wires event sources, processors, sinks, and services, and manages their lifecycle and threading so you
 can focus on business logic.
@@ -15,31 +17,7 @@ can focus on business logic.
 - Operational control: Admin commands, scheduling, logging/audit support, and dynamic registration make operations
   simpler.
 
-## Quick start
-
-- Read the Detailed Overview for concepts, architecture: [overview](docs/guide/overview.md)
-- For sample code see:
-    - [fluent api example](docs/guide/file-and-memory-feeds-example.md)
-    - [yaml configuration example](docs/guide/file-and-memory-feeds-yaml-example.md)
-- For writing plugins see:
-    - [event sink plugin](docs/guide/writing-a-message-sink-plugin.md)
-    - [event source plugin](docs/guide/writing-an-event-source-plugin.md)
-    - [service plugin](docs/guide/writing-a-service-plugin.md)
-- How-to guides:
-    - [subscribe to named event feeds](docs/guide/subscribing-to-named-event-feeds.md)
-    - [add an admin command](docs/guide/writing-an-admin-command.md)
-    - [using the scheduler service](docs/guide/using-the-scheduler-service.md)
-    - [write a custom EventToInvokeStrategy](docs/guide/writing-a-custom-event-to-invoke-strategy.md)
-    - [core pin agent threads](docs/guide/how-to-core-pin.md)
-    - [inject config into a processor](docs/guide/injecting-config-into-a-processor.md)
-    - [write a publishing service plugin](docs/guide/writing-a-publishing-service-plugin.md)
-    - [typed invoke publishing service plugin](docs/guide/writing-a-typed-invoke-publishing-service-plugin.md)
-- For internals see:
-    - [Threading model](docs/guide/threading-model.md)
-    - [Architecture docs](docs/architecture/index.md)
-    - [Sequence diagrams](docs/architecture/sequence-diagrams/index.md)
-
-Minimal bootstrap from code:
+## Minimal bootstrap from code:
 
 ```java
 EventProcessorGroupConfig processorGroup = EventProcessorGroupConfig.builder()
@@ -75,31 +53,6 @@ AppConfig appConfig = AppConfig.builder()
 
 FluxtionServer server = FluxtionServer.bootServer(appConfig, logRecordListener);
 ```
-
-## Key Concepts
-
-### Core Components
-
-- Event Feeds: Sources that generate events into the system, such as network connections, files, or message queues
-- Event Sinks: Destinations for processed events, like databases, message brokers, or external services
-- Event Processors: Components containing business logic that transform and process events
-- Services: Reusable components providing shared functionality across processors such as caching, persistence, or
-  authentication
-- Dispatch Strategies: Components that determine how events are dispatched to sinks and processors
-
-### System Features
-
-- Lifecycle Management: Handles startup/shutdown sequences and dependencies between components
-- Plugin Architecture: Extensible framework for adding new event sources, sinks, services, and processors
-- Agent Threading: Single-threaded event processing per agent with configurable idle strategies for optimal performance
-
-## Documentation
-
-- Detailed overview and usage: [docs/guide/overview.md](docs/guide/overview.md)
-- Threading model: [docs/guide/threading-model.md](docs/guide/threading-model.md)
-- Architecture: [docs/architecture/index.md](docs/architecture/index.md)
-- Sequence diagrams: [docs/architecture/sequence-diagrams/index.md](docs/architecture/sequence-diagrams/index.md)
-- Event flow: [docs/architecture/event-flow.md](docs/architecture/event-flow.md)
 
 ## License
 

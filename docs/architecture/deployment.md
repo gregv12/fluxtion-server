@@ -1,16 +1,16 @@
-# Fluxtion Server Deployment Guide
+# Mongoose server Deployment Guide
 
 ## Introduction
 
-This document provides guidance on deploying Fluxtion Server in various environments. It covers deployment considerations, performance tuning, and best practices to ensure optimal operation of Fluxtion Server applications.
+This document provides guidance on deploying Mongoose server in various environments. It covers deployment considerations, performance tuning, and best practices to ensure optimal operation of Mongoose server applications.
 
 ## Deployment Models
 
-Fluxtion Server can be deployed in several ways, depending on the requirements of your application:
+Mongoose server can be deployed in several ways, depending on the requirements of your application:
 
 ### Standalone Application
 
-Fluxtion Server can be deployed as a standalone Java application. This is the simplest deployment model and is suitable for many use cases.
+Mongoose server can be deployed as a standalone Java application. This is the simplest deployment model and is suitable for many use cases.
 
 #### Configuration:
 ```java
@@ -25,7 +25,7 @@ FluxtionServer server = FluxtionServer.bootServer(appConfig, logRecordListener);
 
 ### Embedded in Another Application
 
-Fluxtion Server can be embedded within another Java application, such as a Spring Boot application or a web server.
+Mongoose server can be embedded within another Java application, such as a Spring Boot application or a web server.
 
 #### Configuration:
 ```java
@@ -45,7 +45,7 @@ server.start();
 
 ### Containerized Deployment
 
-Fluxtion Server can be deployed in containers such as Docker, which provides isolation and portability.
+Mongoose server can be deployed in containers such as Docker, which provides isolation and portability.
 
 #### Dockerfile Example:
 ```dockerfile
@@ -64,7 +64,7 @@ CMD ["java", "-jar", "fluxtion-server.jar", "-Dfluxtionserver.config.file=${CONF
 
 ### Cloud Deployment
 
-Fluxtion Server can be deployed to cloud environments such as AWS, Azure, or Google Cloud Platform.
+Mongoose server can be deployed to cloud environments such as AWS, Azure, or Google Cloud Platform.
 
 #### Considerations:
 - Use managed services for monitoring and logging
@@ -91,7 +91,7 @@ Recommended settings:
 
 ### Thread Configuration
 
-Fluxtion Server uses a threading model based on agents. Configure threads appropriately:
+Mongoose server uses a threading model based on agents. Configure threads appropriately:
 
 ```yaml
 threadConfig:
@@ -126,7 +126,7 @@ Recommendations:
 
 ### Clustering
 
-For high availability, deploy multiple instances of Fluxtion Server in a cluster:
+For high availability, deploy multiple instances of Mongoose server in a cluster:
 
 1. **Active-Passive**: One active instance with one or more passive instances ready to take over
 2. **Active-Active**: Multiple active instances sharing the load
@@ -151,7 +151,7 @@ Implement failover mechanisms to handle instance failures:
 
 ### Metrics Collection
 
-Collect metrics to monitor the health and performance of your Fluxtion Server:
+Collect metrics to monitor the health and performance of your Mongoose server:
 
 1. **JVM Metrics**: Heap usage, GC activity, thread count
 2. **Application Metrics**: Event throughput, processing latency, queue sizes
@@ -228,7 +228,7 @@ eventProcessor.onEvent(configUpdate);
 
 ## Deployment Checklist
 
-Before deploying Fluxtion Server to production, ensure:
+Before deploying Mongoose server to production, ensure:
 
 1. **Performance Testing**: Test performance under expected load
 2. **Security Review**: Review security measures
@@ -239,6 +239,6 @@ Before deploying Fluxtion Server to production, ensure:
 
 ## Conclusion
 
-Deploying Fluxtion Server requires careful consideration of various factors including performance, high availability, monitoring, and security. By following the guidelines in this document, you can ensure a successful deployment that meets your application's requirements.
+Deploying Mongoose server requires careful consideration of various factors including performance, high availability, monitoring, and security. By following the guidelines in this document, you can ensure a successful deployment that meets your application's requirements.
 
 Remember that deployment is not a one-time activity but an ongoing process. Continuously monitor, evaluate, and improve your deployment to maintain optimal performance and reliability.

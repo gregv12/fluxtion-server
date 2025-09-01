@@ -1,6 +1,6 @@
-# Guide: Writing a Service Plugin for Fluxtion Server
+# Guide: Writing a Service Plugin for Mongoose server
 
-This guide explains how to implement and integrate a custom Service into Fluxtion Server. A service is a component that
+This guide explains how to implement and integrate a custom Service into Mongoose server. A service is a component that
 is registered with the server and can participate in lifecycle management and dependency injection. Services can be
 simple (Lifecycle only) or worker/agent-hosted (with their own thread). They may also interact with the event flow when
 they implement specific interfaces, but a “service plugin” here focuses on generic, reusable capabilities (admin,
@@ -18,9 +18,9 @@ You’ll learn:
 
 References in this repository:
 
-- `src/main/java/com/fluxtion/server/config/ServiceConfig.java`
-- `src/main/java/com/fluxtion/server/internal/ServerConfigurator.java`
-- `src/main/java/com/fluxtion/server/FluxtionServer.java`
+- [ServiceConfig.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/config/ServiceConfig.java)
+- [ServerConfigurator.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/internal/ServerConfigurator.java)
+- [FluxtionServer.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/FluxtionServer.java)
 
 ## When to write a service
 
@@ -288,9 +288,12 @@ svc.tearDown();
 
 ## See also
 
-- Message sinks: [Writing a Message Sink Plugin](../guide/writing-a-message-sink-plugin.md)
-- Event sources: [Writing an Event Source Plugin](../guide/writing-an-event-source-plugin.md)
-- Configuration API: [ServiceConfig.java](../../src/main/java/com/fluxtion/server/config/ServiceConfig.java),
+- Message sinks: [Writing a Message Sink Plugin](writing-a-message-sink-plugin.md)
+- Event sources: [Writing an Event Source Plugin](writing-an-event-source-plugin.md)
+- Configuration
+  API: [ServiceConfig.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/config/ServiceConfig.java),
   `AppConfig.Builder`
-- Bootstrapping: [ServerConfigurator.java](../../src/main/java/com/fluxtion/server/internal/ServerConfigurator.java),
-  `FluxtionServer`
+-
+
+Bootstrapping: [ServerConfigurator.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/internal/ServerConfigurator.java),
+`FluxtionServer`
