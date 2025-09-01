@@ -103,11 +103,29 @@ public class FileEventSource extends AbstractAgentHostedEventSourceService {
             }
         }
 
+        // If starting strategy is LATEST or ONCE_LATEST and no commit pointer dictates otherwise,
+        // start reading from end-of-file so we only emit new lines.
+        if (latestRead && !commitRead) {
+            try {
+                File f = new File(filename);
+                if (f.exists()) {
+                    streamOffset = f.length();
+                    if (infoEnabled) {
+                        log.log(Level.INFO, "initialising streamOffset to EOF for LATEST: " + streamOffset);
+                    }
+                }
+            } catch (Throwable t) {
+                if (warningEnabled) {
+                    log.log(Level.WARNING, "Failed to determine EOF for LATEST, defaulting to 0: " + t);
+                }
+            }
+        }
+
         if (filename == null || filename.isEmpty()) {
             //throw an  error
         }
         connectReader();
-        tail = true;
+        // preserve once/tail semantics as derived above; do not unconditionally force tailing
 
         output.setCacheEventLog(cacheEventLog);
         if (cacheEventLog) {
@@ -116,8 +134,11 @@ public class FileEventSource extends AbstractAgentHostedEventSourceService {
             }
             startComplete.set(true);
             publishToQueue = false;
+            tail |= readStrategy == ReadStrategy.ONCE_EARLIEST;
+//            boolean oldTail = tail;
             doWork();
             startComplete.set(false);
+//            tail = oldTail;
         }
     }
 
@@ -147,6 +168,7 @@ public class FileEventSource extends AbstractAgentHostedEventSourceService {
     @SuppressWarnings("all")
     @Override
     public int doWork() {
+//        if (!tail && !cacheEventLog) {
         if (!tail) {
             return 0;
         }
@@ -203,6 +225,7 @@ public class FileEventSource extends AbstractAgentHostedEventSourceService {
                     }
                 }
             }
+//            tail |= readStrategy != ReadStrategy.ONCE_EARLIEST;
 
             return readCount;
 
