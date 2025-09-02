@@ -32,6 +32,13 @@ Notes:
 - cacheEventLog(true) will cache any events published before startComplete and replay them automatically when the source calls startComplete().
 - You can customize data mapping and wrapping like other EventSource services.
 
+## Sample code
+
+- Processor
+  source: [HandlerPipeServerBootExample.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/handlerpipe/HandlerPipeServerBootExample.java)
+- Test
+  node: [HandlerPipeTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/connector/memory/HandlerPipeTest.java#L17)
+  
 ## Lifecycle semantics
 HandlerPipe delegates lifecycle to InMemoryEventSource:
 - start(): If cacheEventLog is true, publishes are cached (not dispatched).
