@@ -6,6 +6,7 @@
 package com.fluxtion.server.connector.memory;
 
 import com.fluxtion.runtime.event.NamedFeedEvent;
+import com.fluxtion.runtime.event.ReplayRecord;
 import com.fluxtion.server.dispatch.EventToQueuePublisher;
 import com.fluxtion.server.service.extension.AbstractAgentHostedEventSourceService;
 import lombok.Getter;
