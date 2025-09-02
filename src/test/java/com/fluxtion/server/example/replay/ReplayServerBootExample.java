@@ -36,7 +36,7 @@ public class ReplayServerBootExample {
     @Test
     public void boot_server_and_replay_with_data_driven_clock() throws Exception {
         // Create an event source service (in-VM)
-        InMemoryEventSource<String> source = new InMemoryEventSource<>();
+        InMemoryEventSource<ReplayRecord> source = new InMemoryEventSource<>();
         source.setName("replayFeed");
         source.setCacheEventLog(true);
 
@@ -82,8 +82,8 @@ public class ReplayServerBootExample {
             ReplayRecord r2 = new ReplayRecord();
             r2.setEvent("beta");
             r2.setWallClockTime(t2);
-            source.publishReplay(r1);
-            source.publishReplay(r2);
+            source.offer(r1);
+            source.offer(r2);
 
             // Wait for the handler to emit two outputs
             List<Object> out = waitForMessages(sink, 2, 5, TimeUnit.SECONDS);

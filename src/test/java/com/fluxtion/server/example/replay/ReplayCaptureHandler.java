@@ -37,9 +37,11 @@ public class ReplayCaptureHandler extends ObjectEventHandlerNode {
         if (sink == null || event == null) {
             return true;
         }
-        // Capture the data-driven clock time associated with this event
-        long time = getContext().getClock().getWallClockTime();
-        sink.accept("event=" + event + ", time=" + time);
+        if( event instanceof String string){
+            // Capture the data-driven clock time associated with this event
+            long time = getContext().getClock().getWallClockTime();
+            sink.accept("event=" + event + ", time=" + time);
+        }
         return true;
     }
 }

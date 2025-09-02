@@ -108,17 +108,4 @@ public class InMemoryEventSource<T> extends AbstractAgentHostedEventSourceServic
     void setOutput(EventToQueuePublisher<?> output) {
         this.output = (EventToQueuePublisher<T>) output;
     }
-
-    /**
-     * Publish a replay record directly into the event flow. The provided
-     * record encapsulates both the original event and the wall clock time
-     * to apply when processing. This enables deterministic, data-driven
-     * time during replay.
-     */
-    public void publishReplay(ReplayRecord record) {
-        if (record == null) {
-            return;
-        }
-        output.publishReplay(record);
-    }
 }
