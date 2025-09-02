@@ -6,6 +6,7 @@
 package com.fluxtion.server.connector.memory;
 
 import com.fluxtion.runtime.event.NamedFeedEvent;
+import com.fluxtion.runtime.event.ReplayRecord;
 import com.fluxtion.server.dispatch.EventToQueuePublisher;
 import com.fluxtion.server.service.extension.AbstractAgentHostedEventSourceService;
 import lombok.Getter;
@@ -106,5 +107,18 @@ public class InMemoryEventSource<T> extends AbstractAgentHostedEventSourceServic
     // for testing
     void setOutput(EventToQueuePublisher<?> output) {
         this.output = (EventToQueuePublisher<T>) output;
+    }
+
+    /**
+     * Publish a replay record directly into the event flow. The provided
+     * record encapsulates both the original event and the wall clock time
+     * to apply when processing. This enables deterministic, data-driven
+     * time during replay.
+     */
+    public void publishReplay(ReplayRecord record) {
+        if (record == null) {
+            return;
+        }
+        output.publishReplay(record);
     }
 }
