@@ -74,6 +74,57 @@ pipe.getSource().startComplete();
 
 For simplistic in-memory collection of published values, consider InMemoryMessageSink. You can replace the default sink by wrapping or delegating to pipe.sink().
 
+## Full server boot example
+
+A complete, runnable example is available here:
+- Path: src/test/java/com/fluxtion/server/example/handlerpipe/HandlerPipeServerBootExample.java
+
+Key parts of the example:
+
+- Create the pipe and a processor that subscribes to its feed name, plus an in-memory sink:
+```java
+HandlerPipe<String> pipe = HandlerPipe.<String>of("examplePipe").cacheEventLog(true);
+NamedFeedsFilterHandler handler = new NamedFeedsFilterHandler(java.util.Set.of(pipe.getSource().getName()));
+InMemoryMessageSink sink = new InMemoryMessageSink();
+```
+
+- Wire the pipe’s source as an EventFeed and boot the server:
+```java
+EventProcessorGroupConfig processors = EventProcessorGroupConfig.builder()
+        .agentName("processor-agent")
+        .put("pipe-listener", new EventProcessorConfig(handler))
+        .build();
+
+EventFeedConfig<?> pipeFeed = EventFeedConfig.builder()
+        .instance(pipe.getSource())
+        .name(pipe.getSource().getName())
+        .broadcast(true)
+        .agent("pipe-agent", new BusySpinIdleStrategy())
+        .build();
+
+EventSinkConfig<MessageSink<?>> sinkCfg = EventSinkConfig.<MessageSink<?>>builder()
+        .instance(sink)
+        .name("memSink")
+        .build();
+
+AppConfig appConfig = AppConfig.builder()
+        .addProcessorGroup(processors)
+        .addEventFeed(pipeFeed)
+        .addEventSink(sinkCfg)
+        .build();
+
+FluxtionServer server = FluxtionServer.bootServer(appConfig, rec -> {});
+```
+
+- Publish via the pipe and observe results in the sink:
+```java
+pipe.sink().accept("hello");
+pipe.sink().accept("world");
+List<Object> out = waitForMessages(sink, 2, 5, TimeUnit.SECONDS);
+```
+
+See the full file for the waitForMessages helper and assertions.
+
 ## Tips
 - Use a descriptive feed name; processors subscribe by service name.
 - Prefer small, concise data mappers on the source side when transforming events.
