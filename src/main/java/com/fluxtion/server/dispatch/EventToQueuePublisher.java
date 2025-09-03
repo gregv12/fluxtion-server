@@ -10,6 +10,8 @@ import com.fluxtion.runtime.event.NamedFeedEvent;
 import com.fluxtion.runtime.event.NamedFeedEventImpl;
 import com.fluxtion.runtime.event.ReplayRecord;
 import com.fluxtion.server.service.EventSource;
+import com.fluxtion.server.service.pool.PoolAware;
+import com.fluxtion.server.service.pool.impl.PoolTracker;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -78,10 +80,20 @@ public class EventToQueuePublisher<T> {
 
         if (cacheEventLog) {
             dispatchCachedEventLog();
+            // Store a detached snapshot in the cache to avoid retaining pooled instances
+            Object cachedData = (mappedItem instanceof PoolAware)
+                    ? String.valueOf(mappedItem)
+                    : mappedItem;
             NamedFeedEventImpl<Object> namedFeedEvent = new NamedFeedEventImpl<>(name)
-                    .data(mappedItem)
+                    .data(cachedData)
                     .sequenceNumber(sequenceNumber);
             eventLog.add(namedFeedEvent);
+        } else {
+            // Hold a reference while retained in the cache/event log
+            PoolTracker<?> tracker = trackerOf(mappedItem);
+            if (tracker != null) {
+                tracker.releaseReference();
+            }
         }
 
         cacheReadPointer++;
@@ -104,6 +116,11 @@ public class EventToQueuePublisher<T> {
         }
         sequenceNumber++;
         if (cacheEventLog) {
+            // For explicit cache without publish, detach from pool and store the original instance
+            PoolTracker<?> tracker = trackerOf(mappedItem);
+            if (tracker != null) {
+                tracker.removeFromPool();
+            }
             NamedFeedEventImpl<Object> namedFeedEvent = new NamedFeedEventImpl<>(name)
                     .data(mappedItem)
                     .sequenceNumber(sequenceNumber);
@@ -173,6 +190,7 @@ public class EventToQueuePublisher<T> {
     }
 
     private void dispatch(Object mappedItem) {
+        // no-op here; writeToQueue will handle PoolAware reference acquisition per queue
         for (int i = 0, targetQueuesSize = targetQueues.size(); i < targetQueuesSize; i++) {
             NamedQueue namedQueue = targetQueues.get(i);
             OneToOneConcurrentArrayQueue<Object> targetQueue = namedQueue.targetQueue();
@@ -197,14 +215,23 @@ public class EventToQueuePublisher<T> {
         boolean offered = false;
         long startNs = -1;
         final long maxSpinNs = java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(2); // bound spin to avoid publisher timeouts under contention
+        PoolTracker<?> tracker = trackerOf(itemToPublish);
         try {
             while (!offered) {
+                boolean attemptRef = false;
+                if (tracker != null) {
+                    tracker.acquireReference();
+                    attemptRef = true;
+                }
                 offered = targetQueue.offer(itemToPublish);
                 if (!offered) {
+                    // release per-attempt ref before retry/abandon
+                    if (attemptRef) {
+                        tracker.releaseReference();
+                    }
                     if (startNs < 0) {
                         startNs = System.nanoTime();
                     } else if (System.nanoTime() - startNs > maxSpinNs) {
-                        // give up for this queue to avoid blocking publishers; event remains in eventLog
                         if (logInfo) {
                             log.warning("dropping publish to slow/contended queue: " + namedQueue.name() +
                                     " after ~" + ((System.nanoTime() - startNs) / 1_000_000) + "ms seq:" + sequenceNumber +
@@ -216,6 +243,10 @@ public class EventToQueuePublisher<T> {
                 }
             }
         } catch (Throwable t) {
+            // ensure no attempt ref remains on exception path
+            if (tracker != null) {
+                tracker.returnToPool();
+            }
             log.severe("queue write failed: publisher=" + name + ", queue=" + namedQueue.name() + ", seq=" + sequenceNumber + ", item=" + itemToPublish + ", error=" + t);
             com.fluxtion.server.service.error.ErrorReporting.report(
                     "EventToQueuePublisher:" + name,
@@ -228,6 +259,19 @@ public class EventToQueuePublisher<T> {
             long delta = System.nanoTime() - startNs;
             log.warning("spin wait took " + (delta / 1_000_000) + "ms queue:" + namedQueue.name() + " size:" + targetQueue.size());
         }
+    }
+
+    private PoolTracker<?> trackerOf(Object item) {
+        if (item instanceof PoolAware pa) {
+            return pa.getPoolTracker();
+        }
+        if (item instanceof NamedFeedEvent<?> nfe) {
+            Object data = nfe.data();
+            if (data instanceof PoolAware pa) {
+                return pa.getPoolTracker();
+            }
+        }
+        return null;
     }
 
     public record NamedQueue(String name, OneToOneConcurrentArrayQueue<Object> targetQueue) {

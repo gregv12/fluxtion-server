@@ -78,6 +78,7 @@ nav:
           - Pipe messages between handlers: how-to/how-to-handler-pipe.md
           - Replay and synthetic time: how-to/how-to-replay.md
           - Write a custom EventToInvokeStrategy: how-to/how-to-writing-a-custom-event-to-invoke-strategy.md
+          - Use object pooling: how-to/how-to-object-pool.md
           - Use read strategy: guide/read-strategy.md
           - Core pin agent threads: how-to/how-to-core-pin.md
       - Architecture and design:
@@ -88,4 +89,5 @@ nav:
           - Sequence event processing: architecture/sequence-diagrams/event-processing.md
           - Agent Execution: architecture/agent-execution.md
           - Threading model: architecture/threading-model.md
+          - Object pooling: architecture/object_pooling.md
 
