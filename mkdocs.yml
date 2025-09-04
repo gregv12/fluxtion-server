@@ -79,7 +79,7 @@ nav:
           - Event replay and synthetic time: how-to/how-to-replay.md
           - Write a custom EventToInvokeStrategy: how-to/how-to-writing-a-custom-event-to-invoke-strategy.md
           - Event source read strategy: guide/read-strategy.md
-          - Use object pooling: how-to/how-to-object-pool.md
+          - Zero gc object pooling: how-to/how-to-object-pool.md
           - Core pin agent threads: how-to/how-to-core-pin.md
       - Architecture and design:
           - Doc description: architecture/architecture_index.md
