@@ -1,138 +1,85 @@
-# Mongoose server Improvement Tasks
+# Fluxtion Server Improvement Tasks
 
-This document contains a detailed list of actionable improvement tasks for the Mongoose server project. The tasks are
-logically ordered and cover both architectural and code-level improvements.
+The following is an actionable, logically ordered checklist of improvements covering architecture, code quality, testing, performance, observability, security, documentation, tooling, and CI/CD. Each item is scoped to be independently completable and is phrased to enable clear acceptance.
 
-## Architecture Improvements
+## 1. Architecture & Module Boundaries
+1. [ ] Document high-level architecture: event sources → dispatch → processors → services → admin/scheduler; add/update a C4 model diagram in docs/index.md and docs/guide. Acceptance: diagram + 1–2 page overview.
+2. [ ] Define clear module boundaries and ownership for packages under com.fluxtion.server.* (dispatch, dutycycle, scheduler, admin, config). Acceptance: module boundary doc + package-level javadocs.
+3. [ ] Establish extension points and SPIs for EventSource, EventToInvokeStrategy, and Service injection (documenting lifecycle hooks, threading, and error handling). Acceptance: docs/guide/plugin_extension_architecture.md updated with SPI tables.
+4. [ ] Introduce architectural decision records (ADRs) in docs/adr/ with an index; backfill 3–5 key decisions (queueing model, idle strategies, logging approach, scheduling wheel). Acceptance: ADRs committed.
+5. [ ] Create a versioning and compatibility policy for public APIs (semantic versioning, deprecation window). Acceptance: VERSIONING.md.
 
-### Documentation and Design
+## 2. Concurrency, Dispatch, and Backpressure
+6. [ ] Review EventToQueuePublisher queueing semantics: ensure writeToQueue handles full queues (drop policy, block, retry with backoff) consistently and is configurable. Acceptance: policy enum + tests.
+7. [ ] Add backpressure signaling from queues to event sources (e.g., feedback interface in EventSource). Acceptance: interface + example implementation + test.
+8. [ ] Audit thread-safety in CopyOnWriteArrayList usage for targetQueues and eventLog; replace with appropriate concurrent structures or guards where needed. Acceptance: concurrency review notes + code changes + tests.
+9. [ ] Make eventWrapStrategy behavior explicit and covered by tests for all strategies (NOWRAP, SUBSCRIPTION, REPLAY). Acceptance: parameterized tests demonstrating correct wrapping.
+10. [ ] Ensure memory visibility guarantees for sequenceNumber and cacheReadPointer (volatile/AtomicLong or synchronized access) where required. Acceptance: concurrency tests (JCstress-like or deterministic unit tests).
 
-- [x] Create comprehensive architecture documentation with component diagrams
-- [x] Document the event flow architecture and patterns used
-- [x] Create sequence diagrams for key operations (event subscription, event processing)
-- [x] Establish coding standards and best practices document
+## 3. Configuration and Bootstrapping
+11. [ ] Validate EventProcessorGroupConfig builder null-handling (eventHandlers map initialization) and immutability of built config. Acceptance: defensive copies + tests.
+12. [ ] Provide YAML schema or example set for AppConfig with validation errors surfaced at boot (SnakeYAML + schema/constraints). Acceptance: validation step with clear error messages.
+13. [ ] Add config for idle strategies per group with sensible defaults and doc examples. Acceptance: docs + example YAML + tests.
 
-### Testing
+## 4. Error Handling and Resilience
+14. [ ] Standardize error handling: define ErrorHandler policy per component (dispatch, processors, services). Acceptance: central error policy + integration tests.
+15. [ ] Implement retry and dead-letter strategy for failed event processing (configurable). Acceptance: dead-letter interface + persistence stub + tests.
+16. [ ] Ensure graceful shutdown: drain queues or snapshot state; verify LifecycleManager interactions. Acceptance: shutdown tests verifying no lost in-flight events under policy.
 
-- [X] Implement comprehensive unit test suite with higher coverage
-- [X] Add integration tests for end-to-end event flow
-- [X] Create performance benchmarks for event processing
-- [X] Implement stress tests for high-volume event scenarios
+## 5. Observability and Diagnostics
+17. [ ] Introduce structured logging (key-value) around critical paths (publish, dispatch, start/stop). Acceptance: consistent log format + togglable verbosity.
+18. [ ] Add lightweight metrics counters (published, dropped, retried, processing latency) with pluggable sink (JMX/console). Acceptance: Metrics facade + default sink + tests.
+19. [ ] Provide correlation/trace IDs through event path; propagate via NamedFeedEvent or context. Acceptance: context propagation + test asserting presence across components.
 
-### Configuration
+## 6. Performance and Benchmarking
+20. [ ] Add microbenchmarks for EventToQueuePublisher (mapping cost, queue throughput) using JMH. Acceptance: jmh module + baseline report.
+21. [ ] Profile dutycycle agents under load; identify hotspots and propose tuning (idle strategy, batching). Acceptance: profiling notes + tuning recommendations.
+22. [ ] Evaluate and document memory footprint of eventLog caching; add size limits and eviction policy. Acceptance: configurable limits + tests.
 
-- [x] Refactor configuration system to use a more type-safe approach
-- [ ] Add validation for configuration parameters
-- [ ] Implement hot reloading of configuration
-- [ ] Create configuration templates for common use cases
+## 7. API and Type Safety
+23. [ ] Tighten generics in EventToQueuePublisher (avoid raw Object where feasible) and validate dataMapper types at registration. Acceptance: compile-time safety + tests.
+24. [ ] Add nullability annotations (e.g., JetBrains or JSR-305) across public APIs. Acceptance: annotations + static analysis passing.
+25. [ ] Provide clear equals/hashCode/identity semantics for NamedQueue; ensure uniqueness by name vs instance. Acceptance: explicit contract + tests.
 
-### Monitoring and Observability
+## 8. Testing Strategy
+26. [ ] Establish unit test conventions and coverage targets; enable code coverage reporting (JaCoCo). Acceptance: coverage pipeline + threshold.
+27. [ ] Add tests for AppConfig loading paths (file, reader) and error scenarios in FluxtionServer.bootServer. Acceptance: tests passing.
+28. [ ] Create integration tests simulating multiple event sources feeding processors with backpressure. Acceptance: green integration tests.
+29. [ ] Add concurrency tests verifying no lost/duplicated events under contention. Acceptance: deterministic tests.
 
-- [ ] Implement metrics collection for event processing (throughput, latency)
-- [ ] Add health check endpoints
-- [ ] Enhance logging with structured logging format
-- [ ] Implement distributed tracing for event flows
+## 9. Security and Reliability
+30. [ ] Review and restrict reflective operations or dynamic loading (plugin catalog) with allowlists. Acceptance: documented allowlist + enforcement.
+31. [ ] Sanitize and validate external inputs (admin commands, configs). Acceptance: validation layer + tests.
+32. [ ] Add dependency vulnerability scanning and update policy in CI (OWASP/OSS Index). Acceptance: CI job + badge.
 
-### Scalability and Performance
+## 10. Documentation and Examples
+33. [ ] Consolidate and cross-link guides (read-strategy, file/memory feeds, plugin catalog) from docs/index.md. Acceptance: navigation updated.
+34. [ ] Add runnable end-to-end example with two processors and a scheduler, including how to run locally. Acceptance: docs/run_local_guide.md updated + example sources.
+35. [ ] Provide upgrade notes for next minor release (breaking changes, deprecations). Acceptance: UPGRADE_NOTES.md.
 
-- [x] Optimize event queue implementations for higher throughput
-- [ ] Implement backpressure mechanisms for event sources
-- [ ] Add support for distributed event processing
-- [ ] Optimize memory usage in high-volume scenarios
+## 11. Tooling and Build
+36. [ ] Enforce code style (Spotless/Checkstyle) aligned with existing conventions. Acceptance: build fails on violations.
+37. [ ] Add Error Prone or SpotBugs to catch concurrency and nullability issues early. Acceptance: CI integrated checks.
+38. [ ] Speed up Maven build with sensible defaults (parallel, incremental), cache settings in CI. Acceptance: documented settings + CI config.
 
-## Code-Level Improvements
+## 12. CI/CD and Release
+39. [ ] Expand GitHub Actions to run unit + integration tests, coverage upload, and docs build preview. Acceptance: passing workflow with artifacts.
+40. [ ] Automate release notes generation and tagging. Acceptance: release workflow + changelog generation.
 
-### Error Handling
+## 13. Data/State Management
+41. [ ] Define replay and recovery semantics using ReplayRecord: ordering, idempotency, and dedup behavior. Acceptance: spec + tests.
+42. [ ] Add snapshotting hooks for processors and sources to enable fast restarts. Acceptance: interfaces + sample impl + tests.
 
-- [x] Implement comprehensive error handling strategy
-- [x] Add retry mechanisms for failed event processing
-- [x] Create error reporting and notification system
-- [x] Improve error logging with more context
+## 14. Deprecations and Cleanup
+43. [ ] Identify and deprecate unused public methods/APIs; mark with @Deprecated and document alternatives. Acceptance: deprecation list + docs.
+44. [ ] Remove or gate verbose logging in hot paths (guarded by log level checks). Acceptance: audit complete + PR.
 
-### Code Quality
+## 15. Developer Experience
+45. [ ] Provide a quick-start developer script or Makefile targets for common tasks (build, test, run example). Acceptance: README section + scripts.
+46. [ ] Add CONTRIBUTING.md with PR guidelines, branch naming, and review checklist. Acceptance: file published.
 
-- [x] Fix SuppressWarnings usage (replace with proper type safety)
-- [x] Address TODO comments in the codebase
-- [x] Implement consistent naming conventions
-- [x] Reduce code duplication in event handling logic
+---
 
-### API Improvements
-
-- [x] Create a more fluent API for event subscription
-- [x] Improve service registration API
-- [x] Add builder patterns for complex configurations
-- [x] Create a more consistent exception hierarchy
-
-### Dependency Management
-
-- [x] Review and update external dependencies
-- [x] Reduce coupling between components
-- [x] Implement proper dependency injection
-- [x] Create clear boundaries between modules
-
-### Security
-
-- [ ] Implement authentication and authorization for admin operations
-- [ ] Add input validation for all external inputs
-- [ ] Implement secure configuration handling
-- [ ] Add audit logging for security-sensitive operations
-
-## Technical Debt
-
-### Code Cleanup
-
-- [x] Remove experimental annotations where implementation is stable
-- [x] Fix raw type usage in generics
-- [x] Address compiler warnings
-- [x] Remove unused code and dead code paths
-
-### Refactoring
-
-- [x] Refactor EventFlowManager to reduce complexity
-- [x] Split FluxtionServer class into smaller, focused classes
-- [x] Improve thread safety in concurrent operations
-- [x] Refactor service lifecycle management
-
-### Testing Infrastructure
-
-- [x] Create test utilities for common testing scenarios
-- [x] Implement test fixtures for event processing
-- [x] Add property-based testing for event handlers
-- [x] Improve test isolation and repeatability
-
-### Build and CI/CD
-
-- [ ] Enhance build scripts for different environments
-- [ ] Implement automated release process
-- [ ] Add static code analysis to CI pipeline
-- [ ] Implement automated performance regression testing
-
-## Feature Enhancements
-
-### Event Processing
-
-- [ ] Add support for event prioritization
-- [ ] Implement event filtering capabilities
-- [ ] Add event transformation pipelines
-- [ ] Support for event correlation and aggregation
-
-### Administration
-
-- [ ] Create a web-based admin interface
-- [ ] Implement more comprehensive admin commands
-- [ ] Add support for remote administration
-- [ ] Implement role-based access control for admin operations
-
-### Integration
-
-- [ ] Add adapters for common messaging systems (Kafka, RabbitMQ)
-- [ ] Implement REST API for event submission
-- [ ] Create client libraries for common languages
-- [ ] Add support for standard protocols (MQTT, AMQP)
-
-### Deployment
-
-- [ ] Create Docker containerization
-- [ ] Add Kubernetes deployment templates
-- [ ] Implement cloud-native features
-- [ ] Support for serverless deployment models
+Notes:
+- Prioritize sections 1–4 and 6–8 for immediate reliability/throughput wins.
+- Each task should be completed with accompanying tests and documentation updates where applicable.

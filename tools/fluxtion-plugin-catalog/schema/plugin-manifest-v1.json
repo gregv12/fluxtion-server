@@ -1,0 +1,100 @@
+{
+  "$id": "https://fluxtion.dev/schemas/plugin-manifest-v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Fluxtion Plugin Manifest",
+  "type": "object",
+  "required": ["pluginId", "name", "version", "capabilities"],
+  "properties": {
+    "pluginId": {"type": "string", "pattern": "^[a-z0-9-_.]+$"},
+    "name": {"type": "string"},
+    "version": {"type": "string"},
+    "description": {"type": "string"},
+    "fluxtion": {
+      "type": "object",
+      "properties": {
+        "minVersion": {"type": "string"},
+        "testedVersions": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title"],
+        "properties": {
+          "id": {"type": "string"},
+          "title": {"type": "string"},
+          "summary": {"type": "string"},
+          "tags": {"type": "array", "items": {"type": "string"}},
+          "services": {"type": "array", "items": {"type": "string"}},
+          "agents": {"type": "array", "items": {"type": "string"}},
+          "configuration": {"type": "object"},
+          "inputs": {"type": "array", "items": {"type": "string"}},
+          "outputs": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "repositories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "url"],
+        "properties": {
+          "type": {"type": "string", "enum": ["git", "svn", "hg", "other"]},
+          "url": {"type": "string"},
+          "subpath": {"type": "string"}
+        }
+      }
+    },
+    "documentation": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["title", "url"],
+        "properties": {
+          "title": {"type": "string"},
+          "url": {"type": "string"},
+          "category": {"type": "string", "enum": ["readme", "api", "guide", "tutorial", "design", "changelog", "other"]}
+        }
+      }
+    },
+    "examples": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["title"],
+        "properties": {
+          "title": {"type": "string"},
+          "description": {"type": "string"},
+          "repo": {"type": "string"},
+          "path": {"type": "string"},
+          "commands": {"type": "array", "items": {"type": "string"}},
+          "inputs": {"type": "array", "items": {"type": "string"}},
+          "expectedOutput": {"type": "string"}
+        }
+      }
+    },
+    "development": {
+      "type": "object",
+      "properties": {
+        "build": {"type": "string"},
+        "run": {"type": "string"},
+        "test": {"type": "string"},
+        "configuration": {"type": "string"}
+      }
+    },
+    "license": {"type": "string"},
+    "maintainers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"},
+          "email": {"type": "string"},
+          "url": {"type": "string"}
+        }
+      }
+    },
+    "keywords": {"type": "array", "items": {"type": "string"}}
+  }
+}

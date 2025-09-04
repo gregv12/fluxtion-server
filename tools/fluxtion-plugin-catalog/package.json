@@ -1,0 +1,23 @@
+{
+  "name": "fluxtion-plugin-catalog",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "MCP server for registering and discovering Fluxtion plugins and their capabilities.",
+  "scripts": {
+    "build": "tsc -p .",
+    "start": "node dist/server.js",
+    "dev": "tsx src/server.ts",
+    "lint": "echo 'no lint configured'"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.2.0",
+    "ajv": "^8.12.0",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "tsx": "^4.19.0",
+    "typescript": "^5.4.5"
+  }
+}
