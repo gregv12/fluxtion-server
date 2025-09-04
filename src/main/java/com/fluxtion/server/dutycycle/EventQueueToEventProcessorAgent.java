@@ -9,8 +9,11 @@ import com.fluxtion.agrona.concurrent.OneToOneConcurrentArrayQueue;
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.event.BroadcastEvent;
+import com.fluxtion.runtime.event.NamedFeedEvent;
 import com.fluxtion.runtime.event.ReplayRecord;
 import com.fluxtion.server.service.EventToInvokeStrategy;
+import com.fluxtion.server.service.pool.PoolAware;
+import com.fluxtion.server.service.pool.impl.PoolTracker;
 import lombok.extern.java.Log;
 
 import java.util.logging.Logger;
@@ -50,6 +53,15 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
         final int batchLimit = 64;
         Object event;
         while (processed < batchLimit && (event = inputQueue.poll()) != null) {
+            // Release the per-queue reference as we are now publishing to processors
+            PoolTracker<?> tracker = trackerOf(event);
+            if (tracker != null) {
+                try {
+                    tracker.releaseReference();
+                } catch (Throwable ignored) {
+                }
+            }
+
             int attempt = 0;
             boolean done = false;
             Throwable lastError = null;
@@ -94,6 +106,16 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
                     retryPolicy.backoff(attempt);
                 }
             }
+
+            // After dispatching to all processors attempt to return to pool if no more references remain
+            if (tracker != null) {
+                try {
+                    tracker.returnToPool();
+                } catch (Throwable ignored) {
+                    logger.warning("unable to return to pool: " + tracker);
+                }
+            }
+
             // Count it as processed even if dropped to avoid infinite loops
             processed++;
         }
@@ -154,5 +176,27 @@ public class EventQueueToEventProcessorAgent implements EventQueueToEventProcess
     @Override
     public int listenerCount() {
         return eventToInvokeStrategy.listenerCount();
+    }
+
+    private PoolTracker<?> trackerOf(Object event) {
+        if (event == null) return null;
+        Object candidate = event;
+        if (candidate instanceof ReplayRecord rr) {
+            candidate = rr.getEvent();
+        }
+        if (candidate instanceof BroadcastEvent be) {
+            candidate = be.getEvent();
+        }
+        // If the current candidate is already PoolAware, prefer its tracker (future-proof for pooled wrappers)
+        if (candidate instanceof PoolAware paDirect) {
+            return paDirect.getPoolTracker();
+        }
+        if (candidate instanceof NamedFeedEvent<?> nfe) {
+            Object data = nfe.data();
+            if (data instanceof PoolAware pa) {
+                return pa.getPoolTracker();
+            }
+        }
+        return null;
     }
 }
