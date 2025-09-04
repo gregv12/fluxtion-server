@@ -12,6 +12,8 @@ import com.fluxtion.server.FluxtionServer;
 import com.fluxtion.server.config.AppConfig;
 import com.fluxtion.server.config.ServiceConfig;
 import com.fluxtion.server.dutycycle.GlobalErrorHandler;
+import com.fluxtion.server.service.pool.ObjectPoolsRegistry;
+import com.fluxtion.server.service.pool.impl.Pools;
 import com.fluxtion.server.service.servercontrol.FluxtionServerController;
 
 import java.util.Objects;
@@ -47,6 +49,9 @@ public final class ServerConfigurator {
 
         //root server controller
         fluxtionServer.registerService(new Service<>(fluxtionServer, FluxtionServerController.class, FluxtionServerController.SERVICE_NAME));
+
+        //register ObjectPoolService
+        fluxtionServer.registerService(new Service<>(Pools.SHARED, ObjectPoolsRegistry.class, ObjectPoolsRegistry.SERVICE_NAME));
 
         //event sources
         if (appConfig.getEventFeeds() != null) {
