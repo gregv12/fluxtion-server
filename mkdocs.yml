@@ -81,6 +81,8 @@ nav:
           - Event source read strategy: guide/read-strategy.md
           - Zero gc object pooling: how-to/how-to-object-pool.md
           - Core pin agent threads: how-to/how-to-core-pin.md
+          - JMH server event flow benchmark: how-to/how-to-jmh-server-eventflow.md
+          - HdrHistogram latency test: how-to/how-to-hdrhistogram-server-latency.md
       - Architecture and design:
           - Doc description: architecture/architecture_index.md
           - Overview: architecture/overview.md
@@ -90,4 +92,7 @@ nav:
           - Agent Execution: architecture/agent-execution.md
           - Threading model: architecture/threading-model.md
           - Object pooling: architecture/object_pooling.md
+  - Benchmarks:
+      - Server EventFlow JMH report: benchmark/reports/server-eventflow-jmh-report.md
+      - Server Latency (HdrHistogram): benchmark/reports/server-latency-hdrhistogram.md
 
