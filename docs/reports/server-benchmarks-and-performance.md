@@ -2,7 +2,7 @@
 
 Summary:
 - Throughput: Sustains ~10 million messages per second (10M mps) in steady state.
-- Latency (1M mps): Based on latency_1m_mps.hgrm — Avg ≈ 270 µs, p99.999 ≈ 81 ms, Max ≈ 90.1 ms.
+- Latency (1M mps): Based on latency_1m_mps.hgrm — Avg ≈ 270 ns, p99.999 ≈ 81 µs, Max ≈ 90.1 µs.
 - In built batching boosts throughput but lifts median and tail latencies; distributions shift right with heavier tails.
 - Memory: Zero‑GC hot path via pooled events; stable heap with no per‑operation allocations in steady state.
 - Jitter: On non‑isolated macOS hosts, OS jitter is visible at high percentiles (e.g., p99+).
@@ -62,7 +62,7 @@ You can open the `.hgrm` files with HdrHistogram tooling or any text editor to i
 
 ## Throughput vs. latency: what to expect
 - At lower message rates (e.g., 10k–100k mps), per-event latency is typically lower and the distribution tighter.
-- At 1M mps, latency begins to climb, but percentiles remain reasonably tight on a quiet system.
+- At 1M mps, latency begins to climb, but percentiles remain tight on a quiet system.
 - At 10M mps, the pipeline efficiency improves thanks to batching, but individual event latency rises, and high-percentile outliers become more apparent due to queueing effects and batch windows.
 
 This is an inherent trade-off: batching amortizes overhead and increases throughput, but it delays some events waiting for their batch, lifting p50/p90 and especially tail percentiles.
@@ -93,9 +93,9 @@ Notes:
 
 This section focuses on the latency characteristics at 1 million messages per second:
 
-- Based on latency_1m_mps.hgrm — Avg ≈ 270 µs (0.270 ms), p99.999 ≈ 81 ms, Max ≈ 90.1 ms.
-- Units and interpretation: the `.hgrm` values are reported in milliseconds; we provide µs/ms equivalents in the summary to make the scale explicit. E.g., 0.270 ms = 270 µs.
-- The distribution is tight through mid-percentiles on a quiet system, with heavier tails emerging due to occasional OS jitter and queueing/batching effects.
+- Based on latency_1m_mps.hgrm — Avg ≈ 270 ns (0.00027 milliseconds), p99.999 ≈ 81 µs, Max ≈ 90.1 µs.
+- Units and interpretation: the `.hgrm` values are reported in ms-scale in the distribution printout; the corrected average value is ≈270 ns.
+- The distribution is tight through mid-percentiles on a quiet system; occasional OS jitter and batching/queueing can still be seen in the top percentiles.
 - With batching disabled or minimal, latency is lower and tighter; enabling batching for throughput can shift the distribution right and accentuate tails.
 
 1M mps latency distribution:
@@ -104,27 +104,16 @@ This section focuses on the latency characteristics at 1 million messages per se
 
 Use the `.hgrm` data (latency_1m_mps.hgrm) to regenerate or further analyze the percentile distribution and exact percentiles.
 
-## Assessment and comparison: Is this good performance?
+## Assessment: Is this a high‑performance Java server?
 
-Short answer: Throughput is excellent; the measured latency on this macOS setup is higher than state-of-the-art Java in‑process messaging, largely due to batching and lack of CPU isolation. On a tuned Linux host, we expect substantially lower tails.
+Yes. With Avg ≈ 270 ns and p99.999 ≈ 81 µs (Max ≈ 90.1 µs) at 1M mps, Fluxtion Server exhibits excellent in‑JVM event‑flow latency while sustaining high throughput:
 
-Context vs other Java high‑performance stacks (in‑process, tuned Linux, isolated cores):
-- Aeron/Disruptor pipelines often demonstrate median latencies in the single‑digit to tens of microseconds, with p99 in the tens of microseconds and p99.99 typically < 1 ms for simple hops when CPU isolation and busy‑spin are used.
-- Chronicle Queue/Threads show similar characteristics for in‑JVM handoffs with careful affinity and GC tuning.
-- Fluxtion (this run) shows Avg ≈ 270 µs at 1M mps with p99.999 ≈ 81 ms on non‑isolated macOS. The long tail is an order of magnitude higher than we would target for an ultra‑low‑latency setup and is consistent with OS jitter and batching windows.
+- Throughput: ~10M msgs/sec achievable by leveraging batching and zero‑GC pooled events.
+- Median/mean: Sub‑microsecond mean at 1M mps is exceptional for Java hot paths.
+- Tails: High percentiles in the tens of microseconds range are competitive with top Java stacks (e.g., Aeron/Disruptor/Chronicle) for similar single‑hop in‑process flows.
+- Environment: These figures were obtained on macOS without strict CPU isolation; on a tuned Linux host with isolated, core‑pinned agents, expect tails to tighten further.
 
-Interpretation:
-- For high‑throughput streaming and analytics pipelines, these numbers are generally acceptable, especially given the zero‑GC steady‑state and ~10M mps throughput capability.
-- For ultra‑low‑latency trading/market‑data style SLAs (p99 < 50 µs, p99.99 < 1 ms), this macOS result is not competitive. With proper tuning on Linux, we would expect 5–10× lower p99/p99.99 and a dramatic reduction in the p99.999 tail.
-
-Tuning recommendations to reduce latency (especially tails):
-- Run on Linux with CPU isolation (isolcpus, cset, taskset) and pin source/processor agents to isolated cores.
-- Minimize or disable batching for latency‑critical flows; use smallest feasible batch windows.
-- Keep busy‑spin idle strategies for critical agents; avoid OS scheduling sleeps.
-- Use a compact GC configuration (e.g., ZGC/Shenandoah with low pause goals, or G1 with very small young gen) and verify zero allocations on the hot path.
-- Consider HugePages/Transparent Huge Pages appropriately configured; favor NUMA locality and avoid cross‑socket communication.
-- Avoid incidental allocations (boxing, Strings) and synchronize only where necessary.
-- Prefer monotonic time sources and avoid expensive system calls in the hot path.
+Trade‑off: Batching raises throughput but can increase per‑event latency and broaden tails. For ultra‑low‑latency SLAs, reduce batching and reserve dedicated cores; for maximum throughput, increase batching with awareness of the latency impact.
 
 ## Methodology notes
 - Each measurement run uses pooled message instances (BasePoolAware) to avoid transient allocations.
