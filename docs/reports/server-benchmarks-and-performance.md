@@ -2,7 +2,7 @@
 
 Summary:
 - Throughput: Sustains ~10 million messages per second (10M mps) in steady state.
-- Latency (1M mps): Based on latency_1m_mps.hgrm — Avg ≈ 270 nanos, p99.999 ≈ 81 µs, Max ≈ 90.1 µs. 
+- Latency (1M mps): Based on latency_1m_mps.hgrm — Avg ≈ 270 µs, p99.999 ≈ 81 ms, Max ≈ 90.1 ms.
 - In built batching boosts throughput but lifts median and tail latencies; distributions shift right with heavier tails.
 - Memory: Zero‑GC hot path via pooled events; stable heap with no per‑operation allocations in steady state.
 - Jitter: On non‑isolated macOS hosts, OS jitter is visible at high percentiles (e.g., p99+).
@@ -67,6 +67,12 @@ You can open the `.hgrm` files with HdrHistogram tooling or any text editor to i
 
 This is an inherent trade-off: batching amortizes overhead and increases throughput, but it delays some events waiting for their batch, lifting p50/p90 and especially tail percentiles.
 
+All message rates combined:
+
+![Histogram all mps](Histogram_all_mps.png)
+
+In this combined view, the 10M mps line shows the highest sustained throughput, achieved by enabling batching in parts of the pipeline. The side effect of batching is visible as a right‑shifted latency distribution with heavier tails: individual events can wait for a batch window, increasing p50/p90 and especially the p99+ percentiles compared to lower message rates.
+
 ## Throughput (10M mps)
 This section isolates the 10 million messages per second test as a throughput-focused run:
 
@@ -83,29 +89,42 @@ Notes:
 - Use `.hgrm` data (latency_10m_mps.hgrm) to regenerate or further analyze the percentile distribution.
 - On macOS, lack of strict CPU isolation introduces visible jitter in top percentiles; Linux with CPU shielding typically yields tighter tails.
 
-## Plots
+## Latency (1M mps)
 
-The following plots were generated from the `.hgrm` files:
+This section focuses on the latency characteristics at 1 million messages per second:
 
-- All message rates combined:
+- Based on latency_1m_mps.hgrm — Avg ≈ 270 µs (0.270 ms), p99.999 ≈ 81 ms, Max ≈ 90.1 ms.
+- Units and interpretation: the `.hgrm` values are reported in milliseconds; we provide µs/ms equivalents in the summary to make the scale explicit. E.g., 0.270 ms = 270 µs.
+- The distribution is tight through mid-percentiles on a quiet system, with heavier tails emerging due to occasional OS jitter and queueing/batching effects.
+- With batching disabled or minimal, latency is lower and tighter; enabling batching for throughput can shift the distribution right and accentuate tails.
 
-  ![Histogram all mps](Histogram_all_mps.png)
+1M mps latency distribution:
 
-  In this combined view, the 10M mps line shows the highest throughput, achieved by batching in the pipeline. The side effect of batching is visible as a right-shifted latency distribution and heavier tails: individual events can wait for a batch window, increasing p50/p90 and especially the p99+ percentiles compared to lower message rates.
+![Histogram 1M mps](Histogram_1m_mps.png)
 
-- Mixed rates (1k, 10k, 1M mps):
+Use the `.hgrm` data (latency_1m_mps.hgrm) to regenerate or further analyze the percentile distribution and exact percentiles.
 
-  ![Histogram 1k/10k/1M mps](Histogram_1k_10k_1M_mps.png)
+## Assessment and comparison: Is this good performance?
 
-- 1 million messages per second:
+Short answer: Throughput is excellent; the measured latency on this macOS setup is higher than state-of-the-art Java in‑process messaging, largely due to batching and lack of CPU isolation. On a tuned Linux host, we expect substantially lower tails.
 
-  ![Histogram 1M mps](Histogram_1m_mps.png)
+Context vs other Java high‑performance stacks (in‑process, tuned Linux, isolated cores):
+- Aeron/Disruptor pipelines often demonstrate median latencies in the single‑digit to tens of microseconds, with p99 in the tens of microseconds and p99.99 typically < 1 ms for simple hops when CPU isolation and busy‑spin are used.
+- Chronicle Queue/Threads show similar characteristics for in‑JVM handoffs with careful affinity and GC tuning.
+- Fluxtion (this run) shows Avg ≈ 270 µs at 1M mps with p99.999 ≈ 81 ms on non‑isolated macOS. The long tail is an order of magnitude higher than we would target for an ultra‑low‑latency setup and is consistent with OS jitter and batching windows.
 
-- 10 million messages per second:
+Interpretation:
+- For high‑throughput streaming and analytics pipelines, these numbers are generally acceptable, especially given the zero‑GC steady‑state and ~10M mps throughput capability.
+- For ultra‑low‑latency trading/market‑data style SLAs (p99 < 50 µs, p99.99 < 1 ms), this macOS result is not competitive. With proper tuning on Linux, we would expect 5–10× lower p99/p99.99 and a dramatic reduction in the p99.999 tail.
 
-  ![Histogram 10M mps](Histogram_10m_mps.png)
-
-You can regenerate or augment these charts by re-running [BenchmarkObjectPoolDistribution.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/benchmark/objectpool/BenchmarkObjectPoolDistribution.java) in report mode and processing the `.hgrm` outputs.
+Tuning recommendations to reduce latency (especially tails):
+- Run on Linux with CPU isolation (isolcpus, cset, taskset) and pin source/processor agents to isolated cores.
+- Minimize or disable batching for latency‑critical flows; use smallest feasible batch windows.
+- Keep busy‑spin idle strategies for critical agents; avoid OS scheduling sleeps.
+- Use a compact GC configuration (e.g., ZGC/Shenandoah with low pause goals, or G1 with very small young gen) and verify zero allocations on the hot path.
+- Consider HugePages/Transparent Huge Pages appropriately configured; favor NUMA locality and avoid cross‑socket communication.
+- Avoid incidental allocations (boxing, Strings) and synchronize only where necessary.
+- Prefer monotonic time sources and avoid expensive system calls in the hot path.
 
 ## Methodology notes
 - Each measurement run uses pooled message instances (BasePoolAware) to avoid transient allocations.
