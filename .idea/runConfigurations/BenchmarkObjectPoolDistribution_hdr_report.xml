@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="BenchmarkObjectPoolDistribution hdr report" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="com.fluxtion.server.benchmark.objectpool.BenchmarkObjectPoolDistribution" />
+    <module name="server.test" />
+    <option name="PROGRAM_PARAMETERS" value="--warmupMillis=5000 --runMillis=15000 --output=docs/reports/latency.hgrm" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="com.fluxtion.server.benchmark.objectpool.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

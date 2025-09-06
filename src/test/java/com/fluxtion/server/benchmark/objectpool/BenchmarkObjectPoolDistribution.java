@@ -16,7 +16,11 @@ import com.fluxtion.server.service.pool.ObjectPoolsRegistry;
 import com.fluxtion.server.service.pool.impl.BasePoolAware;
 import org.HdrHistogram.Histogram;
 
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * End-to-end example that boots a FluxtionServer and uses an EventSource that
@@ -29,7 +33,7 @@ import java.util.List;
  */
 public class BenchmarkObjectPoolDistribution {
 
-    public static final int PUBLISH_FREQUENCY_NANOS = 500;
+    public static final int PUBLISH_FREQUENCY_NANOS = 1_00;
 
     /**
      * A simple pooled message type.
@@ -60,8 +64,9 @@ public class BenchmarkObjectPoolDistribution {
             this.pool = objectPoolsRegistry.getOrCreate(
                     PooledMessage.class,
                     PooledMessage::new,
-                    pm -> pm.value = -1,
-                    1024
+                    pm -> {
+                    },
+                    2048
             );
         }
 
@@ -80,8 +85,37 @@ public class BenchmarkObjectPoolDistribution {
     public static class MyHandler extends ObjectEventHandlerNode {
 
         private long count;
-        private long startTime = 0;
-        private final Histogram histogram = new Histogram(3_600_000_000L, 3);
+        private final Histogram histogram = new Histogram(300_000_000L, 2);
+        private volatile boolean collecting = true;
+        private volatile boolean periodicConsole = true;
+        private volatile boolean skipInitialCount = true;
+
+        public MyHandler() {
+            histogram.setAutoResize(true);
+        }
+
+        public void setCollecting(boolean collecting) {
+            this.collecting = collecting;
+        }
+
+        public void setPeriodicConsole(boolean periodicConsole) {
+            this.periodicConsole = periodicConsole;
+        }
+
+        public void setSkipInitialCount(boolean skipInitialCount) {
+            this.skipInitialCount = skipInitialCount;
+        }
+
+        public Histogram histogram() {
+            return histogram;
+        }
+
+        public void writeHgrm(Path outputPath) throws Exception {
+            try (PrintStream ps = new PrintStream(new FileOutputStream(outputPath.toFile()))) {
+                // Write percentile distribution in nanoseconds suitable for HDR Histogram plotter (.hgrm)
+                histogram.outputPercentileDistribution(ps, 1.0);
+            }
+        }
 
         @Override
         protected boolean handleEvent(Object event) {
@@ -91,19 +125,17 @@ public class BenchmarkObjectPoolDistribution {
 
             if (event instanceof PooledMessage pooledMessage) {
                 count++;
-                if (count < 1_000_000) {
+                if (skipInitialCount && count < 1_000_000) {
                     return true;
-                }
-
-                if (startTime == 0) {
-                    startTime = pooledMessage.value;
                 }
 
                 long now = System.nanoTime();
                 long simpleLatency = now - pooledMessage.value;
 
-                histogram.recordValue(simpleLatency);
-                if (count % 5_000_000 == 0) {
+                if (collecting) {
+                    histogram.recordValue(simpleLatency);
+                }
+                if (periodicConsole && count % 5_000_000 == 0) {
                     System.out.println("HDR Histogram latency (ns): p50=" + histogram.getValueAtPercentile(50)
                             + ", p90=" + histogram.getValueAtPercentile(90)
                             + ", p99=" + histogram.getValueAtPercentile(99)
@@ -115,7 +147,6 @@ public class BenchmarkObjectPoolDistribution {
                             + ", avg(ns)=" + (histogram.getMean()));
                     histogram.reset();
                     count = 0;
-                    startTime = 0;
                 }
 
             }
@@ -126,14 +157,19 @@ public class BenchmarkObjectPoolDistribution {
     public static void main(String[] args) throws Exception {
         PooledEventSource source = new PooledEventSource();
 
+        // Note: On macOS (Apple Silicon/M-series), true OS-level CPU affinity is not supported like on Linux.
+        // Fluxtion will attempt best-effort pinning via com.fluxtion.server.internal.CoreAffinity which uses
+        // OpenHFT Affinity if available; on macOS it usually no-ops. BusySpinIdleStrategy helps reduce jitter,
+        // but you cannot guarantee exclusive core isolation on macOS. This config still sets the desired coreId.
         ThreadConfig threadConfig = ThreadConfig.builder()
                 .agentName("pinned-agent-thread")
                 .idleStrategy(new BusySpinIdleStrategy())
-                .coreId(0) // zero-based index
+                .coreId(0) // desired core index (best-effort on macOS)
                 .build();
 
+        MyHandler handler = new MyHandler();
         AppConfig cfg = new AppConfig()
-                .addProcessor("pinned-agent-thread", new MyHandler(), "processor")
+                .addProcessor("pinned-agent-thread", handler, "processor")
                 .addEventSource(source, "pooledSource", true);
 
         cfg.setAgentThreads(List.of(threadConfig));
@@ -141,20 +177,63 @@ public class BenchmarkObjectPoolDistribution {
         FluxtionServer server = FluxtionServer.bootServer(cfg, rec -> {
         });
 
-        boolean running = true;
+        AtomicBoolean running = new AtomicBoolean(true);
         Thread publisher = new Thread(() -> {
             long nextPublishTime = System.nanoTime();
             long now = System.nanoTime();
-            long counter = 0;
-            while (running) {
+            while (running.get()) {
                 if (now >= nextPublishTime) {
-                    counter++;
                     source.publish(now);
-                    nextPublishTime = now + PUBLISH_FREQUENCY_NANOS; // 1 microsecond = 1000 nanoseconds - 250 = 4 million events per second
+                    nextPublishTime = now + PUBLISH_FREQUENCY_NANOS;
                 }
                 now = System.nanoTime();
             }
-        });
+        }, "pooled-publisher");
+        publisher.setDaemon(true);
         publisher.start();
+
+        // Optional measured mode: --warmupMillis=... --runMillis=... --output=path/to/report.hgrm
+        Long warmupMillis = null;
+        Long runMillis = null;
+        Path outputPath = null;
+        for (String arg : args) {
+            if (arg.startsWith("--warmupMillis=")) {
+                warmupMillis = Long.parseLong(arg.substring("--warmupMillis=".length()));
+            } else if (arg.startsWith("--runMillis=")) {
+                runMillis = Long.parseLong(arg.substring("--runMillis=".length()));
+            } else if (arg.startsWith("--output=")) {
+                outputPath = Path.of(arg.substring("--output=".length()));
+            }
+        }
+
+        if (warmupMillis != null && runMillis != null && outputPath != null) {
+            // Configure handler for measured run: no periodic console, no initial-count skip, control collecting
+            handler.setPeriodicConsole(false);
+            handler.setSkipInitialCount(false);
+            handler.setCollecting(false); // warmup without collecting
+
+            System.out.println("Starting warmup for " + warmupMillis + " ms...");
+            Thread.sleep(warmupMillis);
+
+            System.out.println("Starting measured run for " + runMillis + " ms...");
+            handler.setCollecting(true);
+            Thread.sleep(runMillis);
+
+            running.set(false);
+            publisher.join(1000);
+
+            // Write .hgrm file
+            handler.writeHgrm(outputPath);
+            System.out.println("Wrote HDR Histogram percentile distribution to: " + outputPath.toAbsolutePath());
+            System.out.println("How to view: Open https://hdrhistogram.github.io/HdrHistogram/plotFiles.html and drop the .hgrm file,\n" +
+                    "or use hdrplot.py locally. The values are in nanoseconds.");
+
+            // Keep server alive only if not measured mode; here we exit after writing
+            System.exit(0);
+        } else {
+            System.out.println("Running in continuous console mode. To run measured mode, use:\n" +
+                    "  --warmupMillis=5000 --runMillis=10000 --output=/tmp/latency.hgrm\n" +
+                    "Then open https://hdrhistogram.github.io/HdrHistogram/plotFiles.html and load the file.");
+        }
     }
 }
