@@ -8,13 +8,13 @@ import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
 import com.fluxtion.runtime.annotations.runtime.ServiceRegistered;
 import com.fluxtion.runtime.node.ObjectEventHandlerNode;
 import com.fluxtion.server.FluxtionServer;
-import com.fluxtion.server.benchmark.LatencyDistribution;
 import com.fluxtion.server.config.AppConfig;
 import com.fluxtion.server.config.ThreadConfig;
 import com.fluxtion.server.service.extension.AbstractEventSourceService;
 import com.fluxtion.server.service.pool.ObjectPool;
 import com.fluxtion.server.service.pool.ObjectPoolsRegistry;
 import com.fluxtion.server.service.pool.impl.BasePoolAware;
+import org.HdrHistogram.Histogram;
 
 import java.util.List;
 
@@ -29,7 +29,7 @@ import java.util.List;
  */
 public class BenchmarkObjectPoolDistribution {
 
-    public static final int PUBLISH_FREQUENCY_NANOS = 400;
+    public static final int PUBLISH_FREQUENCY_NANOS = 500;
 
     /**
      * A simple pooled message type.
@@ -81,7 +81,7 @@ public class BenchmarkObjectPoolDistribution {
 
         private long count;
         private long startTime = 0;
-        private final LatencyDistribution latencyDistribution = new LatencyDistribution();
+        private final Histogram histogram = new Histogram(3_600_000_000L, 3);
 
         @Override
         protected boolean handleEvent(Object event) {
@@ -102,10 +102,18 @@ public class BenchmarkObjectPoolDistribution {
                 long now = System.nanoTime();
                 long simpleLatency = now - pooledMessage.value;
 
-                latencyDistribution.addReading(simpleLatency);
+                histogram.recordValue(simpleLatency);
                 if (count % 5_000_000 == 0) {
-                    latencyDistribution.printResultsToConsole(startTime, now);
-                    latencyDistribution.reset();
+                    System.out.println("HDR Histogram latency (ns): p50=" + histogram.getValueAtPercentile(50)
+                            + ", p90=" + histogram.getValueAtPercentile(90)
+                            + ", p99=" + histogram.getValueAtPercentile(99)
+                            + ", p99.9=" + histogram.getValueAtPercentile(99.9)
+                            + ", p99.99=" + histogram.getValueAtPercentile(99.99)
+                            + ", p99.999=" + histogram.getValueAtPercentile(99.999)
+                            + ", max=" + histogram.getMaxValue()
+                            + ", count=" + histogram.getTotalCount()
+                            + ", avg(ns)=" + (histogram.getMean()));
+                    histogram.reset();
                     count = 0;
                     startTime = 0;
                 }

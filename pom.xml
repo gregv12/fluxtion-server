@@ -95,6 +95,12 @@
             <version>1.37</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.hdrhistogram</groupId>
+            <artifactId>HdrHistogram</artifactId>
+            <version>2.1.12</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
