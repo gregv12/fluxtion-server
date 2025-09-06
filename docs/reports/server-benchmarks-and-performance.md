@@ -1,9 +1,16 @@
 # Fluxtion Server Benchmarks and Performance
 
+Summary:
+- Throughput: Sustains ~10 million messages per second (10M mps) in steady state.
+- Latency (1M mps): Based on latency_1m_mps.hgrm — Avg ≈ 270 nanos, p99.999 ≈ 81 µs, Max ≈ 90.1 µs. 
+- In built batching boosts throughput but lifts median and tail latencies; distributions shift right with heavier tails.
+- Memory: Zero‑GC hot path via pooled events; stable heap with no per‑operation allocations in steady state.
+- Jitter: On non‑isolated macOS hosts, OS jitter is visible at high percentiles (e.g., p99+).
+
 This page summarizes benchmark results and observations for the Fluxtion Server using the object pool and in-VM event flow.
 
 Source of results:
-- Data files: `*.hgrm` under this directory were produced by running the test/benchmark `BenchmarkObjectPoolDistribution` in report mode.
+- Data files: `*.hgrm` under this directory were produced by running the test/benchmark [BenchmarkObjectPoolDistribution.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/benchmark/objectpool/BenchmarkObjectPoolDistribution.java) in report mode.
 - Visualizations: Histogram PNGs in this folder were generated from those HdrHistogram output files.
 
 ## Test setup at a glance
@@ -18,6 +25,27 @@ Source of results:
 - Latency characteristics: As batching is enabled to drive throughput, the average and tail latencies increase. This is visible as a right-shift and heavier tail in the latency histograms and percentile distributions.
 - Jitter: Because the measurements were taken on a Mac that does not support hard CPU isolation, OS jitter and background activity are visible in the higher percentiles (e.g., p99, p99.9), as occasional spikes.
 
+## Memory and heap usage (Object Pooling)
+
+The example program [PoolEventSourceServerExample.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/objectpool/PoolEventSourceServerExample.java) publishes pooled events at very high rates and periodically prints heap and GC statistics. A representative snippet of its output:
+
+```
+Processed 12000000 messages in 252 ms, heap used: 23 MB, GC count: 0
+Processed 13000000 messages in 254 ms, heap used: 23 MB, GC count: 0
+Processed 14000000 messages in 253 ms, heap used: 23 MB, GC count: 0
+Processed 15000000 messages in 251 ms, heap used: 23 MB, GC count: 0
+Processed 16000000 messages in 251 ms, heap used: 23 MB, GC count: 0
+Processed 17000000 messages in 250 ms, heap used: 23 MB, GC count: 0
+Processed 18000000 messages in 250 ms, heap used: 23 MB, GC count: 0
+```
+
+Analysis:
+- The heap usage remains essentially flat (~23 MB) while tens of millions of messages are processed, and the GC collection count stays at 0 over multiple million‑message windows.
+- The publish loop targets roughly a 250 ns interval per message (≈4 million messages/second). At this rate, any per‑message heap allocation would quickly trigger GC activity and growing heap usage. The flat heap and zero GC demonstrate that pooled events eliminate per‑operation allocations in the hot path.
+- This behavior directly supports the zero‑GC design: pooled messages (BasePoolAware) are recycled; the framework acquires/releases references across queues and handlers, returning objects to the pool at end‑of‑cycle.
+
+For implementation details of the pooling approach, see the guide: [How to publish pooled events](../how-to/how-to-object-pool.md).
+
 ## Files in this directory
 - HdrHistogram raw distributions (nanoseconds):
   - `latency_10k_mps.hgrm`
@@ -28,6 +56,7 @@ Source of results:
   - `Histogram_1k_10k_1M_mps.png`
   - `Histogram_1m_mps.png`
   - `Histogram_10m_mps.png`
+  - `Histogram_all_mps.png`
 
 You can open the `.hgrm` files with HdrHistogram tooling or any text editor to inspect percentile distributions.
 
@@ -38,9 +67,31 @@ You can open the `.hgrm` files with HdrHistogram tooling or any text editor to i
 
 This is an inherent trade-off: batching amortizes overhead and increases throughput, but it delays some events waiting for their batch, lifting p50/p90 and especially tail percentiles.
 
+## Throughput (10M mps)
+This section isolates the 10 million messages per second test as a throughput-focused run:
+
+- Goal: Maximize sustained message rate through the server pipeline.
+- Technique: Enable batching in parts of the pipeline; agents run with BusySpin idle strategies and best‑effort core pinning.
+- Outcome: ~10M messages/sec steady state on a Mac host.
+- Side effect: Higher median and tail latencies compared to lower-rate runs due to batching and queueing (events may wait for a batch window).
+
+10M mps latency distribution (from the corresponding .hgrm):
+
+![Histogram 10M mps](Histogram_10m_mps.png)
+
+Notes:
+- Use `.hgrm` data (latency_10m_mps.hgrm) to regenerate or further analyze the percentile distribution.
+- On macOS, lack of strict CPU isolation introduces visible jitter in top percentiles; Linux with CPU shielding typically yields tighter tails.
+
 ## Plots
 
 The following plots were generated from the `.hgrm` files:
+
+- All message rates combined:
+
+  ![Histogram all mps](Histogram_all_mps.png)
+
+  In this combined view, the 10M mps line shows the highest throughput, achieved by batching in the pipeline. The side effect of batching is visible as a right-shifted latency distribution and heavier tails: individual events can wait for a batch window, increasing p50/p90 and especially the p99+ percentiles compared to lower message rates.
 
 - Mixed rates (1k, 10k, 1M mps):
 
@@ -54,7 +105,7 @@ The following plots were generated from the `.hgrm` files:
 
   ![Histogram 10M mps](Histogram_10m_mps.png)
 
-You can regenerate or augment these charts by re-running `BenchmarkObjectPoolDistribution` in report mode and processing the `.hgrm` outputs.
+You can regenerate or augment these charts by re-running [BenchmarkObjectPoolDistribution.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/benchmark/objectpool/BenchmarkObjectPoolDistribution.java) in report mode and processing the `.hgrm` outputs.
 
 ## Methodology notes
 - Each measurement run uses pooled message instances (BasePoolAware) to avoid transient allocations.
