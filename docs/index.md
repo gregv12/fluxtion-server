@@ -15,6 +15,7 @@ get to a working system quickly without reinventing common building blocks.
   handler.
 * Performance: Agent‑based concurrency with configurable idle strategies enables very high throughput and predictable
   latency.
+* ZeroGc: Built in object pooling to support zero gc event processing.
 * Ease of development: Compose processors and services, configured via YAML or Java with built in service injection.
 * Plugin ecosystem: community plugins, including support for Kafka, aeron, chronicle, and more.
   service injection.
