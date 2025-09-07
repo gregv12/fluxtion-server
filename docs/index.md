@@ -1,32 +1,90 @@
 # Mongoose Server
 
-Mongoose Server is a high‑performance, event‑driven framework for building scalable event processing applications fast.
+Mongoose Server is a high‑performance, event‑driven library for building scalable event processing applications fast.
 It wires sources, processors, sinks, and services for you, handling threading and lifecycle behind the scenes, so you
-can
-focus on business logic.
+can focus on business logic.
 
 Its plugin architecture lets you assemble pipelines from reusable components, including third‑party plugins from the
 broader ecosystem. You can mix and match existing sources, transforms, and sinks, add your own logic where needed, and
 get to a working system quickly without reinventing common building blocks.
 
+Mongoose is an embeddable library: run multiple server instances inside a parent JVM application, or deploy it as a
+standalone single‑server app — the same APIs support both.
+
 ## Why Mongoose Server?
 
 * Process multiple event feeds: Merge data from many real-time sources and process in a single-threaded application
   handler.
+* Build business logic fast: minimal learning curve no need to worry about threading, concurrency, or lifecycle.
 * Performance: Agent‑based concurrency with configurable idle strategies enables very high throughput and predictable
   latency.
-* ZeroGc: Built in object pooling to support zero gc event processing.
 * Ease of development: Compose processors and services, configured via YAML or Java with built in service injection.
-* Plugin ecosystem: community plugins, including support for Kafka, aeron, chronicle, and more.
-  service injection.
 * Plugin architecture: Clean extension points for event feeds, sinks, services, and dispatch strategies so you can
   tailor the runtime.
-* Operational control: Admin commands, scheduling, logging/audit support, and dynamic registration make operations
-  simpler.
+* Plugin ecosystem: community plugins, including support for Kafka, aeron, chronicle, and more.
+* ZeroGc: Built in object pooling to support zero gc event processing.
+* Operational control: Admin commands, scheduling, logging/audit support, and dynamic event handler registration
+  make operational control simpler.
+
+### Performance at a glance
+
+- 1 million messages/second Avg latency ≈ 270 nanos (0.00027 ms), p99.999 ≈ 81 µs, Max ≈ 90.1 µs.
+- Sustained 10 million messages/second with zero GC.
+- See detailed results in the benchmarks
+  report: [Server benchmarks and performance](reports/server-benchmarks-and-performance.md).
+
+### Quickstart: Hello Mongoose
+
+Run the one-file example to see events flowing through a handler:
+- Source: [HelloMongoose.java](../src/main/java/com/fluxtion/server/example/hellomongoose/HelloMongoose.java)
+
+```java
+public static void main(String[] args) {
+    // 1) Business logic handler
+    var handler = new ObjectEventHandlerNode() {
+        @Override
+        protected boolean handleEvent(Object event) {
+            if (event instanceof String s) {
+                System.out.println("Got event: " + s);
+            }
+            return true;
+        }
+    };
+
+    // 2) Build in memory feed
+    var feed = new InMemoryEventSource<String>();
+
+    // 3) Build and boot server with an in-memory feed and handler
+    var app = new AppConfig()
+            .addProcessor("processor-agent", handler, "hello-handler")
+            .addEventSourceWorker(
+                    feed,
+                    "hello-feed", //name
+                    true, //broadcast events - no subscription required
+                    "feed-agent", //agent name
+                    new BusySpinIdleStrategy());// agent idle strategy
+
+    var server = bootServer(app, rec -> {/* no-op logging */});
+
+    // 4) Publish a few events
+    feed.offer("hi");
+    feed.offer("mongoose");
+
+    // 5) Cleanup (in a real app, keep running)
+    server.stop();
+}
+```
+
+### Start here: Learn path
+- Step 1: Quickstart — run the one-file example: [Hello Mongoose](../src/main/java/com/fluxtion/server/example/hellomongoose/HelloMongoose.java)
+- Step 2: Learn the basics — [Event handling and business logic](guide/event-processing-architecture.md)
+- Step 3: Do common tasks — [How-to guides](how-to/how-to-subscribing-to-named-event-feeds.md)
+- Step 4: Understand internals — [Threading model](architecture/threading-model.md) and [Architecture overview](architecture/overview.md)
 
 ## Documentation is organized into the following sections:
 
 - Start with the [Overview](guide/overview.md) to learn concepts and architecture.
+- See [Event processing](guide/event-processing-architecture.md) where business logic meets event handling.
 - See [Examples](guide/file-and-memory-feeds-example.md) for quick hands-on guidance.
 - See [Plugins](plugin/writing-a-message-sink-plugin.md) for advice on writing plugins.
 - Use [How-to guides](how-to/how-to-subscribing-to-named-event-feeds.md) for common tasks and extensions.

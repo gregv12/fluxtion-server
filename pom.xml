@@ -9,7 +9,7 @@
 
     <groupId>com.fluxtion</groupId>
     <artifactId>server</artifactId>
-    <version>0.2.13-SNAPSHOT</version>
+    <version>0.2.14-SNAPSHOT</version>
     <name>fluxtion :: server</name>
 
     <description>

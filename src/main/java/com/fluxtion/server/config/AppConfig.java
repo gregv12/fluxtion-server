@@ -140,6 +140,23 @@ public class AppConfig {
         return this;
     }
 
+    public <T> AppConfig addEventSourceWorker(T eventSource, String name, boolean isBroadcast, String agentGroup, IdleStrategy idleStrategy) {
+        if (eventFeeds == null) {
+            eventFeeds = new ArrayList<>();
+        }
+
+        EventFeedConfig<T> eventFeedConfig = new EventFeedConfig<>();
+        eventFeedConfig.setInstance(eventSource);
+        eventFeedConfig.setName(name);
+        eventFeedConfig.setBroadcast(isBroadcast);
+        eventFeedConfig.setAgentName(agentGroup);
+        eventFeedConfig.setIdleStrategy(idleStrategy);
+
+        eventFeeds.add(eventFeedConfig);
+
+        return this;
+    }
+
     /**
      * Return an {@link IdleStrategy}, choosing from config when {@code preferredIdeIdleStrategy} is {@code null}.
      * <p>
