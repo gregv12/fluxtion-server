@@ -1,6 +1,6 @@
 # Troubleshooting and FAQ
 
-Common issues and remedies when building with Mongoose server.
+Common issues and remedies when building with Mongoose Server.
 
 - My handler doesn’t receive events
 - 

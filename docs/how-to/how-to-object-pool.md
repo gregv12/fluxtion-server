@@ -1,9 +1,9 @@
 # How to publish pooled events (for event source authors)
 
-This guide aimed at event source authors shows how to publish events using the global Object Pool. The framework manages
-reference counting and return-to-pool automatically across multiple threads. A zreo gc operation is possible if the event
-source uses the object pool as a source of event instances. In the example below, the pool is used to publish events at 
-a rate of four million per second with zero GC.
+This guide, aimed at event source authors, shows how to publish events using the global Object Pool. The framework manages
+reference counting and return-to-pool automatically across multiple threads. A Zero‑GC hot path is possible if the event
+source uses the object pool as the source of event instances. In the example below, the pool is used to publish events at 
+a rate of four million per second with Zero‑GC.
 
 If you need the low-level details of the pool internals (capacity, partitions, MPMC queues, reference counting
 implementation), see the Architecture and design page: [Object pooling](../architecture/object_pooling.md).

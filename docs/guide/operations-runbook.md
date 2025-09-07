@@ -3,7 +3,7 @@
 Operational guidance for running Mongoose Server in production. Tailor values to your environment.
 
 ## Process model
-- Single JVM hosting one or more Mongoose server instances.
+- Single JVM hosting one or more Mongoose Server instances.
 - Agents (threads) per event source, handler group, and services as configured.
 - Embeddable or standalone modes both supported.
 

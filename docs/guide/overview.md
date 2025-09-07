@@ -1,4 +1,4 @@
-# Mongoose server: Concepts, Architecture, and Usage
+# Mongoose Server: Concepts, Architecture, and Usage
 
 This document provides a deeper overview of Mongoose server beyond the short README summary. It covers the event-driven
 architecture, core components, configuration, plugin model, lifecycle, and example usage.

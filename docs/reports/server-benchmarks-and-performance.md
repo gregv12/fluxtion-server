@@ -42,7 +42,7 @@ Processed 18000000 messages in 250 ms, heap used: 23 MB, GC count: 0
 Analysis:
 
 - The heap usage remains essentially flat (~23 MB) while tens of millions of messages are processed, and the GC collection count stays at 0 over multiple million‑message windows.
-- The publish loop targets roughly a 250 ns interval per message (≈4 million messages/second). At this rate, any per‑message heap allocation would quickly trigger GC activity and growing heap usage. The flat heap and zero GC demonstrate that pooled events eliminate per‑operation allocations in the hot path.
+- The publish loop targets roughly a 250 ns interval per message (≈4 million messages/second). At this rate, any per‑message heap allocation would quickly trigger GC activity and growing heap usage. The flat heap and Zero‑GC behavior demonstrate that pooled events eliminate per‑operation allocations in the hot path.
 - This behavior directly supports the zero‑GC design: pooled messages (BasePoolAware) are recycled; the framework acquires/releases references across queues and handlers, returning objects to the pool at end‑of‑cycle.
 
 For implementation details of the pooling approach, see the guide: [How to publish pooled events](../how-to/how-to-object-pool.md).
@@ -128,6 +128,6 @@ Trade‑off: Batching raises throughput but can increase per‑event latency and
 
 ## Takeaways
 - Based on sub-microsecond average latency at 1M mps (≈270 ns) and strong high-percentile performance with zero‑GC hot paths, this is world‑class performance for a Java in‑JVM event processing server.
-- Fluxtion Server can sustain ~10 million msgs/sec in this configuration on commodity hardware by leveraging batching and zero-GC pooled events.
+- Fluxtion Server can sustain ~10 million msgs/sec in this configuration on commodity hardware by leveraging batching and Zero‑GC pooled events.
 - Latency distributions broaden with increased batching; tune batch sizes and idle strategies according to your SLA (throughput vs. latency).
 - For production-grade latency characterization, run on a Linux host with CPU isolation to reduce OS jitter and tighten the high-percentile tail.

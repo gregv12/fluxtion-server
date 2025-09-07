@@ -82,12 +82,13 @@ nav:
           - Event replay and synthetic time: how-to/how-to-replay.md
           - Write a custom EventToInvokeStrategy: how-to/how-to-writing-a-custom-event-to-invoke-strategy.md
           - Event source read strategy: guide/read-strategy.md
-          - Zero gc object pooling: how-to/how-to-object-pool.md
+          - Zero‑GC object pooling: how-to/how-to-object-pool.md
           - Core pin agent threads: how-to/how-to-core-pin.md
       - Architecture and design:
           - Doc description: architecture/architecture_index.md
           - Overview: architecture/overview.md
           - Event flow: architecture/event-flow.md
+          - Sequence diagrams (index): architecture/sequence-diagrams/index.md
           - Sequence event subscription: architecture/sequence-diagrams/event-subscription.md
           - Sequence event processing: architecture/sequence-diagrams/event-processing.md
           - Agent Execution: architecture/agent-execution.md
@@ -100,3 +101,4 @@ nav:
           - Server benchmarks and performance: reports/server-benchmarks-and-performance.md
           - Comparisons: guide/comparisons.md
           - Operations runbook: guide/operations-runbook.md
+          - API Reference: https://javadoc.io/doc/com.fluxtion/server/latest/index.html

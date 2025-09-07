@@ -15,22 +15,22 @@ standalone single‑server app — the same APIs support both.
 
 * Process multiple event feeds: Merge data from many real-time sources and process in a single-threaded application
   handler.
-* Build business logic fast: minimal learning curve no need to worry about threading, concurrency, or lifecycle.
+* Build business logic fast: minimal learning curve, with no need to worry about threading, concurrency, or lifecycle.
 * Performance: Agent‑based concurrency with configurable idle strategies enables very high throughput and predictable
   latency.
-* Ease of development: Compose processors and services, configured via YAML or Java with built in service injection.
+* Ease of development: Compose processors and services, configured via YAML or Java with built‑in service injection.
 * Plugin architecture: Clean extension points for event feeds, sinks, services, and dispatch strategies so you can
   tailor the runtime.
-* Plugin ecosystem: community plugins, including support for Kafka, aeron, chronicle, and more.
-* ZeroGc: Built in object pooling to support zero gc event processing.
+* Plugin ecosystem: community plugins, including support for Kafka, Aeron, Chronicle, and more.
+* Zero‑GC: Built-in object pooling to support zero‑GC event processing.
 * Operational control: Admin commands, scheduling, logging/audit support, and dynamic event handler registration
   make operational control simpler.
 
 ### Performance at a glance
 
-- 1 million messages/second response time latency stats
+- At 1 million messages/second, latency statistics:
     - Avg ≈ 270 nanos (0.00027 ms), p99.999 ≈ 81 µs, Max ≈ 90.1 µs.
-- Sustained 10 million messages/second with zero GC.
+- Sustained 10 million messages/second with Zero‑GC.
 - See detailed results in the benchmarks
   report: [Server benchmarks and performance](reports/server-benchmarks-and-performance.md).
 
@@ -52,7 +52,7 @@ public static void main(String[] args) {
         }
     };
 
-    // 2) Build in memory feed
+    // 2) Build an in-memory feed
     var feed = new InMemoryEventSource<String>();
 
     // 3) Build and boot server with an in-memory feed and handler
@@ -90,7 +90,7 @@ public static void main(String[] args) {
 - See [Plugins](plugin/writing-a-message-sink-plugin.md) for advice on writing plugins.
 - Use [How-to guides](how-to/how-to-subscribing-to-named-event-feeds.md) for common tasks and extensions.
 
-## Architecture and Threading model for internals.
+## Architecture and threading model for internals
 
 - Threading model → [architecture/threading-model.md](architecture/threading-model.md)
 - Architecture → [architecture/index.md](architecture/architecture_index.md)
