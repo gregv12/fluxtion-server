@@ -5,7 +5,7 @@ own commands on the fly. It also lists the default commands that are available o
 
 Related reading:
 
-- How-to: Add an admin command → ../how-to/writing-an-admin-command.md
+- How-to: Add an admin command → [write an admin command](../how-to/writing-an-admin-command.md)
 - Programmatic control
   API → [FluxtionServerController.java](../../src/main/java/com/fluxtion/server/service/servercontrol/FluxtionServerController.java)
 
@@ -16,6 +16,14 @@ Mongoose server exposes an administrative command plane that lets you:
 - Inspect and operate on the running system (e.g., list queues/event sources)
 - Register custom commands from your processors and services
 - Route command execution through the event flow so results are produced on the correct processor thread
+
+Exposing the registry externally:
+
+- The AdminCommandRegistry is exposed to the outside world via plugins. A concrete example is the CLI plugin
+  that reads from stdin and forwards requests to the registry:
+  [CliAdminCommandProcessor.java](../../src/main/java/com/fluxtion/server/service/admin/impl/CliAdminCommandProcessor.java).
+  In the same way, you can expose HTTP, gRPC, or other transports by writing a small adapter that translates incoming
+  requests into AdminCommandRequest objects and passes them to the registry.
 
 The core types are:
 
@@ -89,24 +97,36 @@ AdminCommandProcessor registers several default commands during start():
 - eventSources
     - Prints information about queues/event sources known to the EventFlowManager.
 
-References in code:
-
-- Registration: start() → registerCommand("help"), registerCommand("?"), registerCommand("eventSources"),
-  registerCommand("commands")
-- Help text: HELP_MESSAGE constant
-
 Source: [AdminCommandProcessor.java](../../src/main/java/com/fluxtion/server/service/admin/impl/AdminCommandProcessor.java)
 
-## Relationship to server management APIs
+## Server controller (optional plugin)
 
 For broader operational control (adding/stopping processors, starting/stopping services, etc.), use the server
-controller API:
+controller API. This is provided by the FluxtionServerController interface. Important: the controller is an optional
+plugin — it is not available by default in the runtime. You must include and register the plugin if you want
+programmatic
+control.
 
 - FluxtionServerController interface
   Source: [FluxtionServerController.java](../../src/main/java/com/fluxtion/server/service/servercontrol/FluxtionServerController.java)
 
-Admin commands can be used to expose safe operational actions that call into such management APIs, or to implement
-application-specific controls.
+Capabilities provided:
+
+- Add new event processors into a named group with a chosen IdleStrategy:
+  addEventProcessor(processorName, groupName, idleStrategy, Supplier<StaticEventProcessor>)
+- Start/stop named services at runtime:
+  startService(serviceName), stopService(serviceName)
+- Inspect registered services:
+  registeredServices() → Map<String, Service<?>>
+- Inspect registered processors grouped by group name:
+  registeredProcessors() → Map<String, Collection<NamedEventProcessor>>
+- Stop a specific processor within a group:
+  stopProcessor(groupName, processorName)
+
+Because it is optional, production deployments that do not require runtime control can omit the plugin entirely. If you
+do
+include it, you can also surface safe subsets of its capabilities via admin commands (e.g., wrap a stopProcessor action
+behind an authenticated admin command).
 
 ## End-to-end example (CLI)
 
@@ -117,7 +137,3 @@ The CLI admin component demonstrates wiring stdin to admin commands:
 - Calls AdminCommandRegistry.processAdminCommandRequest(request)
 
 Source: [CliAdminCommandProcessor.java](../../src/main/java/com/fluxtion/server/service/admin/impl/CliAdminCommandProcessor.java)
-
-See also the how-to guide for more patterns and a step-by-step walkthrough:
-
-- ../how-to/writing-an-admin-command.md
