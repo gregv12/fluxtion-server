@@ -91,6 +91,7 @@ nav:
           - Agent Execution: architecture/agent-execution.md
           - Threading model: architecture/threading-model.md
           - Object pooling: architecture/object_pooling.md
+          - Server control: architecture/server-control.md
   - Reports:
       - Server benchmarks and performance: reports/server-benchmarks-and-performance.md
 

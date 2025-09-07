@@ -1,13 +1,15 @@
 # Mongoose Server
 
-Mongoose Server is a high‑performance, event‑driven framework for building scalable event processing applications fast.
+Mongoose Server is a high‑performance, event‑driven library for building scalable event processing applications fast.
 It wires sources, processors, sinks, and services for you, handling threading and lifecycle behind the scenes, so you
-can
-focus on business logic.
+can focus on business logic.
 
 Its plugin architecture lets you assemble pipelines from reusable components, including third‑party plugins from the
 broader ecosystem. You can mix and match existing sources, transforms, and sinks, add your own logic where needed, and
 get to a working system quickly without reinventing common building blocks.
+
+Mongoose is an embeddable library: run multiple server instances inside a parent JVM application, or deploy it as a
+standalone single‑server app — the same APIs support both.
 
 ## Why Mongoose Server?
 
@@ -20,10 +22,9 @@ get to a working system quickly without reinventing common building blocks.
 * Plugin architecture: Clean extension points for event feeds, sinks, services, and dispatch strategies so you can
   tailor the runtime.
 * Plugin ecosystem: community plugins, including support for Kafka, aeron, chronicle, and more.
-  service injection.
 * ZeroGc: Built in object pooling to support zero gc event processing.
-* Operational control: Admin commands, scheduling, logging/audit support, and dynamic registration make operations
-  simpler.
+* Operational control: Admin commands, scheduling, logging/audit support, and dynamic event handler registration
+  make operational control simpler.
 
 ### Performance at a glance
 
