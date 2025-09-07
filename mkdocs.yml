@@ -96,3 +96,7 @@ nav:
       - Glossary: guide/glossary.md
       - Troubleshooting and FAQ: guide/troubleshooting.md
       - Server benchmarks and performance: reports/server-benchmarks-and-performance.md
+  - Managers:
+      - Overview for managers: guide/managers-overview.md
+  - Operations:
+      - Operations runbook: guide/operations-runbook.md
