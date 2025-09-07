@@ -13,16 +13,24 @@ get to a working system quickly without reinventing common building blocks.
 
 * Process multiple event feeds: Merge data from many real-time sources and process in a single-threaded application
   handler.
+* Build business logic fast: minimal learning curve no need to worry about threading, concurrency, or lifecycle.
 * Performance: Agent‑based concurrency with configurable idle strategies enables very high throughput and predictable
   latency.
-* ZeroGc: Built in object pooling to support zero gc event processing.
 * Ease of development: Compose processors and services, configured via YAML or Java with built in service injection.
-* Plugin ecosystem: community plugins, including support for Kafka, aeron, chronicle, and more.
-  service injection.
 * Plugin architecture: Clean extension points for event feeds, sinks, services, and dispatch strategies so you can
   tailor the runtime.
+* Plugin ecosystem: community plugins, including support for Kafka, aeron, chronicle, and more.
+  service injection.
+* ZeroGc: Built in object pooling to support zero gc event processing.
 * Operational control: Admin commands, scheduling, logging/audit support, and dynamic registration make operations
   simpler.
+
+### Performance at a glance
+
+- 1 million messages/second Avg latency ≈ 270 nanos (0.00027 ms), p99.999 ≈ 81 µs, Max ≈ 90.1 µs.
+- Sustained 10 million messages/second with zero GC.
+- See detailed results in the benchmarks
+  report: [Server benchmarks and performance](reports/server-benchmarks-and-performance.md).
 
 ## Documentation is organized into the following sections:
 
