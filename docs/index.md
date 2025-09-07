@@ -36,7 +36,44 @@ standalone single‑server app — the same APIs support both.
 ### Quickstart: Hello Mongoose
 
 Run the one-file example to see events flowing through a handler:
-- Source: [src/main/java/com/fluxtion/server/example/hellomongoose/HelloMongoose.java](../src/main/java/com/fluxtion/server/example/hellomongoose/HelloMongoose.java)
+- Source: [HelloMongoose.java](../src/main/java/com/fluxtion/server/example/hellomongoose/HelloMongoose.java)
+
+```java
+public static void main(String[] args) {
+    // 1) Business logic handler
+    var handler = new ObjectEventHandlerNode() {
+        @Override
+        protected boolean handleEvent(Object event) {
+            if (event instanceof String s) {
+                System.out.println("Got event: " + s);
+            }
+            return true;
+        }
+    };
+
+    // 2) Build in memory feed
+    var feed = new InMemoryEventSource<String>();
+
+    // 3) Build and boot server with an in-memory feed and handler
+    var app = new AppConfig()
+            .addProcessor("processor-agent", handler, "hello-handler")
+            .addEventSourceWorker(
+                    feed,
+                    "hello-feed", //name
+                    true, //broadcast events - no subscription required
+                    "feed-agent", //agent name
+                    new BusySpinIdleStrategy());// agent idle strategy
+
+    var server = bootServer(app, rec -> {/* no-op logging */});
+
+    // 4) Publish a few events
+    feed.offer("hi");
+    feed.offer("mongoose");
+
+    // 5) Cleanup (in a real app, keep running)
+    server.stop();
+}
+```
 
 ### Start here: Learn path
 - Step 1: Quickstart — run the one-file example: [Hello Mongoose](../src/main/java/com/fluxtion/server/example/hellomongoose/HelloMongoose.java)
