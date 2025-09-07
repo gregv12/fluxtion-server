@@ -27,7 +27,7 @@ You’ll learn:
 
 References:
 
-- [AdminCommandRegistry.java](../../src/main/java/com/fluxtion/server/service/admin/AdminCommandRegistry.java)
+- [AdminCommandRegistry.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/admin/AdminCommandRegistry.java)
 - [AdminFunction.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/admin/AdminFunction.java)
 - [AdminCommandRequest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/admin/AdminCommandRequest.java)
 - [AdminCommandProcessor.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/admin/impl/AdminCommandProcessor.java)
