@@ -15,9 +15,9 @@ When to customize:
 You can:
 
 - Implement the low-level interface
-  directly: [EventToInvokeStrategy](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/EventToInvokeStrategy.java)
+  directly: [EventToInvokeStrategy](../../src/main/java/com/fluxtion/server/service/EventToInvokeStrategy.java)
 - Or extend the convenience base
-  class: [AbstractEventToInvocationStrategy](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dispatch/AbstractEventToInvocationStrategy.java)
+  class: [AbstractEventToInvocationStrategy](../../src/main/java/com/fluxtion/server/dispatch/AbstractEventToInvocationStrategy.java)
 
 The helper already manages:
 
@@ -66,7 +66,7 @@ Notes:
 - Using an invoker strategy allows your event processors to be strongly typed (e.g., MarkerProcessor.onString), while
   the strategy takes responsibility for mapping inbound events to the correct callback. This reduces boilerplate and
   centralizes dispatch logic, which can make future maintenance easier.
-- [ProcessorContext](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dispatch/ProcessorContext.java)
+- [ProcessorContext](../../src/main/java/com/fluxtion/server/dispatch/ProcessorContext.java)
   is automatically set to the current target processor during dispatch. Inside the processor, you can call
   ProcessorContext.currentProcessor() if needed.
 - If you call processEvent(event, time), AbstractEventToInvocationStrategy wires a synthetic clock into each target

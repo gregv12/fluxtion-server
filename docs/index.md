@@ -33,6 +33,17 @@ standalone single‑server app — the same APIs support both.
 - See detailed results in the benchmarks
   report: [Server benchmarks and performance](reports/server-benchmarks-and-performance.md).
 
+### Quickstart: Hello Mongoose
+
+Run the one-file example to see events flowing through a handler:
+- Source: [src/main/java/com/fluxtion/server/example/hellomongoose/HelloMongoose.java](../src/main/java/com/fluxtion/server/example/hellomongoose/HelloMongoose.java)
+
+### Start here: Learn path
+- Step 1: Quickstart — run the one-file example: [Hello Mongoose](../src/main/java/com/fluxtion/server/example/hellomongoose/HelloMongoose.java)
+- Step 2: Learn the basics — [Event handling and business logic](guide/event-processing-architecture.md)
+- Step 3: Do common tasks — [How-to guides](how-to/how-to-subscribing-to-named-event-feeds.md)
+- Step 4: Understand internals — [Threading model](architecture/threading-model.md) and [Architecture overview](architecture/overview.md)
+
 ## Documentation is organized into the following sections:
 
 - Start with the [Overview](guide/overview.md) to learn concepts and architecture.

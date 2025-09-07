@@ -57,9 +57,9 @@ extra:
 nav:
   - Home: index.md
   - Guide:
+      - 5-minute handler tutorial: guide/five-minute-event-handler-tutorial.md
       - Overview: guide/overview.md
       - Event handling and business logic: guide/event-processing-architecture.md
-      - 5-minute handler tutorial: guide/five-minute-event-handler-tutorial.md
       - Plugin extension mechanism: guide/plugin_extension_architecture.md
       - Event handler examples:
           - Fluent API: guide/file-and-memory-feeds-example.md
@@ -92,6 +92,7 @@ nav:
           - Threading model: architecture/threading-model.md
           - Object pooling: architecture/object_pooling.md
           - Server control: architecture/server-control.md
-  - Reports:
+  - Reference:
+      - Glossary: guide/glossary.md
+      - Troubleshooting and FAQ: guide/troubleshooting.md
       - Server benchmarks and performance: reports/server-benchmarks-and-performance.md
-

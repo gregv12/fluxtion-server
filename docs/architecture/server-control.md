@@ -107,6 +107,11 @@ plugin — it is not available by default in the runtime. You must include and r
 programmatic
 control.
 
+Security note:
+- Do not expose admin command adapters (CLI/HTTP/gRPC) publicly without authentication and authorization.
+- Consider whitelisting safe commands for external access.
+- The FluxtionServerController plugin should be enabled only when you require runtime control; keep it disabled otherwise.
+
 - FluxtionServerController interface
   Source: [FluxtionServerController.java](../../src/main/java/com/fluxtion/server/service/servercontrol/FluxtionServerController.java)
 
