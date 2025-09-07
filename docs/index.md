@@ -28,7 +28,8 @@ standalone single‑server app — the same APIs support both.
 
 ### Performance at a glance
 
-- 1 million messages/second Avg latency ≈ 270 nanos (0.00027 ms), p99.999 ≈ 81 µs, Max ≈ 90.1 µs.
+- 1 million messages/second response time latency stats
+    - Avg ≈ 270 nanos (0.00027 ms), p99.999 ≈ 81 µs, Max ≈ 90.1 µs.
 - Sustained 10 million messages/second with zero GC.
 - See detailed results in the benchmarks
   report: [Server benchmarks and performance](reports/server-benchmarks-and-performance.md).
