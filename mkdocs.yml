@@ -85,18 +85,21 @@ nav:
           - Zero‑GC object pooling: how-to/how-to-object-pool.md
           - Core pin agent threads: how-to/how-to-core-pin.md
       - Architecture and design:
-          - Doc description: architecture/architecture_index.md
+          - Doc description: architecture/index.md
           - Overview: architecture/overview.md
+          - Components: architecture/components.md
           - Event flow: architecture/event-flow.md
-          - Sequence diagrams (index): architecture/sequence-diagrams/index.md
-          - Sequence event subscription: architecture/sequence-diagrams/event-subscription.md
-          - Sequence event processing: architecture/sequence-diagrams/event-processing.md
+          - Sequence diagrams:
+              - Overview: architecture/sequence-diagrams/index.md
+              - Sequence event subscription: architecture/sequence-diagrams/event-subscription.md
+              - Sequence event processing: architecture/sequence-diagrams/event-processing.md
           - Agent Execution: architecture/agent-execution.md
           - Threading model: architecture/threading-model.md
           - Object pooling: architecture/object_pooling.md
           - Server control: architecture/server-control.md
       - Reference:
-          - Glossary: guide/glossary.md
+          - Glossary: reference/index.md
+          - Glossary: reference/glossary.md
           - Troubleshooting and FAQ: guide/troubleshooting.md
           - Server benchmarks and performance: reports/server-benchmarks-and-performance.md
           - Comparisons: guide/comparisons.md
