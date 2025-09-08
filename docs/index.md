@@ -93,7 +93,7 @@ public static void main(String[] args) {
 ## Architecture and threading model for internals
 
 - Threading model → [architecture/threading-model.md](architecture/threading-model.md)
-- Architecture → [architecture/index.md](architecture/architecture_index.md)
+- Architecture → [architecture/index.md](architecture/index.md)
 - Event flow → [architecture/event-flow.md](architecture/event-flow.md)
 - Sequence diagrams → [architecture/sequence-diagrams/index.md](architecture/sequence-diagrams/index.md)
 

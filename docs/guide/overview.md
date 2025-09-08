@@ -177,7 +177,7 @@ F --> A
 
 ## See Also
 
-- [Architecture index](../architecture/architecture_index.md)
+- [Architecture index](../architecture/index.md)
 - [Architecture overview](../architecture/overview.md)
 - [Components](../architecture/components.md)
 - [Event flow](../architecture/event-flow.md)
