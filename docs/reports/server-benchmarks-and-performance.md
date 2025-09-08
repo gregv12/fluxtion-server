@@ -70,7 +70,7 @@ This is an inherent trade-off: batching amortizes overhead and increases through
 
 All message rates combined:
 
-![Histogram all mps](Histogram_all_mps.png)
+[![Histogram all mps](Histogram_all_mps.png)](Histogram_all_mps.png)
 
 In this combined view, the 10M mps line shows the highest sustained throughput, achieved by enabling batching in parts of the pipeline. The side effect of batching is visible as a right‑shifted latency distribution with heavier tails: individual events can wait for a batch window, increasing p50/p90 and especially the p99+ percentiles compared to lower message rates.
 
@@ -84,7 +84,7 @@ This section isolates the 10 million messages per second test as a throughput-fo
 
 10M mps latency distribution (from the corresponding .hgrm):
 
-![Histogram 10M mps](Histogram_10m_mps.png)
+[![Histogram 10M mps](Histogram_10m_mps.png)](Histogram_10m_mps.png)
 
 Notes:
 - Use `.hgrm` data (latency_10m_mps.hgrm) to regenerate or further analyze the percentile distribution.
@@ -101,7 +101,7 @@ This section focuses on the latency characteristics at 1 million messages per se
 
 1M mps latency distribution:
 
-![Histogram 1M mps](Histogram_1m_mps.png)
+[![Histogram 1M mps](Histogram_1m_mps.png)](Histogram_1m_mps.png)
 
 Use the `.hgrm` data (latency_1m_mps.hgrm) to regenerate or further analyze the percentile distribution and exact percentiles.
 
