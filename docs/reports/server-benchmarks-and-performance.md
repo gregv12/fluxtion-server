@@ -20,6 +20,39 @@ Source of results:
 - Threading: Busy spin agents with best-effort core pinning where available.
 - Machine: Apple Mac (laptop/desktop class). Note: macOS typically lacks strict CPU isolation/affinity controls compared to some Linux setups.
 
+### Diagram: High-level benchmark setup
+
+```mermaid
+flowchart TB
+  subgraph Publisher[Event feed]
+    EV[In-VM EventSource]
+  end
+
+  subgraph Server[Event handler]
+    direction LR
+    Q[(SPSC Queue)]
+    DISP[Event handler dispatcher]
+    subgraph Agent[Processor Agent - BusySpin]
+      HND[Handler / StaticEventProcessor]
+    end
+    METRICS[HdrHistogram Recorder]
+  end
+
+  POOL[[ObjectPoolsRegistry]]
+
+  EV -- acquire pooled msg --> POOL
+  DISP -- auto release pooled msg --> POOL
+  EV -- publish --> Q
+  Q --> DISP --> HND
+  HND -- record latency --> METRICS
+```
+
+Notes:
+
+- Messages are pooled via ObjectPoolsRegistry; publisher acquires and recycles objects to achieve Zero-GC.
+- Publication uses a single-producer/single-consumer queue into the server; the processor runs on a busy-spin agent (best-effort core pinning on host).
+- Latency is measured end-to-end (publish to handler) and recorded via HdrHistogram for later visualization.
+
 ## Headline results
 - Throughput: The server sustains approximately 10 million messages per second (10 M mps) in steady state in this setup.
 - Latency characteristics: As batching is enabled to drive throughput, the average and tail latencies increase. This is visible as a right-shift and heavier tail in the latency histograms and percentile distributions.
@@ -49,15 +82,10 @@ For implementation details of the pooling approach, see the guide: [How to publi
 
 ## Files in this directory
 - HdrHistogram raw distributions (nanoseconds):
-  - [`latency_10k_mps.hgrm`](latency_10k_mps.hgrm)
-  - [`latency_100k_mps.hgrm`](latency_100k_mps.hgrm)
-  - [`latency_1m_mps.hgrm`](latency_1m_mps.hgrm)
-  - [`latency_10m_mps.hgrm`](latency_10m_mps.hgrm)
-- Charts derived from the above:
-  - [`Histogram_1k_10k_1M_mps.png`](Histogram_1k_10k_1M_mps.png)
-  - [`Histogram_1m_mps.png`](Histogram_1m_mps.png)
-  - [`Histogram_10m_mps.png`](Histogram_10m_mps.png)
-  - [`Histogram_all_mps.png`](Histogram_all_mps.png)
+  - [`latency_10k_mps.hgrm`](latency_10k_mps.hgrm) view as a [`chart`](Histogram_1k_10k_1M_mps.png)
+  - [`latency_100k_mps.hgrm`](latency_100k_mps.hgrm)  view as a [`chart`](Histogram_1m_mps.png)
+  - [`latency_1m_mps.hgrm`](latency_1m_mps.hgrm)  view as a [`chart`](Histogram_10m_mps.png)
+  - [`latency_10m_mps.hgrm`](latency_10m_mps.hgrm)  view as a [`chart`](Histogram_all_mps.png)
 
 You can open the `.hgrm` files with HdrHistogram tooling or any text editor to inspect percentile distributions.
 

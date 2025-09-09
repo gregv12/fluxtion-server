@@ -5,7 +5,7 @@
 
 package com.fluxtion.server.example;
 
-import com.fluxtion.server.FluxtionServer;
+import com.fluxtion.server.MongooseServer;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -16,14 +16,14 @@ public class DemonstrationEventProcessor {
     @Test
     @Disabled
     public void customHandlerTest() throws InterruptedException {
-        FluxtionServer.bootServer(new StringReader(configWrapHandler), System.out::println);
+        MongooseServer.bootServer(new StringReader(configWrapHandler), System.out::println);
         Thread.sleep(1_000_000);
     }
 
     @Test
     @Disabled
     public void performanceTest() throws InterruptedException {
-        FluxtionServer.bootServer(new StringReader(configPerformance), System.out::println);
+        MongooseServer.bootServer(new StringReader(configPerformance), System.out::println);
         Thread.sleep(1_000_000);
     }
 

@@ -131,7 +131,7 @@ There are two common ways to register sinks:
 1) Preferred: `EventSinkConfig` (works with any `MessageSink<?>`)
 
 ```java
-import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.config.EventSinkConfig;
 
 MyCustomMessageSink mySink = new MyCustomMessageSink();
@@ -142,7 +142,7 @@ EventSinkConfig<MyCustomMessageSink> sinkCfg = EventSinkConfig.builder()
         .name("mySink")
         .build();
 
-AppConfig app = AppConfig.builder()
+MongooseServerConfig app = MongooseServerConfig.builder()
         .addEventSink(sinkCfg)
         .build();
 ```
@@ -158,7 +158,7 @@ ServiceConfig<MyCustomMessageSink> svc = ServiceConfig.builder()
         .name("mySink")
         .build();
 
-AppConfig app = AppConfig.builder()
+MongooseServerConfig app = MongooseServerConfig.builder()
         .addService(svc)
         .build();
 ```
@@ -201,7 +201,7 @@ EventSinkConfig<MyCustomMessageSink> sinkCfg = EventSinkConfig.builder()
         .agent("sink-agent-thread", new BusySpinIdleStrategy())
         .build();
 
-AppConfig app = AppConfig.builder()
+MongooseServerConfig app = MongooseServerConfig.builder()
         .addEventSink(sinkCfg)
         .build();
 ```
@@ -249,5 +249,5 @@ static class TestableMySink extends MyCustomMessageSink {
   wiring and
   registering sinks with `EventSinkConfig`.
 
-With this structure, you can implement custom sinks for any target in a few lines, register them with `AppConfig`, and
+With this structure, you can implement custom sinks for any target in a few lines, register them with `MongooseServerConfig`, and
 begin publishing from your processors immediately.

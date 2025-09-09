@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  * - (ServiceInterface)
  * - (ServiceInterface, String name)
  * <p>
- * This injector is intended for non-processor objects (plain services managed by FluxtionServer
+ * This injector is intended for non-processor objects (plain services managed by MongooseServer
  * or agent-hosted services). Injection inside StaticEventProcessor graphs is already handled by
  * the Fluxtion runtime via ServiceRegistryNode.
  */

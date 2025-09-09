@@ -7,7 +7,7 @@ package com.fluxtion.server.example;
 
 import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
 import com.fluxtion.runtime.audit.LogRecordListener;
-import com.fluxtion.server.FluxtionServer;
+import com.fluxtion.server.MongooseServer;
 import com.fluxtion.server.config.*;
 import com.fluxtion.server.connector.file.FileEventSource;
 import com.fluxtion.server.connector.file.FileMessageSink;
@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Example demonstrating the fluent AppConfig builder to:
+ * Example demonstrating the fluent MongooseServerConfig builder to:
  * - add two event sources (FileEventSource and InMemoryEventSource)
  * - add an ObjectEventHandlerNode-based processor
  * - add a FileMessageSink output
@@ -76,14 +76,14 @@ public class BuilderApiFluentExampleTest {
                 .agent("memory-source-agent", new BusySpinIdleStrategy())
                 .build();
 
-        // Register sink using EventSinkConfig and add via AppConfig builder
+        // Register sink using EventSinkConfig and add via MongooseServerConfig builder
         EventSinkConfig<FileMessageSink> sinkCfg = EventSinkConfig.<FileMessageSink>builder()
                 .instance(fileSink)
                 .name("fileSink")
                 .build();
 
-        // Build full AppConfig
-        AppConfig appConfig = AppConfig.builder()
+        // Build full MongooseServerConfig
+        MongooseServerConfig mongooseServerConfig = MongooseServerConfig.builder()
                 .addProcessorGroup(processorGroup)
                 .addEventFeed(fileFeedCfg)
                 .addEventFeed(memFeedCfg)
@@ -91,7 +91,7 @@ public class BuilderApiFluentExampleTest {
                 .build();
 
         LogRecordListener logListener = rec -> {};
-        FluxtionServer server = FluxtionServer.bootServer(appConfig, logListener);
+        MongooseServer server = MongooseServer.bootServer(mongooseServerConfig, logListener);
 
         try {
             // Stimulate sources: write to input file and offer memory events

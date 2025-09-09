@@ -89,7 +89,7 @@ logically ordered and cover both architectural and code-level improvements.
 ### Refactoring
 
 - [x] Refactor EventFlowManager to reduce complexity
-- [x] Split FluxtionServer class into smaller, focused classes
+- [x] Split MongooseServer class into smaller, focused classes
 - [x] Improve thread safety in concurrent operations
 - [x] Refactor service lifecycle management
 

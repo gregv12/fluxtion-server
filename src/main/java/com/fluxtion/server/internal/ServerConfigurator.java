@@ -8,19 +8,19 @@ import com.fluxtion.agrona.concurrent.IdleStrategy;
 import com.fluxtion.runtime.audit.EventLogControlEvent;
 import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.service.Service;
-import com.fluxtion.server.FluxtionServer;
-import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.MongooseServer;
+import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.config.ServiceConfig;
 import com.fluxtion.server.dutycycle.GlobalErrorHandler;
 import com.fluxtion.server.service.pool.ObjectPoolsRegistry;
 import com.fluxtion.server.service.pool.impl.Pools;
-import com.fluxtion.server.service.servercontrol.FluxtionServerController;
+import com.fluxtion.server.service.servercontrol.MongooseServerController;
 
 import java.util.Objects;
 
 /**
- * Helper responsible for applying AppConfig to a FluxtionServer instance.
- * Keeps FluxtionServer focused and allows easier testing of configuration logic.
+ * Helper responsible for applying MongooseServerConfig to a MongooseServer instance.
+ * Keeps MongooseServer focused and allows easier testing of configuration logic.
  */
 public final class ServerConfigurator {
 
@@ -28,75 +28,75 @@ public final class ServerConfigurator {
     }
 
     /**
-     * Boots and configures a FluxtionServer instance using the provided configuration and log record listener.
+     * Boots and configures a MongooseServer instance using the provided configuration and log record listener.
      *
-     * @param appConfig         the application configuration containing event feeds, sinks, services, and handlers. Must not be null.
+     * @param mongooseServerConfig         the application configuration containing event feeds, sinks, services, and handlers. Must not be null.
      * @param logRecordListener the listener for log records to be used by event processors. Must not be null.
-     * @return a fully configured and initialized FluxtionServer instance.
+     * @return a fully configured and initialized MongooseServer instance.
      */
-    public static FluxtionServer bootFromConfig(AppConfig appConfig, LogRecordListener logRecordListener) {
-        Objects.requireNonNull(appConfig, "appConfig must be non-null");
+    public static MongooseServer bootFromConfig(MongooseServerConfig mongooseServerConfig, LogRecordListener logRecordListener) {
+        Objects.requireNonNull(mongooseServerConfig, "mongooseServerConfig must be non-null");
         Objects.requireNonNull(logRecordListener, "logRecordListener must be non-null");
 
-        FluxtionServer fluxtionServer = new FluxtionServer(appConfig);
-        fluxtionServer.setDefaultErrorHandler(new GlobalErrorHandler());
+        MongooseServer mongooseServer = new MongooseServer(mongooseServerConfig);
+        mongooseServer.setDefaultErrorHandler(new GlobalErrorHandler());
 
         // Register any configured event-to-invocation strategies with the flow manager
-        if (appConfig.getEventInvokeStrategies() != null && !appConfig.getEventInvokeStrategies().isEmpty()) {
-            appConfig.getEventInvokeStrategies().forEach((type, factory) ->
-                    fluxtionServer.registerEventMapperFactory(factory, type));
+        if (mongooseServerConfig.getEventInvokeStrategies() != null && !mongooseServerConfig.getEventInvokeStrategies().isEmpty()) {
+            mongooseServerConfig.getEventInvokeStrategies().forEach((type, factory) ->
+                    mongooseServer.registerEventMapperFactory(factory, type));
         }
 
         //root server controller
-        fluxtionServer.registerService(new Service<>(fluxtionServer, FluxtionServerController.class, FluxtionServerController.SERVICE_NAME));
+        mongooseServer.registerService(new Service<>(mongooseServer, MongooseServerController.class, MongooseServerController.SERVICE_NAME));
 
         //register ObjectPoolService
-        fluxtionServer.registerService(new Service<>(Pools.SHARED, ObjectPoolsRegistry.class, ObjectPoolsRegistry.SERVICE_NAME));
+        mongooseServer.registerService(new Service<>(Pools.SHARED, ObjectPoolsRegistry.class, ObjectPoolsRegistry.SERVICE_NAME));
 
         //event sources
-        if (appConfig.getEventFeeds() != null) {
-            appConfig.getEventFeeds().forEach(server -> {
+        if (mongooseServerConfig.getEventFeeds() != null) {
+            mongooseServerConfig.getEventFeeds().forEach(server -> {
                 if (server.isAgent()) {
-                    fluxtionServer.registerWorkerService(server.toServiceAgent());
+                    mongooseServer.registerWorkerService(server.toServiceAgent());
                 } else {
-                    fluxtionServer.registerService(server.toService());
+                    mongooseServer.registerService(server.toService());
                 }
             });
         }
 
         //event sinks
-        if (appConfig.getEventSinks() != null) {
-            appConfig.getEventSinks().forEach(server -> {
+        if (mongooseServerConfig.getEventSinks() != null) {
+            mongooseServerConfig.getEventSinks().forEach(server -> {
                 if (server.isAgent()) {
-                    fluxtionServer.registerWorkerService(server.toServiceAgent());
+                    mongooseServer.registerWorkerService(server.toServiceAgent());
                 } else {
-                    fluxtionServer.registerService(server.toService());
+                    mongooseServer.registerService(server.toService());
                 }
             });
         }
 
         //services
-        if (appConfig.getServices() != null) {
-            for (ServiceConfig<?> serviceConfig : appConfig.getServices()) {
+        if (mongooseServerConfig.getServices() != null) {
+            for (ServiceConfig<?> serviceConfig : mongooseServerConfig.getServices()) {
                 if (serviceConfig.isAgent()) {
-                    fluxtionServer.registerWorkerService(serviceConfig.toServiceAgent());
+                    mongooseServer.registerWorkerService(serviceConfig.toServiceAgent());
                 } else {
-                    fluxtionServer.registerService(serviceConfig.toService());
+                    mongooseServer.registerService(serviceConfig.toService());
                 }
             }
         }
 
         //event handlers
-        if (appConfig.getEventHandlers() != null) {
-            appConfig.getEventHandlers().forEach(cfg -> {
+        if (mongooseServerConfig.getEventHandlers() != null) {
+            mongooseServerConfig.getEventHandlers().forEach(cfg -> {
                 final EventLogControlEvent.LogLevel defaultLogLevel = cfg.getLogLevel() == null ? EventLogControlEvent.LogLevel.INFO : cfg.getLogLevel();
                 String groupName = cfg.getAgentName();
                 IdleStrategy idleStrategy1 = cfg.getIdleStrategy();
-                IdleStrategy idleStrategy = appConfig.lookupIdleStrategyWhenNull(idleStrategy1, cfg.getAgentName());
+                IdleStrategy idleStrategy = mongooseServerConfig.lookupIdleStrategyWhenNull(idleStrategy1, cfg.getAgentName());
                 cfg.getEventHandlers().entrySet().forEach(handlerEntry -> {
                     String name = handlerEntry.getKey();
                     try {
-                        fluxtionServer.addEventProcessor(
+                        mongooseServer.addEventProcessor(
                                 name,
                                 groupName,
                                 idleStrategy,
@@ -117,16 +117,16 @@ public final class ServerConfigurator {
                                     return eventProcessor;
                                 });
                     } catch (Exception e) {
-                        // keep behavior consistent with previous implementation (log handled by FluxtionServer)
+                        // keep behavior consistent with previous implementation (log handled by MongooseServer)
                     }
                 });
             });
         }
 
         //start
-        fluxtionServer.init();
-        fluxtionServer.start();
+        mongooseServer.init();
+        mongooseServer.start();
 
-        return fluxtionServer;
+        return mongooseServer;
     }
 }

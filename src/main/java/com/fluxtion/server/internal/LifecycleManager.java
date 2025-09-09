@@ -7,7 +7,7 @@ package com.fluxtion.server.internal;
 import com.fluxtion.agrona.concurrent.AgentRunner;
 import com.fluxtion.agrona.concurrent.DynamicCompositeAgent;
 import com.fluxtion.runtime.service.Service;
-import com.fluxtion.server.FluxtionServer;
+import com.fluxtion.server.MongooseServer;
 import com.fluxtion.server.dispatch.EventFlowManager;
 import com.fluxtion.server.service.LifeCycleEventSource;
 import lombok.extern.java.Log;
@@ -17,15 +17,15 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Encapsulates lifecycle orchestration for FluxtionServer.
- * Keeps FluxtionServer thin and focused on API while preserving behavior.
+ * Encapsulates lifecycle orchestration for MongooseServer.
+ * Keeps MongooseServer thin and focused on API while preserving behavior.
  */
 @Log
 public final class LifecycleManager {
 
-    private final FluxtionServer server;
+    private final MongooseServer server;
 
-    public LifecycleManager(FluxtionServer server) {
+    public LifecycleManager(MongooseServer server) {
         this.server = server;
     }
 

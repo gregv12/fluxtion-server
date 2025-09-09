@@ -1,6 +1,6 @@
 # How to inject initial config into a processor
 
-This guide shows how to inject configuration into your event processors at server boot when using the fluent AppConfig
+This guide shows how to inject configuration into your event processors at server boot when using the fluent MongooseServerConfig
 builder.
 
 When to use this:
@@ -10,7 +10,7 @@ When to use this:
 
 Key pieces in this repository:
 
-- AppConfig/EventProcessorGroupConfig/EventProcessorConfig builder APIs
+- MongooseServerConfig/EventProcessorGroupConfig/EventProcessorConfig builder APIs
 - [Config map container](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/config/ConfigMap.java)
   for type-safe lookup
 - [Config Listener](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/config/ConfigListener.java)
@@ -71,7 +71,7 @@ class MyConfigAwareHandler
 Use EventProcessorConfig.Builder.putConfig(key, value) for each entry.
 
 ```java
-import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.config.EventProcessorConfig;
 import com.fluxtion.server.config.EventProcessorGroupConfig;
 
@@ -96,5 +96,5 @@ Check this test that boots a server using the fluent API and verifies the initia
 
 - Prefer ConfigKey for type-safe lookups from ConfigMap.
 - Keep configuration keys stable and documented near your processor code.
-- You can mix AppConfig-provided config with dynamic config updates later by defining your own config update events and
+- You can mix MongooseServerConfig-provided config with dynamic config updates later by defining your own config update events and
   handling them in the processor.

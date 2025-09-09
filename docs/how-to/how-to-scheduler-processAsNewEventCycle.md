@@ -89,8 +89,8 @@ public void testReEntrant_countAndExit() throws InterruptedException {
             .setMaxCount(20)
             .setThrowOnMax(false);
 
-    AppConfig appConfig = new AppConfig().addProcessor("handlerThread", handler, "reEntrantHandler");
-    FluxtionServer server = FluxtionServer.bootServer(appConfig, lr -> {});
+    MongooseServerConfig mongooseServerConfig = new MongooseServerConfig().addProcessor("handlerThread", handler, "reEntrantHandler");
+    MongooseServer server = MongooseServer.bootServer(mongooseServerConfig, lr -> {});
 
     long timeoutMs = 5_000;
     long start = System.currentTimeMillis();

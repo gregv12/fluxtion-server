@@ -12,7 +12,7 @@ You’ll learn:
 - Implementing a simple Lifecycle service
 - Implementing a worker (agent-hosted) service
 - Dependency injection via `@ServiceRegistered`
-- Registering services via `ServiceConfig` and `AppConfig` (builder and programmatic)
+- Registering services via `ServiceConfig` and `MongooseServerConfig` (builder and programmatic)
 - Naming, lookup, and interaction with other services
 - Testing patterns and common pitfalls
 
@@ -20,7 +20,7 @@ References in this repository:
 
 - [ServiceConfig.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/config/ServiceConfig.java)
 - [ServerConfigurator.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/internal/ServerConfigurator.java)
-- [FluxtionServer.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/FluxtionServer.java)
+- [MongooseServer.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/MongooseServer.java)
 
 ## When to write a service
 
@@ -188,13 +188,13 @@ Key points:
 - Server injects newly registered services into all existing services and vice versa (single-target injection step),
   enabling loose coupling.
 
-## Registering services with AppConfig (fluent builder)
+## Registering services with MongooseServerConfig (fluent builder)
 
 Register services using `ServiceConfig`. For worker services, specify an agent group and an idle strategy.
 
 ```java
 import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
-import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.config.ServiceConfig;
 
 MySimpleService simple = new MySimpleService("cfgA");
@@ -213,13 +213,13 @@ ServiceConfig<MyWorkerService> workerCfg = ServiceConfig.<MyWorkerService>builde
         .agent("worker-agent-group", new BusySpinIdleStrategy())
         .build();
 
-AppConfig app = AppConfig.builder()
+MongooseServerConfig app = MongooseServerConfig.builder()
         .addService(simpleCfg)
         .addService(workerCfg)
         .build();
 ```
 
-When booting the server with this `AppConfig`, `ServerConfigurator` will:
+When booting the server with this `MongooseServerConfig`, `ServerConfigurator` will:
 
 - Register the simple service (as a regular `Service`)
 - Register the worker service (as a `ServiceAgent` with the given agent group and idle strategy)
@@ -231,10 +231,10 @@ You can also boot programmatically and inspect the registered services map.
 
 ```java
 import com.fluxtion.runtime.audit.LogRecordListener;
-import com.fluxtion.server.FluxtionServer;
+import com.fluxtion.server.MongooseServer;
 
 LogRecordListener logs = rec -> {};
-FluxtionServer server = FluxtionServer.bootServer(app, logs);
+MongooseServer server = MongooseServer.bootServer(app, logs);
 
 try {
     var registry = server.registeredServices();
@@ -246,15 +246,15 @@ try {
 }
 ```
 
-You may also boot from YAML using `FluxtionServer.bootServer(Reader, LogRecordListener)`; YAML maps directly to
-`AppConfig` and `ServiceConfig` fields.
+You may also boot from YAML using `MongooseServer.bootServer(Reader, LogRecordListener)`; YAML maps directly to
+`MongooseServerConfig` and `ServiceConfig` fields.
 
 ## Worker services and agent threads
 
 - A worker service must implement `com.fluxtion.agrona.concurrent.Agent`.
 - In `ServiceConfig`, set `agent(groupName, idleStrategy)` to host it in a runner thread.
-- The server selects an idle strategy using `AppConfig.getIdleStrategyOrDefault(...)` when necessary; per-group
-  overrides are supported via `AppConfig.agentThreads`.
+- The server selects an idle strategy using `MongooseServerConfig.getIdleStrategyOrDefault(...)` when necessary; per-group
+  overrides are supported via `MongooseServerConfig.agentThreads`.
 
 ## Testing your service
 
@@ -262,7 +262,7 @@ You may also boot from YAML using `FluxtionServer.bootServer(Reader, LogRecordLi
   `stop`, `tearDown`).
 - For worker services, test the `doWork()` loop logic in isolation; avoid real sleeping; simulate time or use small
   intervals.
-- For integration tests with the server: build a small `AppConfig`, boot the server, and verify injection and
+- For integration tests with the server: build a small `MongooseServerConfig`, boot the server, and verify injection and
   interactions work.
 
 Example test snippet for a simple service:
@@ -292,8 +292,8 @@ svc.tearDown();
 - Event sources: [Writing an Event Source Plugin](writing-an-event-source-plugin.md)
 - Configuration
   API: [ServiceConfig.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/config/ServiceConfig.java),
-  `AppConfig.Builder`
+  `MongooseServerConfig.Builder`
 -
 
 Bootstrapping: [ServerConfigurator.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/internal/ServerConfigurator.java),
-`FluxtionServer`
+`MongooseServer`

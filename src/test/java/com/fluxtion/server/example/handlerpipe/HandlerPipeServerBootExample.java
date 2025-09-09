@@ -8,8 +8,8 @@ package com.fluxtion.server.example.handlerpipe;
 import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
 import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.output.MessageSink;
-import com.fluxtion.server.FluxtionServer;
-import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.MongooseServer;
+import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.config.EventFeedConfig;
 import com.fluxtion.server.config.EventProcessorConfig;
 import com.fluxtion.server.config.EventProcessorGroupConfig;
@@ -60,7 +60,7 @@ public class HandlerPipeServerBootExample {
                 .name("memSink")
                 .build();
 
-        AppConfig appConfig = AppConfig.builder()
+        MongooseServerConfig mongooseServerConfig = MongooseServerConfig.builder()
                 .addProcessorGroup(processors)
                 .addEventFeed(pipeFeed)
                 .addEventSink(sinkCfg)
@@ -68,7 +68,7 @@ public class HandlerPipeServerBootExample {
 
         // Boot the server
         LogRecordListener logs = rec -> { };
-        FluxtionServer server = FluxtionServer.bootServer(appConfig, logs);
+        MongooseServer server = MongooseServer.bootServer(mongooseServerConfig, logs);
         try {
             // Publish some messages through the pipe
             pipe.sink().accept("hello");

@@ -70,7 +70,7 @@ Mongoose server uses a subscription model to connect event sources with event pr
 ```
 ┌───────────────┐                          ┌───────────────┐
 │               │  1. Register             │               │
-│  EventSource  │◀─────────────────────────│ FluxtionServer│
+│  EventSource  │◀─────────────────────────│ MongooseServer│
 │               │                          │               │
 └───────┬───────┘                          └───────────────┘
         │                                          ▲

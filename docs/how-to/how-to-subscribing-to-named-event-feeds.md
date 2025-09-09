@@ -74,7 +74,7 @@ Notes:
 - Build an in-memory sink (MessageSink<String>) that collects messages
 - Create three InMemoryEventSource<String> instances
 - Register three EventFeedConfig entries with names: prices, orders, news
-- Add the filter processor and the sink to AppConfig
+- Add the filter processor and the sink to MongooseServerConfig
 - Boot the server and send events
 
 Snippet from the test setup:
@@ -82,7 +82,7 @@ Snippet from the test setup:
 ```java
 import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
 import com.fluxtion.runtime.output.MessageSink;
-import com.fluxtion.server.FluxtionServer;
+import com.fluxtion.server.MongooseServer;
 import com.fluxtion.server.config.*;
 import com.fluxtion.server.connector.memory.InMemoryEventSource;
 import com.fluxtion.server.connector.memory.InMemoryMessageSink;
@@ -133,7 +133,7 @@ EventSinkConfig<MessageSink<?>> sinkCfg = EventSinkConfig.<MessageSink<?>>builde
         .name("memSink")
         .build();
 
-AppConfig appConfig = AppConfig.builder()
+MongooseServerConfig mongooseServerConfig = MongooseServerConfig.builder()
         .addProcessorGroup(processorGroup)
         .addEventFeed(pricesFeed)
         .addEventFeed(ordersFeed)
@@ -141,7 +141,7 @@ AppConfig appConfig = AppConfig.builder()
         .addEventSink(sinkCfg)
         .build();
 
-FluxtionServer server = FluxtionServer.bootServer(appConfig, rec -> {});
+MongooseServer server = MongooseServer.bootServer(mongooseServerConfig, rec -> {});
 ```
 
 Publish some events and observe only selected feeds are forwarded:

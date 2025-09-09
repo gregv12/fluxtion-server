@@ -8,7 +8,7 @@ package com.fluxtion.server.example;
 import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
 import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.output.MessageSink;
-import com.fluxtion.server.FluxtionServer;
+import com.fluxtion.server.MongooseServer;
 import com.fluxtion.server.config.*;
 import com.fluxtion.server.connector.memory.InMemoryEventSource;
 import com.fluxtion.server.connector.memory.InMemoryMessageSink;
@@ -70,7 +70,7 @@ public class NamedFeedsSubscriptionExampleTest {
                 .name("memSink")
                 .build();
 
-        AppConfig appConfig = AppConfig.builder()
+        MongooseServerConfig mongooseServerConfig = MongooseServerConfig.builder()
                 .addProcessorGroup(processorGroup)
                 .addEventFeed(pricesFeed)
                 .addEventFeed(ordersFeed)
@@ -79,7 +79,7 @@ public class NamedFeedsSubscriptionExampleTest {
                 .build();
 
         LogRecordListener logListener = rec -> {};
-        FluxtionServer server = FluxtionServer.bootServer(appConfig, logListener);
+        MongooseServer server = MongooseServer.bootServer(mongooseServerConfig, logListener);
         try {
 
             prices.offer("p1");

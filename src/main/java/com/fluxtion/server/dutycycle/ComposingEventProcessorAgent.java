@@ -12,7 +12,7 @@ import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.input.EventFeed;
 import com.fluxtion.runtime.lifecycle.Lifecycle;
 import com.fluxtion.runtime.service.Service;
-import com.fluxtion.server.FluxtionServer;
+import com.fluxtion.server.MongooseServer;
 import com.fluxtion.server.dispatch.EventFlowManager;
 import com.fluxtion.server.service.EventSubscriptionKey;
 import com.fluxtion.server.service.scheduler.DeadWheelScheduler;
@@ -48,18 +48,18 @@ public class ComposingEventProcessorAgent extends DynamicCompositeAgent implemen
     private final OneToOneConcurrentArrayQueue<Supplier<NamedEventProcessor>> toStartList = new OneToOneConcurrentArrayQueue<>(128);
     private final OneToOneConcurrentArrayQueue<String> toStopList = new OneToOneConcurrentArrayQueue<>(128);
     private final List<EventQueueToEventProcessor> queueReadersToAdd = new ArrayList<>();
-    private final FluxtionServer fluxtionServer;
+    private final MongooseServer mongooseServer;
     private final DeadWheelScheduler scheduler;
     private final Service<com.fluxtion.server.service.scheduler.SchedulerService> schedulerService;
 
     public ComposingEventProcessorAgent(String roleName,
                                         EventFlowManager eventFlowManager,
-                                        FluxtionServer fluxtionServer,
+                                        MongooseServer mongooseServer,
                                         DeadWheelScheduler scheduler,
                                         ConcurrentHashMap<String, Service<?>> registeredServices) {
         super(roleName, scheduler);
         this.eventFlowManager = eventFlowManager;
-        this.fluxtionServer = fluxtionServer;
+        this.mongooseServer = mongooseServer;
         this.scheduler = scheduler;
         this.registeredServices = registeredServices;
         this.schedulerService = new Service<>(scheduler, SchedulerService.class);
@@ -76,8 +76,8 @@ public class ComposingEventProcessorAgent extends DynamicCompositeAgent implemen
     @Override
     public void onStart() {
         // Best-effort core pinning if configured for this agent group (guard for null during unit tests)
-        if (fluxtionServer != null) {
-            Integer coreId = fluxtionServer.resolveCoreIdForAgentName(roleName());
+        if (mongooseServer != null) {
+            Integer coreId = mongooseServer.resolveCoreIdForAgentName(roleName());
             if (coreId != null) {
                 com.fluxtion.server.internal.CoreAffinity.pinCurrentThreadToCore(coreId);
             }

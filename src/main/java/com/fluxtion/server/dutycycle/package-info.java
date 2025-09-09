@@ -25,6 +25,6 @@
  * <p>
  * Notes
  * - Keep this package free from configuration transformation; it should operate
- * based on runtime objects supplied by FluxtionServer.
+ * based on runtime objects supplied by MongooseServer.
  */
 package com.fluxtion.server.dutycycle;

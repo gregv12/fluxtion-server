@@ -14,6 +14,29 @@ a deeper understanding of reference counting, pooling queues, partitions, and in
 - ObjectPool<T extends PoolAware>: creates and recycles instances of T. When an instance is acquired, its PoolTracker is initialised with the originating pool and the reset hook, and ref count is set. When returned, an optional reset hook is invoked and the instance is placed on the pool’s free list.
 - ObjectPools: a shared registry mapping a class to a single ObjectPool instance. Provides convenient getOrCreate overloads to configure capacity and partitions.
 
+## Diagram of object pooling flow 
+
+```mermaid
+flowchart TB
+  subgraph Publisher[Event feed]
+    EV[Manually acquires<br>pooled msg]
+  end
+
+  subgraph Server[Handler processor agent]
+    direction LR
+    Q[(SPSC Queue)]
+    DISP[Event handler dispatcher]
+    HND[Handler<br>Process msg in event cycle]
+  end
+
+  POOL[[ObjectPoolsRegistry]]
+
+  EV -- acquire pooled msg --> POOL
+  DISP -- auto release pooled msg --> POOL
+  EV -- publish --> Q
+  Q --> DISP --> HND
+```
+
 ## Capacity, partitions, and queues
 
 - Capacity: the total number of instances that may be created for a given class. The pool will create on demand up to the configured capacity.

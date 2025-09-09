@@ -8,11 +8,11 @@
  * <p>
  * Responsibility
  * - Provides configuration data structures used to assemble a server instance
- * (AppConfig and related *Config types).
+ * (MongooseServerConfig and related *Config types).
  * - Supplies builder APIs to construct complex configurations fluently.
  * <p>
  * Public API (consumed by other packages)
- * - AppConfig (input to FluxtionServer)
+ * - MongooseServerConfig (input to MongooseServer)
  * - ServiceConfig, EventFeedConfig, EventSinkConfig, EventProcessorGroupConfig,
  * EventProcessorConfig, ThreadConfig.
  * <p>

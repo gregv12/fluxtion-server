@@ -1,11 +1,11 @@
-# Example: Wiring File and In‑Memory Event Sources to a File Sink using AppConfig (Fluent API)
+# Example: Wiring File and In‑Memory Event Sources to a File Sink using MongooseServerConfig (Fluent API)
 
 This guide shows how to:
 
 - Extend ObjectEventHandlerNode to build a simple processor that receives all events.
 - Configure two event sources: FileEventSource and InMemoryEventSource.
 - Configure a FileMessageSink as an output.
-- Bind everything together with the fluent AppConfig builder.
+- Bind everything together with the fluent MongooseServerConfig builder.
 
 The processor receives events from both sources and writes them to a file sink.
 
@@ -40,7 +40,7 @@ Notes:
 - FileMessageSink extends AbstractMessageSink and provides accept(value) for publishing.
 - The sink is injected automatically by the server when registered as a service.
 
-## 2) Configure sources, processor, and sink via AppConfig
+## 2) Configure sources, processor, and sink via MongooseServerConfig
 
 Use the builder APIs for EventFeedConfig, EventProcessorGroupConfig, and register the sink as a service.
 
@@ -82,7 +82,7 @@ EventSinkConfig<FileMessageSink> sinkCfg = EventSinkConfig.<FileMessageSink>buil
         .name("fileSink")
         .build();
 
-AppConfig appConfig = AppConfig.builder()
+MongooseServerConfig mongooseServerConfig = MongooseServerConfig.builder()
         .addProcessorGroup(processorGroup)
         .addEventFeed(fileFeedCfg)
         .addEventFeed(memFeedCfg)
@@ -93,7 +93,7 @@ AppConfig appConfig = AppConfig.builder()
 ## 3) Boot the server and send events
 
 ```java
-FluxtionServer server = FluxtionServer.bootServer(appConfig, rec -> {});
+MongooseServer server = MongooseServer.bootServer(mongooseServerConfig, rec -> {});
 
 try {
     // Stimulate sources: write to input file and offer memory events

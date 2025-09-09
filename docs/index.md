@@ -49,30 +49,41 @@ public static void main(String[] args) {
                 System.out.println("Got event: " + s);
             }
             return true;
-        }
-    };
+    }};
 
-    // 2) Build an in-memory feed
+    // 2) Create an in-memory event feed (String payloads)
     var feed = new InMemoryEventSource<String>();
 
-    // 3) Build and boot server with an in-memory feed and handler
-    var app = new AppConfig()
-            .addProcessor("processor-agent", handler, "hello-handler")
-            .addEventSourceWorker(
-                    feed,
-                    "hello-feed", //name
-                    true, //broadcast events - no subscription required
-                    "feed-agent", //agent name
-                    new BusySpinIdleStrategy());// agent idle strategy
+    // 3) Wire processor group with our handler
+    var processorGroup = EventProcessorGroupConfig.builder()
+            .agentName("processor-agent")
+            .put("hello-processor", new EventProcessorConfig<>(handler))
+            .build();
 
-    var server = bootServer(app, rec -> {/* no-op logging */});
+    // 4) Wire the feed on its own agent with a busy-spin idle strategy (lowest latency)
+    var feedCfg = EventFeedConfig.builder()
+            .instance(feed)
+            .name("hello-feed")
+            .broadcast(true)
+            .agent("feed-agent", new BusySpinIdleStrategy())
+            .build();
 
-    // 4) Publish a few events
+    // 5) Build the application config and boot the mongooseServer
+    var mongooseServerConfig = MongooseServerConfig.builder()
+            .addProcessorGroup(processorGroup)
+            .addEventFeed(feedCfg)
+            .build();
+
+    // boot with a no-op record consumer
+    var mongooseServer = MongooseServer.bootServer(
+            mongooseServerConfig, rec -> {/* no-op */});
+
+    // 6) Publish a few events
     feed.offer("hi");
     feed.offer("mongoose");
 
-    // 5) Cleanup (in a real app, keep running)
-    server.stop();
+    // 7) Stop the mongooseServer (in real apps, you keep it running)
+    mongooseServer.stop();
 }
 ```
 

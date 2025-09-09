@@ -47,11 +47,11 @@ import java.util.function.Supplier;
  * </ul>
  */
 @Data
-public class AppConfig {
+public class MongooseServerConfig {
     /**
-     * Construct an empty AppConfig with sensible defaults.
+     * Construct an empty MongooseServerConfig with sensible defaults.
      */
-    public AppConfig() {
+    public MongooseServerConfig() {
     }
 
     /**
@@ -123,9 +123,9 @@ public class AppConfig {
      * @param eventSource source instance to register
      * @param name        unique name for the source
      * @param isBroadcast true to broadcast published events to all subscribers; false for targeted delivery
-     * @return this {@link AppConfig} for fluent chaining
+     * @return this {@link MongooseServerConfig} for fluent chaining
      */
-    public <T> AppConfig addEventSource(T eventSource, String name, boolean isBroadcast) {
+    public <T> MongooseServerConfig addEventSource(T eventSource, String name, boolean isBroadcast) {
         if (eventFeeds == null) {
             eventFeeds = new ArrayList<>();
         }
@@ -140,7 +140,7 @@ public class AppConfig {
         return this;
     }
 
-    public <T> AppConfig addEventSourceWorker(T eventSource, String name, boolean isBroadcast, String agentGroup, IdleStrategy idleStrategy) {
+    public <T> MongooseServerConfig addEventSourceWorker(T eventSource, String name, boolean isBroadcast, String agentGroup, IdleStrategy idleStrategy) {
         if (eventFeeds == null) {
             eventFeeds = new ArrayList<>();
         }
@@ -252,9 +252,9 @@ public class AppConfig {
      * @param groupName name of the processor group
      * @param processor processor instance to add
      * @param name      unique name/key under which to register the processor
-     * @return this {@link AppConfig} for fluent chaining
+     * @return this {@link MongooseServerConfig} for fluent chaining
      */
-    public <T extends EventProcessor<?>> AppConfig addProcessor(String groupName, T processor, String name) {
+    public <T extends EventProcessor<?>> MongooseServerConfig addProcessor(String groupName, T processor, String name) {
         var eventProcessorGroupConfig = getGroupConfig(groupName);
 
         EventProcessorConfig<T> processorConfig = new EventProcessorConfig<>();
@@ -272,9 +272,9 @@ public class AppConfig {
      * @param groupName name of the processor group
      * @param processor handler node instance to add
      * @param name      unique name/key under which to register the handler
-     * @return this {@link AppConfig} for fluent chaining
+     * @return this {@link MongooseServerConfig} for fluent chaining
      */
-    public <T extends ObjectEventHandlerNode> AppConfig addProcessor(String groupName, T processor, String name) {
+    public <T extends ObjectEventHandlerNode> MongooseServerConfig addProcessor(String groupName, T processor, String name) {
         EventProcessorGroupConfig eventProcessorGroupConfig = getGroupConfig(groupName);
 
         EventProcessorConfig<?> processorConfig = new EventProcessorConfig<>();
@@ -313,9 +313,9 @@ public class AppConfig {
      * @param <T>     service type
      * @param service service instance
      * @param name    unique service name
-     * @return this {@link AppConfig} for fluent chaining
+     * @return this {@link MongooseServerConfig} for fluent chaining
      */
-    public <T> AppConfig addService(T service, String name) {
+    public <T> MongooseServerConfig addService(T service, String name) {
         if (services == null) {
             services = new ArrayList<>();
         }
@@ -332,9 +332,9 @@ public class AppConfig {
      * @param service      service instance
      * @param serviceClass explicit service interface/class
      * @param name         unique service name
-     * @return this {@link AppConfig} for fluent chaining
+     * @return this {@link MongooseServerConfig} for fluent chaining
      */
-    public <T> AppConfig addService(T service, Class<T> serviceClass, String name) {
+    public <T> MongooseServerConfig addService(T service, Class<T> serviceClass, String name) {
         if (services == null) {
             services = new ArrayList<>();
         }
@@ -352,9 +352,9 @@ public class AppConfig {
      * @param name         unique service name
      * @param agentGroup   agent group name to host the service
      * @param idleStrategy idle strategy for the agent thread (may be {@code null} to resolve later)
-     * @return this {@link AppConfig} for fluent chaining
+     * @return this {@link MongooseServerConfig} for fluent chaining
      */
-    public <T> AppConfig addWorkerService(T service, Class<T> serviceClass, String name, String agentGroup, IdleStrategy idleStrategy) {
+    public <T> MongooseServerConfig addWorkerService(T service, Class<T> serviceClass, String name, String agentGroup, IdleStrategy idleStrategy) {
         if (services == null) {
             services = new ArrayList<>();
         }
@@ -373,9 +373,9 @@ public class AppConfig {
      * @param name         unique service name
      * @param agentGroup   agent group name to host the service
      * @param idleStrategy idle strategy for the agent thread (may be {@code null} to resolve later)
-     * @return this {@link AppConfig} for fluent chaining
+     * @return this {@link MongooseServerConfig} for fluent chaining
      */
-    public <T> AppConfig addWorkerService(T service, String name, String agentGroup, IdleStrategy idleStrategy) {
+    public <T> MongooseServerConfig addWorkerService(T service, String name, String agentGroup, IdleStrategy idleStrategy) {
         if (services == null) {
             services = new ArrayList<>();
         }
@@ -390,7 +390,7 @@ public class AppConfig {
     // -------- Builder API --------
 
     /**
-     * Create a new {@link Builder} for constructing an {@link AppConfig}.
+     * Create a new {@link Builder} for constructing an {@link MongooseServerConfig}.
      *
      * @return a new builder instance
      */
@@ -399,8 +399,8 @@ public class AppConfig {
     }
 
     /**
-     * Fluent builder for {@link AppConfig}.
-     * All lists are accumulated within the builder and copied into the resulting {@link AppConfig}.
+     * Fluent builder for {@link MongooseServerConfig}.
+     * All lists are accumulated within the builder and copied into the resulting {@link MongooseServerConfig}.
      * Omitted sections remain {@code null} in the built config unless explicitly provided.
      */
     public static final class Builder {
@@ -506,12 +506,12 @@ public class AppConfig {
         }
 
         /**
-         * Build an {@link AppConfig} instance from the accumulated values.
+         * Build an {@link MongooseServerConfig} instance from the accumulated values.
          *
-         * @return a new {@link AppConfig}
+         * @return a new {@link MongooseServerConfig}
          */
-        public AppConfig build() {
-            AppConfig cfg = new AppConfig();
+        public MongooseServerConfig build() {
+            MongooseServerConfig cfg = new MongooseServerConfig();
             if (!eventHandlers.isEmpty()) cfg.setEventHandlers(new ArrayList<>(eventHandlers));
             if (!eventFeeds.isEmpty()) cfg.setEventFeeds(new ArrayList<>(eventFeeds));
             if (!eventSinks.isEmpty()) cfg.setEventSinks(new ArrayList<>(eventSinks));

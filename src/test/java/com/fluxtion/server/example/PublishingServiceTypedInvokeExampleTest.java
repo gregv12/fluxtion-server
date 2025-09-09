@@ -7,7 +7,7 @@ package com.fluxtion.server.example;
 
 import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.output.MessageSink;
-import com.fluxtion.server.FluxtionServer;
+import com.fluxtion.server.MongooseServer;
 import com.fluxtion.server.config.*;
 import com.fluxtion.server.connector.memory.InMemoryMessageSink;
 import org.junit.jupiter.api.Assertions;
@@ -49,14 +49,14 @@ public class PublishingServiceTypedInvokeExampleTest {
                 .name("memSink")
                 .build();
 
-        AppConfig appConfig = AppConfig.builder()
+        MongooseServerConfig mongooseServerConfig = MongooseServerConfig.builder()
                 .addProcessorGroup(processorGroup)
                 .addService(svcCfg)
                 .addEventSink(sinkCfg)
                 .build();
 
         LogRecordListener logListener = rec -> {};
-        FluxtionServer server = FluxtionServer.bootServer(appConfig, logListener);
+        MongooseServer server = MongooseServer.bootServer(mongooseServerConfig, logListener);
         try {
             pubService.publish("t1");
             pubService.publish("t2");

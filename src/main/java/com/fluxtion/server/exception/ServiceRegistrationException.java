@@ -6,7 +6,7 @@
 package com.fluxtion.server.exception;
 
 /**
- * Thrown on failures during service registration to the FluxtionServer.
+ * Thrown on failures during service registration to the MongooseServer.
  */
 public class ServiceRegistrationException extends FluxtionServerException {
     public ServiceRegistrationException(String message) {

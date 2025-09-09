@@ -19,7 +19,7 @@ how event handlers interact with them while keeping a clean separation between d
 - Reuse: Implement once, reuse across apps (e.g., a Kafka feed, a filesystem tailer, a metrics sink).
 - Separation of concerns: Business logic focuses on handling events and state transitions; plugins handle IO, timers,
   admin, and operational concerns.
-- Composability: Wire multiple plugins into an application using AppConfig without modifying business code.
+- Composability: Wire multiple plugins into an application using MongooseServerConfig without modifying business code.
 - Testability: Handlers can be unit tested with in-memory test doubles for the same plugin interfaces.
 
 ## Types of plugins
@@ -31,7 +31,7 @@ Event feeds produce events and publish them into the event processing graph.
 - Typical responsibilities: polling an external source, decoding payloads, backpressure awareness, checkpointing.
 - Lifecycle: Usually agent-hosted services that run on their own thread (an Agrona Agent), e.g.,
   `AbstractEventSourceService` based sources.
-- Integration: Configure via `EventFeedConfig` and add to your `AppConfig`.
+- Integration: Configure via `EventFeedConfig` and add to your `MongooseServerConfig`.
 - Naming: Feeds can be named (via `EventFeedConfig.name("prices")`), enabling selective subscription from handlers via
   `getContext().subscribeToNamedFeed("prices")`.
 
@@ -62,7 +62,7 @@ Event sinks accept events/messages from processors and deliver them out to exter
 metrics).
 
 - Typical responsibilities: serialize, batch, flush, and reliably write outbound data; handle retries/backpressure.
-- Integration: Configure via `EventSinkConfig` and add to `AppConfig`. Processors publish to sinks via simple
+- Integration: Configure via `EventSinkConfig` and add to `MongooseServerConfig`. Processors publish to sinks via simple
   interfaces (e.g., `MessageSink<T>`).
 
 See also:
@@ -74,10 +74,10 @@ See also:
 All plugin types are declared in your application configuration and are hosted in agent groups that the server composes
 at boot. The fluent builder is the recommended approach:
 
-- Event feeds: `AppConfig.builder().addEventFeed(EventFeedConfig<...>)`
-- Event sinks: `AppConfig.builder().addEventSink(EventSinkConfig<...>)`
-- Services: `AppConfig.builder().addService(ServiceConfig<...>)` (or convenience methods if provided)
-- Processor groups: `AppConfig.builder().addProcessorGroup(EventProcessorGroupConfig)`
+- Event feeds: `MongooseServerConfig.builder().addEventFeed(EventFeedConfig<...>)`
+- Event sinks: `MongooseServerConfig.builder().addEventSink(EventSinkConfig<...>)`
+- Services: `MongooseServerConfig.builder().addService(ServiceConfig<...>)` (or convenience methods if provided)
+- Processor groups: `MongooseServerConfig.builder().addProcessorGroup(EventProcessorGroupConfig)`
 
 Key concepts:
 
@@ -160,7 +160,7 @@ Note how the handler:
     single-threaded context.
 
 - Extensibility:
-    - Add new feeds/services/sinks without changing processor code; update `AppConfig` wiring instead.
+    - Add new feeds/services/sinks without changing processor code; update `MongooseServerConfig` wiring instead.
 
 ## When to create a plugin vs. inline code
 

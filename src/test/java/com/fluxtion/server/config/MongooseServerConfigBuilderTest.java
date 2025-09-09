@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class AppConfigBuilderTest {
+public class MongooseServerConfigBuilderTest {
 
     static class DummyProcessor implements EventProcessor<DummyProcessor> {
         @Override
@@ -68,8 +68,8 @@ public class AppConfigBuilderTest {
                 .idleStrategy(new YieldingIdleStrategy())
                 .build();
 
-        // Assemble AppConfig
-        AppConfig app = AppConfig.builder()
+        // Assemble MongooseServerConfig
+        MongooseServerConfig app = MongooseServerConfig.builder()
                 .idleStrategy(new YieldingIdleStrategy())
                 .addProcessorGroup(group)
                 .addService(serviceCfg)
