@@ -8,11 +8,11 @@
  * <p>
  * Responsibility
  * - Entry-point orchestration and lifecycle management for the Fluxtion Server.
- * Hosts the FluxtionServer class which wires configuration (config package),
+ * Hosts the MongooseServer class which wires configuration (config package),
  * event-flow (dispatch), agent groups (dutycycle), and services (service).
  * <p>
  * Public API
- * - FluxtionServer boot helpers and server control interface exposure.
+ * - MongooseServer boot helpers and server control interface exposure.
  * <p>
  * Allowed dependencies
  * - May depend on: config, dispatch, dutycycle, service, exception.

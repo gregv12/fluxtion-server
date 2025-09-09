@@ -16,9 +16,9 @@ import java.util.stream.Collectors;
 
 
 /**
- * FluxtionServerAdmin is responsible for managing and administering a
+ * MongooseServerAdmin is responsible for managing and administering a
  * Fluxtion server. It uses the {@link AdminCommandRegistry} to register
- * administrative commands and the {@link FluxtionServerController} to
+ * administrative commands and the {@link MongooseServerController} to
  * manage registered services and processors on the server.
  * <p>
  * This class implements the {@link Lifecycle} interface, allowing it
@@ -45,10 +45,10 @@ import java.util.stream.Collectors;
  * interactions for tracking and debugging purposes.
  */
 @Log
-public class FluxtionServerAdmin implements Lifecycle {
+public class MongooseServerAdmin implements Lifecycle {
 
     private AdminCommandRegistry registry;
-    private FluxtionServerController serverController;
+    private MongooseServerController serverController;
 
     @ServiceRegistered
     public void admin(AdminCommandRegistry registry) {
@@ -57,7 +57,7 @@ public class FluxtionServerAdmin implements Lifecycle {
     }
 
     @ServiceRegistered
-    public void server(FluxtionServerController serverController) {
+    public void server(MongooseServerController serverController) {
         this.serverController = serverController;
         log.info("Server command registry");
     }

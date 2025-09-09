@@ -7,7 +7,7 @@ package com.fluxtion.server.example.readstrategy;
 import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
 import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.output.MessageSink;
-import com.fluxtion.server.FluxtionServer;
+import com.fluxtion.server.MongooseServer;
 import com.fluxtion.server.config.*;
 import com.fluxtion.server.connector.file.FileEventSource;
 import com.fluxtion.server.connector.memory.InMemoryMessageSink;
@@ -21,7 +21,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -50,7 +49,7 @@ public class FileReadStrategyExample {
         // ---------- Run 1: boot server, append first wave, validate ----------
         InMemoryMessageSink sinkRun1 = new InMemoryMessageSink();
         Thread.sleep(1000);
-        FluxtionServer server = bootServerWithFeeds(earliestFile, latestFile, committedFile, sinkRun1);
+        MongooseServer server = bootServerWithFeeds(earliestFile, latestFile, committedFile, sinkRun1);
         try {
             // Append one line to each file
             appendLine(earliestFile, "e-first");
@@ -111,7 +110,7 @@ public class FileReadStrategyExample {
         }
     }
 
-    private static FluxtionServer bootServerWithFeeds(File earliestFile, File latestFile, File committedFile, InMemoryMessageSink sink) {
+    private static MongooseServer bootServerWithFeeds(File earliestFile, File latestFile, File committedFile, InMemoryMessageSink sink) {
         // Create file sources
         FileEventSource earliestSrc = new FileEventSource();
         earliestSrc.setName("earliestSrc");
@@ -165,7 +164,7 @@ public class FileReadStrategyExample {
                 .name("memSink")
                 .build();
 
-        AppConfig appConfig = AppConfig.builder()
+        MongooseServerConfig mongooseServerConfig = MongooseServerConfig.builder()
                 .addProcessorGroup(processors)
                 .addEventFeed(earliestFeed)
                 .addEventFeed(latestFeed)
@@ -175,7 +174,7 @@ public class FileReadStrategyExample {
 
         LogRecordListener logs = rec -> {
         };
-        return FluxtionServer.bootServer(appConfig, logs);
+        return MongooseServer.bootServer(mongooseServerConfig, logs);
     }
 
     private static List<Object> waitForMessages(InMemoryMessageSink sink, int minCount, long timeout, TimeUnit unit) throws Exception {

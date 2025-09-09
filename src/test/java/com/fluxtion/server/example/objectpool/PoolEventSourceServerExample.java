@@ -6,15 +6,15 @@ package com.fluxtion.server.example.objectpool;
 
 import com.fluxtion.runtime.annotations.runtime.ServiceRegistered;
 import com.fluxtion.runtime.node.ObjectEventHandlerNode;
-import com.fluxtion.server.FluxtionServer;
-import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.MongooseServer;
+import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.service.extension.AbstractEventSourceService;
 import com.fluxtion.server.service.pool.ObjectPool;
 import com.fluxtion.server.service.pool.ObjectPoolsRegistry;
 import com.fluxtion.server.service.pool.impl.BasePoolAware;
 
 /**
- * End-to-end example that boots a FluxtionServer and uses an EventSource that
+ * End-to-end example that boots a MongooseServer and uses an EventSource that
  * acquires messages from the global ObjectPool using try-with-resources. The
  * default PoolAware.close() releases the caller's reference and attempts to
  * return to the pool, while the pipeline (queues/consumers) holds and releases
@@ -113,11 +113,11 @@ public class PoolEventSourceServerExample {
     public static void main(String[] args) throws Exception {
         PooledEventSource source = new PooledEventSource();
 
-        AppConfig cfg = new AppConfig()
+        MongooseServerConfig cfg = new MongooseServerConfig()
                 .addProcessor("thread-p1", new MyHandler(), "processor")
                 .addEventSource(source, "pooledSource", true);
 
-        FluxtionServer server = FluxtionServer.bootServer(cfg, rec -> {});
+        MongooseServer server = MongooseServer.bootServer(cfg, rec -> {});
 
         boolean running = true;
         Thread publisher = new Thread(() -> {

@@ -14,6 +14,29 @@ a deeper understanding of reference counting, pooling queues, partitions, and in
 - ObjectPool<T extends PoolAware>: creates and recycles instances of T. When an instance is acquired, its PoolTracker is initialised with the originating pool and the reset hook, and ref count is set. When returned, an optional reset hook is invoked and the instance is placed on the pool’s free list.
 - ObjectPools: a shared registry mapping a class to a single ObjectPool instance. Provides convenient getOrCreate overloads to configure capacity and partitions.
 
+## Diagram of object pooling flow 
+
+```mermaid
+flowchart TB
+  subgraph Publisher[Event feed]
+    EV[Manually acquires<br>pooled msg]
+  end
+
+  subgraph Server[Handler processor agent]
+    direction LR
+    Q[(SPSC Queue)]
+    DISP[Event handler dispatcher]
+    HND[Handler<br>Process msg in event cycle]
+  end
+
+  POOL[[ObjectPoolsRegistry]]
+
+  EV -- acquire pooled msg --> POOL
+  DISP -- auto release pooled msg --> POOL
+  EV -- publish --> Q
+  Q --> DISP --> HND
+```
+
 ## Capacity, partitions, and queues
 
 - Capacity: the total number of instances that may be created for a given class. The pool will create on demand up to the configured capacity.
@@ -61,12 +84,11 @@ ObjectPool<MyType> pool = Pools.SHARED.getOrCreate(
 
 ## Related source
 
-- [PoolAware](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/pool/PoolAware.java)
-- [PoolTracker](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/pool/PoolTracker.java)
-- [ObjectPool](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/pool/ObjectPool.java)
-- [ObjectPools](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/pool/ObjectPools.java)
-- End-to-end example using a pooled EventSource:
-  - [PoolEventSourceServerExample.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/objectpool/PoolEventSourceServerExample.java)
+- [PoolAware](https://github.com/gregv12/fluxtion-server/tree/main/src/main/java/com/fluxtion/server/service/pool/PoolAware.java)
+- [PoolTracker](https://github.com/gregv12/fluxtion-server/tree/main/src/main/java/com/fluxtion/server/service/pool/impl/PoolTracker.java)
+- [ObjectPool](https://github.com/gregv12/fluxtion-server/tree/main/src/main/java/com/fluxtion/server/service/pool/ObjectPool.java)
+- [ObjectPoolsRegistry](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/pool/ObjectPoolsRegistry.java)
+- End-to-end example using a pooled EventSource: [PoolEventSourceServerExample.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/objectpool/PoolEventSourceServerExample.java)
 
 
 ## Where object pooling interjects (sequence)

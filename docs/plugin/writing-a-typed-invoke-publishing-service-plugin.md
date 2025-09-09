@@ -165,12 +165,12 @@ ServiceConfig<PublishingServiceTyped> svcCfg = ServiceConfig.<PublishingServiceT
         //.agent("service-agent", new BusySpinIdleStrategy()) // optional: uncomment to give the service its own agent
         .build();
 
-AppConfig appConfig = AppConfig.builder()
+MongooseServerConfig mongooseServerConfig = MongooseServerConfig.builder()
         .addProcessorGroup(processorGroup)
         .addService(svcCfg)
         .build();
 
-FluxtionServer server = FluxtionServer.bootServer(appConfig, rec -> {});
+MongooseServer server = MongooseServer.bootServer(mongooseServerConfig, rec -> {});
 
 pubService.publish("t1");
 pubService.publish("t2");

@@ -15,14 +15,14 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 /**
- * The FluxtionServerController interface provides control over the lifecycle and management
+ * The MongooseServerController interface provides control over the lifecycle and management
  * of event processors and services within a Fluxtion server instance. It allows for the
  * addition and removal of event processors, starting and stopping services, and querying
  * registered components.
  */
-public interface FluxtionServerController {
+public interface MongooseServerController {
 
-    String SERVICE_NAME = "com.fluxtion.server.service.servercontrol.FluxtionServerController";
+    String SERVICE_NAME = "com.fluxtion.server.service.servercontrol.MongooseServerController";
 
     /**
      * Adds a StaticEventProcessor to the Fluxtion server for processing events.

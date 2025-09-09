@@ -47,9 +47,9 @@ graph TD
 End‑to‑end runnable code (already in the repo):
 
 * Feed
-  Handler: [NamedFeedsFilterHandler.java](../../src/test/java/com/fluxtion/server/example/NamedFeedsFilterHandler.java)
+  Handler: [NamedFeedsFilterHandler.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsFilterHandler.java)
 * Wiring +
-  test: [NamedFeedsSubscriptionExampleTest.java](../../src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java)
+  test: [NamedFeedsSubscriptionExampleTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/NamedFeedsSubscriptionExampleTest.java)
 
 ## 1) Write the handler (business logic only)
 
@@ -103,7 +103,7 @@ threads.
 
 - Feeds: InMemoryEventSource<String> named "prices" and "news"
 - Sink: InMemoryMessageSink
-- Wire into AppConfig via EventFeedConfig and EventSinkConfig
+- Wire into MongooseServerConfig via EventFeedConfig and EventSinkConfig
 
 Snippet from the runnable test:
 
@@ -139,14 +139,14 @@ EventSinkConfig<MessageSink<?>> sinkCfg = EventSinkConfig.<MessageSink<?>>builde
     .name("memSink")
     .build();
 
-AppConfig appConfig = AppConfig.builder()
+MongooseServerConfig mongooseServerConfig = MongooseServerConfig.builder()
     .addProcessorGroup(processorGroup)
     .addEventFeed(pricesFeed)
     .addEventFeed(newsFeed)
     .addEventSink(sinkCfg)
     .build();
 
-FluxtionServer server = FluxtionServer.bootServer(appConfig, rec -> {});
+MongooseServer server = MongooseServer.bootServer(mongooseServerConfig, rec -> {});
 ```
 
 Complete and runnable

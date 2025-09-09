@@ -11,7 +11,7 @@ import com.fluxtion.runtime.audit.LogRecord;
 import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.lifecycle.Lifecycle;
 import com.fluxtion.runtime.service.Service;
-import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.dispatch.EventFlowManager;
 import com.fluxtion.server.dispatch.EventToQueuePublisher;
 import com.fluxtion.server.dutycycle.NamedEventProcessor;
@@ -29,10 +29,10 @@ import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class FluxtionServerTest {
+public class MongooseServerTest {
 
-    private AppConfig appConfig;
-    private FluxtionServer fluxtionServer;
+    private MongooseServerConfig mongooseServerConfig;
+    private MongooseServer mongooseServer;
     private TestLogRecordListener logRecordListener;
     private TestEventSource testEventSource;
     private TestService testService;
@@ -41,14 +41,14 @@ public class FluxtionServerTest {
 
     @BeforeEach
     void setUp() {
-        appConfig = new AppConfig();
+        mongooseServerConfig = new MongooseServerConfig();
         logRecordListener = new TestLogRecordListener();
         testEventSource = new TestEventSource();
         testService = new TestService();
         testEventProcessor = new TestEventProcessor();
         testIdleStrategy = new TestIdleStrategy();
 
-        fluxtionServer = new FluxtionServer(appConfig);
+        mongooseServer = new MongooseServer(mongooseServerConfig);
     }
 
     @Test
@@ -57,7 +57,7 @@ public class FluxtionServerTest {
         String sourceName = "testSource";
 
         // Act
-        fluxtionServer.registerEventSource(sourceName, testEventSource);
+        mongooseServer.registerEventSource(sourceName, testEventSource);
 
         // Assert
         assertNotNull(testEventSource.getEventToQueuePublisher(), "EventToQueuePublisher should be set");
@@ -71,10 +71,10 @@ public class FluxtionServerTest {
         Service<TestService> service = new Service<>(testService, TestService.class, "testService");
 
         // Act
-        fluxtionServer.registerService(service);
+        mongooseServer.registerService(service);
 
         // Assert
-        Map<String, Service<?>> registeredServices = fluxtionServer.registeredServices();
+        Map<String, Service<?>> registeredServices = mongooseServer.registeredServices();
         assertTrue(registeredServices.containsKey("testService"), "Service should be registered");
         assertSame(service, registeredServices.get("testService"), "Registered service should be the same instance");
     }
@@ -86,7 +86,7 @@ public class FluxtionServerTest {
         Service<TestEventFlowService> service = new Service<>(eventFlowService, TestEventFlowService.class, "testEventFlowService");
 
         // Act
-        fluxtionServer.registerService(service);
+        mongooseServer.registerService(service);
 
         // Assert
         assertNotNull(eventFlowService.getEventFlowManager(), "EventFlowManager should be set");
@@ -97,16 +97,16 @@ public class FluxtionServerTest {
     void testInitAndStart() {
         // Arrange
         Service<TestService> service = new Service<>(testService, TestService.class, "testService");
-        fluxtionServer.registerService(service);
+        mongooseServer.registerService(service);
 
         // Act - Init
-        fluxtionServer.init();
+        mongooseServer.init();
 
         // Assert
         assertTrue(testService.isInitialized(), "Service should be initialized");
 
         // Act - Start
-        fluxtionServer.start();
+        mongooseServer.start();
 
         // Assert
         assertTrue(testService.isStarted(), "Service should be started");
@@ -117,16 +117,16 @@ public class FluxtionServerTest {
     void testStartAndStopService() {
         // Arrange
         Service<TestService> service = new Service<>(testService, TestService.class, "testService");
-        fluxtionServer.registerService(service);
+        mongooseServer.registerService(service);
 
         // Act - Start service
-        fluxtionServer.startService("testService");
+        mongooseServer.startService("testService");
 
         // Assert
         assertTrue(testService.isStarted(), "Service should be started");
 
         // Act - Stop service
-        fluxtionServer.stopService("testService");
+        mongooseServer.stopService("testService");
 
         // Assert
         assertTrue(testService.isStopped(), "Service should be stopped");
@@ -140,10 +140,10 @@ public class FluxtionServerTest {
         Supplier<StaticEventProcessor> processorSupplier = () -> testEventProcessor;
 
         // Act
-        fluxtionServer.addEventProcessor(processorName, groupName, testIdleStrategy, processorSupplier);
+        mongooseServer.addEventProcessor(processorName, groupName, testIdleStrategy, processorSupplier);
 
         // Assert
-        Map<String, Collection<NamedEventProcessor>> registeredProcessors = fluxtionServer.registeredProcessors();
+        Map<String, Collection<NamedEventProcessor>> registeredProcessors = mongooseServer.registeredProcessors();
         assertTrue(registeredProcessors.containsKey(groupName), "Processor group should be registered");
 
         // We can't directly check if the processor is registered because the ComposingEventProcessorAgent is not accessible
@@ -156,10 +156,10 @@ public class FluxtionServerTest {
         String processorName = "testProcessor";
         String groupName = "testGroup";
         Supplier<StaticEventProcessor> processorSupplier = () -> testEventProcessor;
-        fluxtionServer.addEventProcessor(processorName, groupName, testIdleStrategy, processorSupplier);
+        mongooseServer.addEventProcessor(processorName, groupName, testIdleStrategy, processorSupplier);
 
         // Act
-        fluxtionServer.stopProcessor(groupName, processorName);
+        mongooseServer.stopProcessor(groupName, processorName);
 
         // Assert
         // We can't directly check if the processor is stopped because the ComposingEventProcessorAgent is not accessible

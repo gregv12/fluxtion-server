@@ -6,7 +6,7 @@
 package com.fluxtion.server.example;
 
 import com.fluxtion.runtime.audit.LogRecordListener;
-import com.fluxtion.server.FluxtionServer;
+import com.fluxtion.server.MongooseServer;
 import com.fluxtion.server.connector.memory.InMemoryEventSource;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
  * - One processor (BuilderApiExampleHandler) that forwards to a sink
  * - One sink (FileMessageSink)
  *
- * The server is booted from a YAML string via FluxtionServer.bootServer(Reader,...).
+ * The server is booted from a YAML string via MongooseServer.bootServer(Reader,...).
  */
 public class YamlConfigFeedsExampleTest {
 
@@ -76,7 +76,7 @@ public class YamlConfigFeedsExampleTest {
                 """.formatted(escapeYaml(inputFile.toString()), escapeYaml(outputFile.toString()));
 
         LogRecordListener logListener = rec -> {};
-        FluxtionServer server = FluxtionServer.bootServer(new StringReader(yaml), logListener);
+        MongooseServer server = MongooseServer.bootServer(new StringReader(yaml), logListener);
 
         try {
             // Stimulate sources: write to input file and offer memory events

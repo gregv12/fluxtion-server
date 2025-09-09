@@ -9,7 +9,9 @@ import com.fluxtion.agrona.concurrent.Agent;
 import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.input.EventFeed;
+import com.fluxtion.server.MongooseServer;
 import com.fluxtion.server.config.EventProcessorConfig;
+import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.service.CallBackType;
 import com.fluxtion.server.service.EventSource;
 import com.fluxtion.server.service.EventSourceKey;
@@ -171,7 +173,7 @@ public class CustomEventToInvokeStrategyTest {
     // --- Fluent builder API server boot example ---
     @Test
     void fluentBuilder_bootsServer_and_applies_custom_strategy() throws Exception {
-        // Build a minimal AppConfig with one feed and one processor using the fluent builder API
+        // Build a minimal MongooseServerConfig with one feed and one processor using the fluent builder API
         var eventSource = new com.fluxtion.server.connector.memory.InMemoryEventSource<Object>();
 
         // Create a processor that subscribes to the feed via EventProcessor.start() and records uppercased strings
@@ -193,15 +195,15 @@ public class CustomEventToInvokeStrategyTest {
                 .wrapWithNamedEvent(false)
                 .build();
 
-        // Build AppConfig
-        var appConfig = com.fluxtion.server.config.AppConfig.builder()
+        // Build MongooseServerConfig
+        var appConfig = MongooseServerConfig.builder()
                 .addProcessorGroup(processorGroup)
                 .addEventFeed(feedCfg)
                 .onEventInvokeStrategy(UppercaseStringStrategy::new)
                 .build();
 
         // Boot server which will register our custom EventToInvokeStrategy from config
-        var server = com.fluxtion.server.FluxtionServer.bootServer(appConfig, rec -> {
+        var server = MongooseServer.bootServer(appConfig, rec -> {
         });
         try {
 

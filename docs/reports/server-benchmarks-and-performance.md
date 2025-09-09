@@ -20,6 +20,39 @@ Source of results:
 - Threading: Busy spin agents with best-effort core pinning where available.
 - Machine: Apple Mac (laptop/desktop class). Note: macOS typically lacks strict CPU isolation/affinity controls compared to some Linux setups.
 
+### Diagram: High-level benchmark setup
+
+```mermaid
+flowchart TB
+  subgraph Publisher[Event feed]
+    EV[In-VM EventSource]
+  end
+
+  subgraph Server[Event handler]
+    direction LR
+    Q[(SPSC Queue)]
+    DISP[Event handler dispatcher]
+    subgraph Agent[Processor Agent - BusySpin]
+      HND[Handler / StaticEventProcessor]
+    end
+    METRICS[HdrHistogram Recorder]
+  end
+
+  POOL[[ObjectPoolsRegistry]]
+
+  EV -- acquire pooled msg --> POOL
+  DISP -- auto release pooled msg --> POOL
+  EV -- publish --> Q
+  Q --> DISP --> HND
+  HND -- record latency --> METRICS
+```
+
+Notes:
+
+- Messages are pooled via ObjectPoolsRegistry; publisher acquires and recycles objects to achieve Zero-GC.
+- Publication uses a single-producer/single-consumer queue into the server; the processor runs on a busy-spin agent (best-effort core pinning on host).
+- Latency is measured end-to-end (publish to handler) and recorded via HdrHistogram for later visualization.
+
 ## Headline results
 - Throughput: The server sustains approximately 10 million messages per second (10 M mps) in steady state in this setup.
 - Latency characteristics: As batching is enabled to drive throughput, the average and tail latencies increase. This is visible as a right-shift and heavier tail in the latency histograms and percentile distributions.
@@ -42,22 +75,17 @@ Processed 18000000 messages in 250 ms, heap used: 23 MB, GC count: 0
 Analysis:
 
 - The heap usage remains essentially flat (~23 MB) while tens of millions of messages are processed, and the GC collection count stays at 0 over multiple million‑message windows.
-- The publish loop targets roughly a 250 ns interval per message (≈4 million messages/second). At this rate, any per‑message heap allocation would quickly trigger GC activity and growing heap usage. The flat heap and zero GC demonstrate that pooled events eliminate per‑operation allocations in the hot path.
+- The publish loop targets roughly a 250 ns interval per message (≈4 million messages/second). At this rate, any per‑message heap allocation would quickly trigger GC activity and growing heap usage. The flat heap and Zero‑GC behavior demonstrate that pooled events eliminate per‑operation allocations in the hot path.
 - This behavior directly supports the zero‑GC design: pooled messages (BasePoolAware) are recycled; the framework acquires/releases references across queues and handlers, returning objects to the pool at end‑of‑cycle.
 
 For implementation details of the pooling approach, see the guide: [How to publish pooled events](../how-to/how-to-object-pool.md).
 
 ## Files in this directory
 - HdrHistogram raw distributions (nanoseconds):
-  - [`latency_10k_mps.hgrm`](latency_10k_mps.hgrm)
-  - [`latency_100k_mps.hgrm`](latency_100k_mps.hgrm)
-  - [`latency_1m_mps.hgrm`](latency_1m_mps.hgrm)
-  - [`latency_10m_mps.hgrm`](latency_10m_mps.hgrm)
-- Charts derived from the above:
-  - [`Histogram_1k_10k_1M_mps.png`](Histogram_1k_10k_1M_mps.png)
-  - [`Histogram_1m_mps.png`](Histogram_1m_mps.png)
-  - [`Histogram_10m_mps.png`](Histogram_10m_mps.png)
-  - [`Histogram_all_mps.png`](Histogram_all_mps.png)
+  - [`latency_10k_mps.hgrm`](latency_10k_mps.hgrm) view as a [`chart`](Histogram_1k_10k_1M_mps.png)
+  - [`latency_100k_mps.hgrm`](latency_100k_mps.hgrm)  view as a [`chart`](Histogram_1m_mps.png)
+  - [`latency_1m_mps.hgrm`](latency_1m_mps.hgrm)  view as a [`chart`](Histogram_10m_mps.png)
+  - [`latency_10m_mps.hgrm`](latency_10m_mps.hgrm)  view as a [`chart`](Histogram_all_mps.png)
 
 You can open the `.hgrm` files with HdrHistogram tooling or any text editor to inspect percentile distributions.
 
@@ -70,7 +98,7 @@ This is an inherent trade-off: batching amortizes overhead and increases through
 
 All message rates combined:
 
-![Histogram all mps](Histogram_all_mps.png)
+[![Histogram all mps](Histogram_all_mps.png)](Histogram_all_mps.png)
 
 In this combined view, the 10M mps line shows the highest sustained throughput, achieved by enabling batching in parts of the pipeline. The side effect of batching is visible as a right‑shifted latency distribution with heavier tails: individual events can wait for a batch window, increasing p50/p90 and especially the p99+ percentiles compared to lower message rates.
 
@@ -84,7 +112,7 @@ This section isolates the 10 million messages per second test as a throughput-fo
 
 10M mps latency distribution (from the corresponding .hgrm):
 
-![Histogram 10M mps](Histogram_10m_mps.png)
+[![Histogram 10M mps](Histogram_10m_mps.png)](Histogram_10m_mps.png)
 
 Notes:
 - Use `.hgrm` data (latency_10m_mps.hgrm) to regenerate or further analyze the percentile distribution.
@@ -101,7 +129,7 @@ This section focuses on the latency characteristics at 1 million messages per se
 
 1M mps latency distribution:
 
-![Histogram 1M mps](Histogram_1m_mps.png)
+[![Histogram 1M mps](Histogram_1m_mps.png)](Histogram_1m_mps.png)
 
 Use the `.hgrm` data (latency_1m_mps.hgrm) to regenerate or further analyze the percentile distribution and exact percentiles.
 
@@ -128,6 +156,6 @@ Trade‑off: Batching raises throughput but can increase per‑event latency and
 
 ## Takeaways
 - Based on sub-microsecond average latency at 1M mps (≈270 ns) and strong high-percentile performance with zero‑GC hot paths, this is world‑class performance for a Java in‑JVM event processing server.
-- Fluxtion Server can sustain ~10 million msgs/sec in this configuration on commodity hardware by leveraging batching and zero-GC pooled events.
+- Fluxtion Server can sustain ~10 million msgs/sec in this configuration on commodity hardware by leveraging batching and Zero‑GC pooled events.
 - Latency distributions broaden with increased batching; tune batch sizes and idle strategies according to your SLA (throughput vs. latency).
 - For production-grade latency characterization, run on a Linux host with CPU isolation to reduce OS jitter and tighten the high-percentile tail.

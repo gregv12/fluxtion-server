@@ -10,7 +10,7 @@ import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.audit.LogRecord;
 import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.input.EventFeed;
-import com.fluxtion.server.FluxtionServer;
+import com.fluxtion.server.MongooseServer;
 import com.fluxtion.server.service.EventSubscriptionKey;
 import com.fluxtion.server.service.extension.AbstractEventSourceService;
 import org.junit.jupiter.api.AfterEach;
@@ -25,11 +25,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Boots FluxtionServer using the new fluent AppConfig builder APIs and verifies an end-to-end event flow.
+ * Boots MongooseServer using the new fluent MongooseServerConfig builder APIs and verifies an end-to-end event flow.
  */
-public class AppConfigFluentBootTest {
+public class MongooseServerConfigFluentBootTest {
 
-    private FluxtionServer server;
+    private MongooseServer server;
 
     @AfterEach
     void tearDown() {
@@ -68,20 +68,20 @@ public class AppConfigFluentBootTest {
                 .build();
 
         // Build app config via fluent builder
-        AppConfig appConfig = AppConfig.builder()
+        MongooseServerConfig mongooseServerConfig = MongooseServerConfig.builder()
                 .addProcessorGroup(groupCfg)
                 .addEventFeed(feedCfg)
                 .build();
 
         // Act: boot server
-        server = FluxtionServer.bootServer(appConfig, logListener);
+        server = MongooseServer.bootServer(mongooseServerConfig, logListener);
 
         // Publish an event
         TestEvent event = new TestEvent("hello");
         eventSource.publishEvent(event);
 
         // Assert: processor handled the event
-        assertTrue(eventProcessed.await(30, TimeUnit.SECONDS), "Processor should receive event via fluent AppConfig");
+        assertTrue(eventProcessed.await(30, TimeUnit.SECONDS), "Processor should receive event via fluent MongooseServerConfig");
         assertEquals(event, processor.getLastProcessedEvent());
     }
 

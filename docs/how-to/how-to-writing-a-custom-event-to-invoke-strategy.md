@@ -15,9 +15,9 @@ When to customize:
 You can:
 
 - Implement the low-level interface
-  directly: [EventToInvokeStrategy](../../src/main/java/com/fluxtion/server/service/EventToInvokeStrategy.java)
+  directly: [EventToInvokeStrategy](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/EventToInvokeStrategy.java)
 - Or extend the convenience base
-  class: [AbstractEventToInvocationStrategy](../../src/main/java/com/fluxtion/server/dispatch/AbstractEventToInvocationStrategy.java)
+  class: [AbstractEventToInvocationStrategy](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dispatch/AbstractEventToInvocationStrategy.java)
 
 The helper already manages:
 
@@ -66,7 +66,7 @@ Notes:
 - Using an invoker strategy allows your event processors to be strongly typed (e.g., MarkerProcessor.onString), while
   the strategy takes responsibility for mapping inbound events to the correct callback. This reduces boilerplate and
   centralizes dispatch logic, which can make future maintenance easier.
-- [ProcessorContext](../../src/main/java/com/fluxtion/server/dispatch/ProcessorContext.java)
+- [ProcessorContext](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dispatch/ProcessorContext.java)
   is automatically set to the current target processor during dispatch. Inside the processor, you can call
   ProcessorContext.currentProcessor() if needed.
 - If you call processEvent(event, time), AbstractEventToInvocationStrategy wires a synthetic clock into each target
@@ -77,28 +77,28 @@ Notes:
 Register your strategy as a factory for
  a [CallBackType](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/CallBackType.java).
 
-Via AppConfig fluent builder (server will register on boot), and override the default onEvent strategy,
+Via MongooseServerConfig fluent builder (server will register on boot), and override the default onEvent strategy,
 ON_EVENT_CALL_BACK,
 delivers raw events to processors via the onEvent(Object) callback.
 
 ```java
 // Register for the standard onEvent path (optional if you want raw onEvent only)
-AppConfig appConfig = AppConfig.builder()
+MongooseServerConfig mongooseServerConfig = MongooseServerConfig.builder()
     .onEventInvokeStrategy(UppercaseStringStrategy::new)
     // add groups, feeds, sinks, services
     .build();
-FluxtionServer server = FluxtionServer.bootServer(appConfig);
+MongooseServer server = MongooseServer.bootServer(mongooseServerConfig);
 ```
 
-For a full end-to-end example that boots the server via the fluent AppConfig builder and verifies the custom strategy,
+For a full end-to-end example that boots the server via the fluent MongooseServerConfig builder and verifies the custom strategy,
 see the test method fluentBuilder_bootsServer_and_applies_custom_strategy
 in [CustomEventToInvokeStrategyTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/dispatch/CustomEventToInvokeStrategyTest.java).
 
-Via FluxtionServer (register at runtime), beware that custom strategy will not affect queues that are already in use
+Via MongooseServer (register at runtime), beware that custom strategy will not affect queues that are already in use
 and have been registered before the new invoker strategy is registered.
 
 ```java
-FluxtionServer server = FluxtionServer.bootServer(appConfig);
+MongooseServer server = MongooseServer.bootServer(mongooseServerConfig);
 server.registerEventMapperFactory(UppercaseStringStrategy::new, CallBackType.ON_EVENT_CALL_BACK);
 ```
 
@@ -115,14 +115,14 @@ See [CustomEventToInvokeStrategyTest.java](https://github.com/gregv12/fluxtion-s
 for a complete, runnable example. It includes:
 
 - A direct EventFlowManager usage example of a custom strategy ✓
-- A fluent AppConfig builder example that boots a FluxtionServer and registers the custom strategy ✓
+- A fluent MongooseServerConfig builder example that boots a MongooseServer and registers the custom strategy ✓
 
 References:
 
 - [EventFlowManager](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dispatch/EventFlowManager.java)
 - [EventToQueuePublisher](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dispatch/EventToQueuePublisher.java)
 - [EventSourceKey](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/EventSourceKey.java)
-- [FluxtionServer](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/FluxtionServer.java)
+- [MongooseServer](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/MongooseServer.java)
 - [CallBackType](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/CallBackType.java)
 - [AbstractEventToInvocationStrategy](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dispatch/AbstractEventToInvocationStrategy.java)
 - [ProcessorContext](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dispatch/ProcessorContext.java)

@@ -9,7 +9,7 @@ import com.fluxtion.agrona.concurrent.Agent;
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.lifecycle.Lifecycle;
 import com.fluxtion.runtime.service.Service;
-import com.fluxtion.server.FluxtionServer;
+import com.fluxtion.server.MongooseServer;
 import com.fluxtion.server.dispatch.EventFlowManager;
 import com.fluxtion.server.service.CallBackType;
 import com.fluxtion.server.service.EventSourceKey;
@@ -30,7 +30,7 @@ public class ComposingEventProcessorAgentTest {
 
     private ComposingEventProcessorAgent composingEventProcessorAgent;
     private TestEventFlowManager testEventFlowManager;
-    private TestFluxtionServer testFluxtionServer;
+    private TestMongooseServer testFluxtionServer;
     private TestDeadWheelScheduler testDeadWheelScheduler;
     private ConcurrentHashMap<String, Service<?>> registeredServices;
     private TestEventProcessor testEventProcessor;
@@ -40,7 +40,7 @@ public class ComposingEventProcessorAgentTest {
     @BeforeEach
     void setUp() {
         testEventFlowManager = new TestEventFlowManager();
-        testFluxtionServer = new TestFluxtionServer();
+        testFluxtionServer = new TestMongooseServer();
         testDeadWheelScheduler = new TestDeadWheelScheduler();
         registeredServices = new ConcurrentHashMap<>();
         testEventProcessor = new TestEventProcessor();
@@ -199,8 +199,8 @@ public class ComposingEventProcessorAgentTest {
         }
     }
 
-    private static class TestFluxtionServer extends FluxtionServer {
-        public TestFluxtionServer() {
+    private static class TestMongooseServer extends MongooseServer {
+        public TestMongooseServer() {
             super(null);
         }
     }
