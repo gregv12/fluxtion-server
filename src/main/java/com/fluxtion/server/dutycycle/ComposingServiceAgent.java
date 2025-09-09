@@ -10,7 +10,7 @@ import com.fluxtion.agrona.concurrent.OneToOneConcurrentArrayQueue;
 import com.fluxtion.runtime.annotations.feature.Experimental;
 import com.fluxtion.runtime.service.Service;
 import com.fluxtion.runtime.service.ServiceRegistryNode;
-import com.fluxtion.server.FluxtionServer;
+import com.fluxtion.server.MongooseServer;
 import com.fluxtion.server.dispatch.EventFlowManager;
 import com.fluxtion.server.internal.ServiceInjector;
 import com.fluxtion.server.service.scheduler.DeadWheelScheduler;
@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ComposingServiceAgent extends DynamicCompositeAgent {
 
     private final EventFlowManager eventFlowManager;
-    private final FluxtionServer fluxtionServer;
+    private final MongooseServer mongooseServer;
     private final DeadWheelScheduler scheduler;
     private final Service<SchedulerService> schedulerService;
     private final OneToOneConcurrentArrayQueue<ServiceAgent<?>> toStartList = new OneToOneConcurrentArrayQueue<>(128);
@@ -47,11 +47,11 @@ public class ComposingServiceAgent extends DynamicCompositeAgent {
 
     public ComposingServiceAgent(String roleName,
                                  EventFlowManager eventFlowManager,
-                                 FluxtionServer fluxtionServer,
+                                 MongooseServer mongooseServer,
                                  DeadWheelScheduler scheduler) {
         super(roleName, scheduler);
         this.eventFlowManager = eventFlowManager;
-        this.fluxtionServer = fluxtionServer;
+        this.mongooseServer = mongooseServer;
         this.scheduler = scheduler;
         this.schedulerService = new Service<>(scheduler, SchedulerService.class);
     }
@@ -65,8 +65,8 @@ public class ComposingServiceAgent extends DynamicCompositeAgent {
     @Override
     public void onStart() {
         // Best-effort core pinning if configured for this agent group (guard for null during unit tests)
-        if (fluxtionServer != null) {
-            Integer coreId = fluxtionServer.resolveCoreIdForAgentName(roleName());
+        if (mongooseServer != null) {
+            Integer coreId = mongooseServer.resolveCoreIdForAgentName(roleName());
             if (coreId != null) {
                 com.fluxtion.server.internal.CoreAffinity.pinCurrentThreadToCore(coreId);
             }
@@ -102,12 +102,12 @@ public class ComposingServiceAgent extends DynamicCompositeAgent {
                 serviceRegistry.init();
                 serviceRegistry.nodeRegistered(exportedService.instance(), exportedService.serviceName());
                 serviceRegistry.registerService(schedulerService);
-                fluxtionServer.servicesRegistered().forEach(serviceRegistry::registerService);
+                mongooseServer.servicesRegistered().forEach(serviceRegistry::registerService);
                 // Inject dependencies into the agent-hosted service instance (scheduler + server services)
-                java.util.List<com.fluxtion.runtime.service.Service<?>> inj = new java.util.ArrayList<>(fluxtionServer.servicesRegistered());
+                java.util.List<com.fluxtion.runtime.service.Service<?>> inj = new java.util.ArrayList<>(mongooseServer.servicesRegistered());
                 inj.add(schedulerService);
                 ServiceInjector.inject(exportedService.instance(), inj);
-                fluxtionServer.registerAgentService(exportedService);
+                mongooseServer.registerAgentService(exportedService);
                 exportedService.start();
             });
         }

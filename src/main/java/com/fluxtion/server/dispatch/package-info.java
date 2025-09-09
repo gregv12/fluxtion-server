@@ -14,7 +14,7 @@
  * <p>
  * Public API (consumed by other packages)
  * - EventSource, LifeCycleEventSource, EventSourceKey, EventSubscriptionKey
- * - EventFlowManager (orchestrated by FluxtionServer)
+ * - EventFlowManager (orchestrated by MongooseServer)
  * - EventToQueuePublisher (used by Event sources)
  * - CallBackType and EventToInvokeStrategy (SPI for mapping events -> callbacks)
  * - ProcessorContext (thread-local current StaticEventProcessor)
@@ -27,6 +27,6 @@
  * com.fluxtion.server.dutycycle (agents consume dispatch, not vice-versa).
  * <p>
  * Notes
- * - Keep this package free of server orchestration logic; FluxtionServer wires it up.
+ * - Keep this package free of server orchestration logic; MongooseServer wires it up.
  */
 package com.fluxtion.server.dispatch;

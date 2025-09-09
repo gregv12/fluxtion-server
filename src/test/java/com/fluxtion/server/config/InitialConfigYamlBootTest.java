@@ -4,7 +4,7 @@
  */
 package com.fluxtion.server.config;
 
-import com.fluxtion.server.FluxtionServer;
+import com.fluxtion.server.MongooseServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class InitialConfigYamlBootTest {
 
-    private FluxtionServer server;
+    private MongooseServer server;
 
     @AfterEach
     void tearDown() {
@@ -46,7 +46,7 @@ public class InitialConfigYamlBootTest {
                 # --------- EVENT HANDLERS END CONFIG ---------
                 """;
 
-        server = FluxtionServer.bootServer(new StringReader(yaml), rec -> {});
+        server = MongooseServer.bootServer(new StringReader(yaml), rec -> {});
 
         assertNotNull(ConfigAwareYamlHandler.lastConfig, "Expected initial config to be injected from YAML");
         assertEquals("hello", ConfigAwareYamlHandler.lastConfig.getOrDefault(ConfigKey.of("greeting", String.class), null));

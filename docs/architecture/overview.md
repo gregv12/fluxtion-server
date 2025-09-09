@@ -11,7 +11,7 @@ overview of the Mongoose server architecture, including component diagrams and d
 Mongoose server follows an event-driven architecture pattern where events flow from sources to processors through a
 managed event flow system. The architecture consists of the following main components:
 
-1. **FluxtionServer** - The main server class that bootstraps and manages the entire system
+1. **MongooseServer** - The main server class that bootstraps and manages the entire system
 2. **EventFlowManager** - Manages the flow of events between sources and processors
 3. **EventSource** - Interfaces for components that generate events
 4. **EventProcessors** - Components that process events
@@ -40,9 +40,9 @@ managed event flow system. The architecture consists of the following main compo
 
 ## Key Components
 
-### FluxtionServer
+### MongooseServer
 
-The FluxtionServer class is the main entry point and controller for the system. It is responsible for:
+The MongooseServer class is the main entry point and controller for the system. It is responsible for:
 
 - Bootstrapping the server with configuration
 - Managing the lifecycle of event processors and services

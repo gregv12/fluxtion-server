@@ -10,8 +10,8 @@ import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.audit.LogRecord;
 import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.input.EventFeed;
-import com.fluxtion.server.FluxtionServer;
-import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.MongooseServer;
+import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.config.EventFeedConfig;
 import com.fluxtion.server.config.EventProcessorConfig;
 import com.fluxtion.server.config.EventProcessorGroupConfig;
@@ -76,12 +76,12 @@ public final class EventFixtures {
                 .agentName("group-" + processorNameBase)
                 .put(procName, epCfg)
                 .build();
-        AppConfig app = AppConfig.builder()
+        MongooseServerConfig app = MongooseServerConfig.builder()
                 .addEventFeed(feed)
                 .addProcessorGroup(group)
                 .build();
         CapturingLogListener logs = new CapturingLogListener(1000);
-        FluxtionServer server = FluxtionServer.bootServer(app, logs);
+        MongooseServer server = MongooseServer.bootServer(app, logs);
         return new Harness<>(server, source, processor, feedName, logs);
     }
 
@@ -132,13 +132,13 @@ public final class EventFixtures {
     }
 
     public static final class Harness<E, S extends EventSourceStub<E>, P extends StaticEventProcessor & EventProcessor<P>> {
-        public final FluxtionServer server;
+        public final MongooseServer server;
         public final S source;
         public final P processor;
         public final String feedName;
         public final CapturingLogListener logs;
 
-        Harness(FluxtionServer s, S src, P p, String f, CapturingLogListener l) {
+        Harness(MongooseServer s, S src, P p, String f, CapturingLogListener l) {
             this.server = s;
             this.source = src;
             this.processor = p;

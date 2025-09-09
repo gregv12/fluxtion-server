@@ -8,7 +8,7 @@ package com.fluxtion.server.config;
 import com.fluxtion.agrona.concurrent.Agent;
 import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
 import com.fluxtion.runtime.service.Service;
-import com.fluxtion.server.FluxtionServer;
+import com.fluxtion.server.MongooseServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -18,9 +18,9 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 
 @org.junit.jupiter.api.Disabled
-public class AppConfigServiceRegistrationTest {
+public class MongooseServerConfigServiceRegistrationTest {
 
-    private FluxtionServer server;
+    private MongooseServer server;
 
     @AfterEach
     void tearDown() {
@@ -87,13 +87,13 @@ public class AppConfigServiceRegistrationTest {
     @Test
     void testAddService_InferredInterface() {
         // Arrange
-        AppConfig cfg = new AppConfig();
+        MongooseServerConfig cfg = new MongooseServerConfig();
         GreetingServiceImpl svc = new GreetingServiceImpl();
         String serviceName = "greetingSvc";
         cfg.addService(svc, serviceName);
 
         // Act
-        server = FluxtionServer.bootServer(cfg, null);
+        server = MongooseServer.bootServer(cfg, null);
         Collection<Service<?>> services = server.servicesRegistered();
 
         // Assert
@@ -106,13 +106,13 @@ public class AppConfigServiceRegistrationTest {
     @Test
     void testAddService_ExplicitClass() {
         // Arrange
-        AppConfig cfg = new AppConfig();
+        MongooseServerConfig cfg = new MongooseServerConfig();
         GreetingServiceImpl svc = new GreetingServiceImpl();
         String serviceName = "greetingSvcExplicit";
         cfg.addService(svc, GreetingService.class, serviceName);
 
         // Act
-        server = FluxtionServer.bootServer(cfg, null);
+        server = MongooseServer.bootServer(cfg, null);
         Collection<Service<?>> services = server.servicesRegistered();
 
         // Assert
@@ -125,13 +125,13 @@ public class AppConfigServiceRegistrationTest {
     @Test
     void testAddWorkerService_InferredInterface() {
         // Arrange
-        AppConfig cfg = new AppConfig();
+        MongooseServerConfig cfg = new MongooseServerConfig();
         AgentService agentSvc = new AgentService("agentGreetingSvc");
         String serviceName = "agentGreetingSvcName";
         cfg.addWorkerService(agentSvc, serviceName, "workerGroupA", new BusySpinIdleStrategy());
 
         // Act
-        server = FluxtionServer.bootServer(cfg, null);
+        server = MongooseServer.bootServer(cfg, null);
         Collection<Service<?>> services = server.servicesRegistered();
 
         // Assert

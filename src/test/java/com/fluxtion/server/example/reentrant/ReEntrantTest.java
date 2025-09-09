@@ -5,8 +5,8 @@
 
 package com.fluxtion.server.example.reentrant;
 
-import com.fluxtion.server.FluxtionServer;
-import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.MongooseServer;
+import com.fluxtion.server.config.MongooseServerConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -20,10 +20,10 @@ public class ReEntrantTest {
                 .setMaxCount(20)      // emit 20 events then stop
                 .setThrowOnMax(false);// do not throw, just stop scheduling
 
-        AppConfig appConfig = new AppConfig()
+        MongooseServerConfig mongooseServerConfig = new MongooseServerConfig()
                 .addProcessor("handlerThread", handler, "reEntrantHandler");
 
-        FluxtionServer server = FluxtionServer.bootServer(appConfig, logRecord -> {});
+        MongooseServer server = MongooseServer.bootServer(mongooseServerConfig, logRecord -> {});
 
         // Wait until the handler has published the expected number of events, or timeout
         long timeoutMs = 5_000;

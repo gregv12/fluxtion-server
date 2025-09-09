@@ -15,12 +15,12 @@ Mongoose server can be deployed as a standalone Java application. This is the si
 #### Configuration:
 ```java
 // Load configuration from a file
-FluxtionServer server = FluxtionServer.bootServer(logRecordListener);
+MongooseServer server = MongooseServer.bootServer(logRecordListener);
 
 // Or programmatically
-AppConfig appConfig = new AppConfig();
-// Configure appConfig
-FluxtionServer server = FluxtionServer.bootServer(appConfig, logRecordListener);
+MongooseServerConfig mongooseServerConfig = new MongooseServerConfig();
+// Configure mongooseServerConfig
+MongooseServer server = MongooseServer.bootServer(mongooseServerConfig, logRecordListener);
 ```
 
 ### Embedded in Another Application
@@ -30,9 +30,9 @@ Mongoose server can be embedded within another Java application, such as a Sprin
 #### Configuration:
 ```java
 // Create and configure the server
-AppConfig appConfig = new AppConfig();
-// Configure appConfig
-FluxtionServer server = new FluxtionServer(appConfig);
+MongooseServerConfig mongooseServerConfig = new MongooseServerConfig();
+// Configure mongooseServerConfig
+MongooseServer server = new MongooseServer(mongooseServerConfig);
 
 // Register components
 server.registerEventSource("source1", eventSource);

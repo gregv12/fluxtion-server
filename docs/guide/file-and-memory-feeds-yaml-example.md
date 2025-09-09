@@ -1,7 +1,7 @@
 # Example: Wiring File and In‑Memory Event Sources to a File Sink using YAML configuration
 
 This guide shows the same scenario as the fluent builder example, but using a YAML configuration loaded by
-`FluxtionServer.bootServer(Reader, ...)`.
+`MongooseServer.bootServer(Reader, ...)`.
 
 What you will do:
 
@@ -90,7 +90,7 @@ Notes:
 
 ```java
 String yaml = Files.readString(Path.of("/path/to/config.yaml"));
-FluxtionServer server = FluxtionServer.bootServer(new StringReader(yaml), rec -> {});
+MongooseServer server = MongooseServer.bootServer(new StringReader(yaml), rec -> {});
 
 try {
     // Write file events

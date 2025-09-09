@@ -69,20 +69,20 @@ Event publication between threads uses single-producer/single-consumer queues co
 
 Configuration
 
-- Programmatic: Use `AppConfig` and `ThreadConfig` to declare agent threads, names, and idle strategies.
+- Programmatic: Use `MongooseServerConfig` and `ThreadConfig` to declare agent threads, names, and idle strategies.
 - YAML style: Equivalent declarations exist for feeds/handlers/sinks and agent threads.
 
 Example (Java builder):
 
 ```java
-import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.config.EventProcessorGroupConfig;
 import com.fluxtion.server.config.EventProcessorConfig;
 import com.fluxtion.server.config.EventFeedConfig;
 import com.fluxtion.server.config.ThreadConfig;
 import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
 
-AppConfig appConfig = AppConfig.builder()
+MongooseServerConfig mongooseServerConfig = MongooseServerConfig.builder()
     .addThread(ThreadConfig.builder()
         .agentName("processor-agent")
         .idleStrategy(new BusySpinIdleStrategy())

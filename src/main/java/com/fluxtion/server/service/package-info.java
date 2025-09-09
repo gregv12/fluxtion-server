@@ -22,7 +22,7 @@
  * Allowed dependencies
  * - May depend on: com.fluxtion.server.dispatch (to interact with event flow),
  * com.fluxtion.server.exception, com.fluxtion.runtime annotations/services.
- * - Must not depend on: com.fluxtion.server.config (config is input to FluxtionServer only).
+ * - Must not depend on: com.fluxtion.server.config (config is input to MongooseServer only).
  * <p>
  * Notes
  * - Keep services reusable and isolated from server orchestration concerns.

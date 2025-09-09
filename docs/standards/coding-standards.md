@@ -1,4 +1,4 @@
-# Mongoose server Coding Standards and Best Practices
+# Mongoose Server Coding Standards and Best Practices
 
 ## Introduction
 

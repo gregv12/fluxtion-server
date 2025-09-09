@@ -6,19 +6,19 @@
 package com.fluxtion.server.test.util;
 
 import com.fluxtion.runtime.audit.LogRecordListener;
-import com.fluxtion.server.FluxtionServer;
-import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.MongooseServer;
+import com.fluxtion.server.config.MongooseServerConfig;
 import org.junit.jupiter.api.AfterEach;
 
 /**
- * Base class for tests that boot a FluxtionServer. Ensures the server is
+ * Base class for tests that boot a MongooseServer. Ensures the server is
  * stopped after each test and provides a convenience boot method.
  */
 public abstract class WithServer {
-    protected FluxtionServer server;
+    protected MongooseServer server;
 
-    protected FluxtionServer boot(AppConfig cfg, LogRecordListener listener) {
-        this.server = FluxtionServer.bootServer(cfg, listener);
+    protected MongooseServer boot(MongooseServerConfig cfg, LogRecordListener listener) {
+        this.server = MongooseServer.bootServer(cfg, listener);
         return this.server;
     }
 

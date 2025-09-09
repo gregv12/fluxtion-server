@@ -49,7 +49,8 @@ public class EventToQueuePublisher<T> {
     @Setter
     private Function<T, ?> dataMapper = Function.identity();
     private int cacheReadPointer = 0;
-    private final boolean logInfo = log.isLoggable(Level.FINE);
+    private final boolean logWarning = log.isLoggable(Level.WARNING);
+    private final boolean logInfo = log.isLoggable(Level.INFO);
 
     public void addTargetQueue(OneToOneConcurrentArrayQueue<Object> targetQueue, String name) {
         NamedQueue namedQueue = new NamedQueue(name, targetQueue);
@@ -232,7 +233,7 @@ public class EventToQueuePublisher<T> {
                     if (startNs < 0) {
                         startNs = System.nanoTime();
                     } else if (System.nanoTime() - startNs > maxSpinNs) {
-                        if (logInfo) {
+                        if (logWarning) {
                             log.warning("dropping publish to slow/contended queue: " + namedQueue.name() +
                                     " after ~" + ((System.nanoTime() - startNs) / 1_000_000) + "ms seq:" + sequenceNumber +
                                     " queueSize:" + targetQueue.size());

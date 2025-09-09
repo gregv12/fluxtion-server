@@ -11,7 +11,7 @@ import com.fluxtion.server.dutycycle.ComposingEventProcessorAgent;
  * Lightweight holder pairing a {@link com.fluxtion.server.dutycycle.ComposingEventProcessorAgent}
  * with its executing {@link com.fluxtion.agrona.concurrent.AgentRunner}.
  * <p>
- * Used by FluxtionServer to track event processor agent groups and their runners
+ * Used by MongooseServer to track event processor agent groups and their runners
  * for lifecycle management (start/stop).
  *
  * @param group       the composing event processor agent group

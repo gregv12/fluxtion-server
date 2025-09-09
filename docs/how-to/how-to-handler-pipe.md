@@ -18,7 +18,7 @@ It couples:
 HandlerPipe<String> pipe = HandlerPipe.<String>of("ordersFeed").cacheEventLog(true);
 
 // Wire the receive-side into your server configuration (pseudo-code):
-AppConfig cfg = new AppConfig();
+MongooseServerConfig cfg = new MongooseServerConfig();
 cfg.addService("ordersFeedService", pipe.getSource());
 
 // In your processor(s), subscribe to the source by service name
@@ -114,13 +114,13 @@ EventSinkConfig<MessageSink<?>> sinkCfg = EventSinkConfig.<MessageSink<?>>builde
         .name("memSink")
         .build();
 
-AppConfig appConfig = AppConfig.builder()
+MongooseServerConfig mongooseServerConfig = MongooseServerConfig.builder()
         .addProcessorGroup(processors)
         .addEventFeed(pipeFeed)
         .addEventSink(sinkCfg)
         .build();
 
-FluxtionServer server = FluxtionServer.bootServer(appConfig, rec -> {});
+MongooseServer server = MongooseServer.bootServer(mongooseServerConfig, rec -> {});
 ```
 
 - Publish via the pipe and observe results in the sink:

@@ -23,16 +23,16 @@ You’ll learn:
 - AdminCommandProcessor — service that routes commands through the event flow and hosts built-ins (
   help/commands/eventSources)
 - CliAdminCommandProcessor — optional interactive console to type commands
-- FluxtionServerAdmin — sample “server control” commands (list services/processors, stop processors)
+- MongooseServerAdmin — sample “server control” commands (list services/processors, stop processors)
 
 References:
 
-- [AdminCommandRegistry.java](../../src/main/java/com/fluxtion/server/service/admin/AdminCommandRegistry.java)
+- [AdminCommandRegistry.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/admin/AdminCommandRegistry.java)
 - [AdminFunction.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/admin/AdminFunction.java)
 - [AdminCommandRequest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/admin/AdminCommandRequest.java)
 - [AdminCommandProcessor.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/admin/impl/AdminCommandProcessor.java)
 - [CliAdminCommandProcessor.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/admin/impl/CliAdminCommandProcessor.java)
-- [FluxtionServerAdmin.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/servercontrol/FluxtionServerAdmin.java)
+- [MongooseServerAdmin.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/servercontrol/MongooseServerAdmin.java)
 
 ## How it works
 
@@ -103,12 +103,12 @@ public class OpsService implements com.fluxtion.runtime.lifecycle.Lifecycle {
 }
 ```
 
-## Wiring admin infrastructure in AppConfig
+## Wiring admin infrastructure in MongooseServerConfig
 
 You need to register the admin services in your application.
 
 ```java
-import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.config.ServiceConfig;
 import com.fluxtion.server.service.admin.AdminCommandRegistry;
 import com.fluxtion.server.service.admin.impl.AdminCommandProcessor;
@@ -127,7 +127,7 @@ ServiceConfig<?> cliSvc = ServiceConfig.builder()
         .name("adminCli")
         .build();
 
-AppConfig app = AppConfig.builder()
+MongooseServerConfig app = MongooseServerConfig.builder()
         // add your processors and other services...
         .addService(adminSvc)
         .addService(cliSvc)  // optional
@@ -137,15 +137,15 @@ AppConfig app = AppConfig.builder()
 Notes:
 
 - AdminCommandProcessor exposes default commands: `help`, `?`, `commands`, `eventSources`.
-- FluxtionServerAdmin registers higher-level server operations (list services/processors, stop processors). To use it:
+- MongooseServerAdmin registers higher-level server operations (list services/processors, stop processors). To use it:
 
 ```java
 ServiceConfig<?> serverAdmin = ServiceConfig.builder()
-        .service(new FluxtionServerAdmin())
+        .service(new MongooseServerAdmin())
         .name("serverAdmin")
         .build();
 
-app = AppConfig.builder()
+app = MongooseServerConfig.builder()
         // ...
         .addService(adminSvc)
         .addService(serverAdmin)
@@ -173,7 +173,7 @@ request.setArguments(java.util.List.of("hello", "world"));
 request.setOutput(System.out::println);
 request.setErrOutput(System.err::println);
 
-// obtain the registry from FluxtionServer.registeredServices()
+// obtain the registry from MongooseServer.registeredServices()
 Service<?> svc = server.registeredServices().get("adminService");
 AdminCommandRegistry registry = (AdminCommandRegistry) svc.instance();
 
@@ -206,12 +206,12 @@ void processAdminCommand(List<String> args, Consumer<OUT> out, Consumer<ERR> err
 - For long operations, consider returning a quick acknowledgement and performing the work asynchronously; stream
   progress to `out` if appropriate.
 - Use `commands` and `help` to explore what’s registered at runtime.
-- Combine with FluxtionServerAdmin for common operational tasks.
+- Combine with MongooseServerAdmin for common operational tasks.
 
 ## Example end‑to‑end
 
 See:
 
 - [BroadcastCallbackTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/dispatch/BroadcastCallbackTest.java)
-- [FluxtionServerAdmin.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/servercontrol/FluxtionServerAdmin.java)
+- [MongooseServerAdmin.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/servercontrol/MongooseServerAdmin.java)
   These show wiring the admin registry, adding commands, and optional CLI usage.

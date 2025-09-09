@@ -18,16 +18,16 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class AppConfigTest {
+public class MongooseServerConfigTest {
 
-    private AppConfig appConfig;
+    private MongooseServerConfig mongooseServerConfig;
     private IdleStrategy defaultIdleStrategy;
     private IdleStrategy customIdleStrategy;
     private IdleStrategy threadConfigIdleStrategy;
 
     @BeforeEach
     void setUp() {
-        appConfig = new AppConfig();
+        mongooseServerConfig = new MongooseServerConfig();
         defaultIdleStrategy = new YieldingIdleStrategy();
         customIdleStrategy = new BusySpinIdleStrategy();
         threadConfigIdleStrategy = new BackoffIdleStrategy(1, 1, 1, 1);
@@ -36,10 +36,10 @@ public class AppConfigTest {
     @Test
     void testLookupIdleStrategyWhenNull_NullPreferredAndNullAgentThreads() {
         // Arrange
-        appConfig.setIdleStrategy(defaultIdleStrategy);
+        mongooseServerConfig.setIdleStrategy(defaultIdleStrategy);
 
         // Act
-        IdleStrategy result = appConfig.lookupIdleStrategyWhenNull(null, "testAgent");
+        IdleStrategy result = mongooseServerConfig.lookupIdleStrategyWhenNull(null, "testAgent");
 
         // Assert
         assertSame(defaultIdleStrategy, result, "Should return the default idle strategy");
@@ -53,10 +53,10 @@ public class AppConfigTest {
         threadConfig.setAgentName("testAgent");
         threadConfig.setIdleStrategy(threadConfigIdleStrategy);
         threadConfigs.add(threadConfig);
-        appConfig.setAgentThreads(threadConfigs);
+        mongooseServerConfig.setAgentThreads(threadConfigs);
 
         // Act
-        IdleStrategy result = appConfig.lookupIdleStrategyWhenNull(null, "testAgent");
+        IdleStrategy result = mongooseServerConfig.lookupIdleStrategyWhenNull(null, "testAgent");
 
         // Assert
         assertSame(threadConfigIdleStrategy, result, "Should return the thread config idle strategy");
@@ -70,10 +70,10 @@ public class AppConfigTest {
         threadConfig.setAgentName("otherAgent");
         threadConfig.setIdleStrategy(threadConfigIdleStrategy);
         threadConfigs.add(threadConfig);
-        appConfig.setAgentThreads(threadConfigs);
+        mongooseServerConfig.setAgentThreads(threadConfigs);
 
         // Act
-        IdleStrategy result = appConfig.lookupIdleStrategyWhenNull(null, "testAgent");
+        IdleStrategy result = mongooseServerConfig.lookupIdleStrategyWhenNull(null, "testAgent");
 
         // Assert
         assertTrue(result instanceof YieldingIdleStrategy, "Should return a new YieldingIdleStrategy");
@@ -87,10 +87,10 @@ public class AppConfigTest {
         threadConfig.setAgentName("testAgent");
         threadConfig.setIdleStrategy(threadConfigIdleStrategy);
         threadConfigs.add(threadConfig);
-        appConfig.setAgentThreads(threadConfigs);
+        mongooseServerConfig.setAgentThreads(threadConfigs);
 
         // Act
-        IdleStrategy result = appConfig.lookupIdleStrategyWhenNull(customIdleStrategy, "testAgent");
+        IdleStrategy result = mongooseServerConfig.lookupIdleStrategyWhenNull(customIdleStrategy, "testAgent");
 
         // Assert
         assertSame(customIdleStrategy, result, "Should return the preferred idle strategy");
@@ -99,10 +99,10 @@ public class AppConfigTest {
     @Test
     void testGetIdleStrategyOrDefault_NullAgentThreads() {
         // Arrange
-        appConfig.setAgentThreads(null);
+        mongooseServerConfig.setAgentThreads(null);
 
         // Act
-        IdleStrategy result = appConfig.getIdleStrategyOrDefault("testAgent", defaultIdleStrategy);
+        IdleStrategy result = mongooseServerConfig.getIdleStrategyOrDefault("testAgent", defaultIdleStrategy);
 
         // Assert
         assertSame(defaultIdleStrategy, result, "Should return the default idle strategy");
@@ -116,10 +116,10 @@ public class AppConfigTest {
         threadConfig.setAgentName("testAgent");
         threadConfig.setIdleStrategy(threadConfigIdleStrategy);
         threadConfigs.add(threadConfig);
-        appConfig.setAgentThreads(threadConfigs);
+        mongooseServerConfig.setAgentThreads(threadConfigs);
 
         // Act
-        IdleStrategy result = appConfig.getIdleStrategyOrDefault("testAgent", defaultIdleStrategy);
+        IdleStrategy result = mongooseServerConfig.getIdleStrategyOrDefault("testAgent", defaultIdleStrategy);
 
         // Assert
         assertSame(threadConfigIdleStrategy, result, "Should return the thread config idle strategy");
@@ -133,10 +133,10 @@ public class AppConfigTest {
         threadConfig.setAgentName("otherAgent");
         threadConfig.setIdleStrategy(threadConfigIdleStrategy);
         threadConfigs.add(threadConfig);
-        appConfig.setAgentThreads(threadConfigs);
+        mongooseServerConfig.setAgentThreads(threadConfigs);
 
         // Act
-        IdleStrategy result = appConfig.getIdleStrategyOrDefault("testAgent", defaultIdleStrategy);
+        IdleStrategy result = mongooseServerConfig.getIdleStrategyOrDefault("testAgent", defaultIdleStrategy);
 
         // Assert
         assertTrue(result instanceof YieldingIdleStrategy, "Should return a new YieldingIdleStrategy");
@@ -150,10 +150,10 @@ public class AppConfigTest {
         threadConfig.setAgentName("testAgent");
         threadConfig.setIdleStrategy(null);
         threadConfigs.add(threadConfig);
-        appConfig.setAgentThreads(threadConfigs);
+        mongooseServerConfig.setAgentThreads(threadConfigs);
 
         // Act
-        IdleStrategy result = appConfig.getIdleStrategyOrDefault("testAgent", defaultIdleStrategy);
+        IdleStrategy result = mongooseServerConfig.getIdleStrategyOrDefault("testAgent", defaultIdleStrategy);
 
         // Assert
         assertSame(defaultIdleStrategy, result, "Should return the default idle strategy");

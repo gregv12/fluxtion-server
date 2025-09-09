@@ -14,11 +14,11 @@ import static org.junit.jupiter.api.Assertions.*;
 @Data
 public class GetDefaultHandlerGroupConfigTest {
 
-    private AppConfig appConfig;
+    private MongooseServerConfig mongooseServerConfig;
 
     @BeforeEach
     public void setup() {
-        appConfig = new AppConfig();
+        mongooseServerConfig = new MongooseServerConfig();
     }
 
     @Test
@@ -28,10 +28,10 @@ public class GetDefaultHandlerGroupConfigTest {
         EventProcessorGroupConfig existingGroup = EventProcessorGroupConfig.builder()
                 .agentName(groupName)
                 .build();
-        appConfig.getEventHandlers().add(existingGroup);
+        mongooseServerConfig.getEventHandlers().add(existingGroup);
 
         //When
-        EventProcessorGroupConfig retrievedGroup = appConfig.getGroupConfig(groupName);
+        EventProcessorGroupConfig retrievedGroup = mongooseServerConfig.getGroupConfig(groupName);
 
         //Then
         assertEquals(existingGroup, retrievedGroup);
@@ -43,11 +43,11 @@ public class GetDefaultHandlerGroupConfigTest {
         String groupName = "newGroup";
 
         //When
-        EventProcessorGroupConfig newGroup = appConfig.getGroupConfig(groupName);
+        EventProcessorGroupConfig newGroup = mongooseServerConfig.getGroupConfig(groupName);
 
         //Then
         assertNotNull(newGroup);
         assertEquals(groupName, newGroup.getAgentName());
-        assertTrue(appConfig.getEventHandlers().contains(newGroup));
+        assertTrue(mongooseServerConfig.getEventHandlers().contains(newGroup));
     }
 }

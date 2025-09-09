@@ -58,7 +58,7 @@ source.setName("replayFeed");
 ReplayCaptureHandler handler = new ReplayCaptureHandler(source.getName());
 InMemoryMessageSink sink = new InMemoryMessageSink();
 
-// Build AppConfig with the event feed, processor, and sink (see full example below)
+// Build MongooseServerConfig with the event feed, processor, and sink (see full example below)
 
 long t1 = 1_696_000_000_000L; // epoch millis
 long t2 = t1 + 1234;

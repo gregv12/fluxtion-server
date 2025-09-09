@@ -6,7 +6,7 @@ package com.fluxtion.server;
 
 import com.fluxtion.runtime.lifecycle.Lifecycle;
 import com.fluxtion.runtime.service.Service;
-import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.dispatch.EventFlowManager;
 import com.fluxtion.server.service.EventSubscriptionKey;
 import com.fluxtion.server.service.LifeCycleEventSource;
@@ -18,15 +18,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Tests covering lifecycle management behavior and ordering.
  */
-public class FluxtionServerLifecycleTest {
+public class MongooseServerLifecycleTest {
 
-    private FluxtionServer server;
+    private MongooseServer server;
     private TestService service;
     private TestLifeCycleEventSource eventSourceService;
 
     @BeforeEach
     void setUp() {
-        server = new FluxtionServer(new AppConfig());
+        server = new MongooseServer(new MongooseServerConfig());
         service = new TestService();
         eventSourceService = new TestLifeCycleEventSource();
     }

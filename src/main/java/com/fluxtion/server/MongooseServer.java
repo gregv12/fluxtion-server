@@ -16,7 +16,7 @@ import com.fluxtion.runtime.annotations.runtime.ServiceRegistered;
 import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.service.Service;
 import com.fluxtion.runtime.service.ServiceRegistryNode;
-import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.dispatch.EventFlowManager;
 import com.fluxtion.server.dutycycle.ComposingEventProcessorAgent;
 import com.fluxtion.server.dutycycle.ComposingServiceAgent;
@@ -32,7 +32,7 @@ import com.fluxtion.server.service.EventSource;
 import com.fluxtion.server.service.EventToInvokeStrategy;
 import com.fluxtion.server.service.admin.AdminCommandRegistry;
 import com.fluxtion.server.service.scheduler.DeadWheelScheduler;
-import com.fluxtion.server.service.servercontrol.FluxtionServerController;
+import com.fluxtion.server.service.servercontrol.MongooseServerController;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 import org.yaml.snakeyaml.LoaderOptions;
@@ -48,7 +48,7 @@ import java.util.function.Supplier;
 
 
 /**
- * FluxtionServer is the central runtime that wires together event sources, event processors,
+ * MongooseServer is the central runtime that wires together event sources, event processors,
  * event sinks, and application services, and manages their lifecycle and threading model.
  * <p>
  * High-level architecture:
@@ -86,10 +86,10 @@ import java.util.function.Supplier;
  * <p>
  * Configuration and bootstrapping:
  * <ul>
- *   <li>Servers can be bootstrapped from an {@link AppConfig}, a {@link java.io.Reader}, or from a YAML
+ *   <li>Servers can be bootstrapped from an {@link MongooseServerConfig}, a {@link java.io.Reader}, or from a YAML
  *       file path provided via the {@link #CONFIG_FILE_PROPERTY} system property.</li>
  *   <li>Threading policies are controlled via idle strategies that can be specified per agent group or
- *       fall back to a global default. These are resolved with helper methods in {@link AppConfig}.</li>
+ *       fall back to a global default. These are resolved with helper methods in {@link MongooseServerConfig}.</li>
  *   <li>Custom event-to-callback mapping strategies can be registered to tailor routing behavior.</li>
  * </ul>
  * <p>
@@ -102,7 +102,7 @@ import java.util.function.Supplier;
  * <p>
  * Typical usage pattern:
  * <ol>
- *   <li>Construct or load an {@link AppConfig}.</li>
+ *   <li>Construct or load an {@link MongooseServerConfig}.</li>
  *   <li>Boot the server via one of the {@code bootServer(...)} overloads.</li>
  *   <li>Optionally register additional services, event sources, and event processors programmatically.</li>
  *   <li>Call {@link #init()} and {@link #start()} (when booting from config helpers, these may be invoked for you).</li>
@@ -110,11 +110,11 @@ import java.util.function.Supplier;
  * </ol>
  */
 @Log
-public class FluxtionServer implements FluxtionServerController {
+public class MongooseServer implements MongooseServerController {
 
     public static final String CONFIG_FILE_PROPERTY = "fluxtionserver.config.file";
     private static LogRecordListener logRecordListener;
-    private final AppConfig appConfig;
+    private final MongooseServerConfig mongooseServerConfig;
     private final EventFlowManager flowManager = new EventFlowManager();
     private final ConcurrentHashMap<String, ComposingEventProcessorAgentRunner> composingEventProcessorAgents = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ComposingWorkerServiceAgentRunner> composingServiceAgents = new ConcurrentHashMap<>();
@@ -126,51 +126,51 @@ public class FluxtionServer implements FluxtionServerController {
     private final LifecycleManager lifecycleManager = new LifecycleManager(this);
 
     /**
-     * Construct a FluxtionServer bound to a specific application configuration.
+     * Construct a MongooseServer bound to a specific application configuration.
      * <p>
-     * The supplied {@link AppConfig} provides definitions for services, event sources,
+     * The supplied {@link MongooseServerConfig} provides definitions for services, event sources,
      * event processors, sinks, and agent thread settings used during initialization and start.
      *
-     * @param appConfig application configuration used for thread, service, and event-flow setup
+     * @param mongooseServerConfig application configuration used for thread, service, and event-flow setup
      */
-    public FluxtionServer(AppConfig appConfig) {
-        this.appConfig = appConfig;
+    public MongooseServer(MongooseServerConfig mongooseServerConfig) {
+        this.mongooseServerConfig = mongooseServerConfig;
     }
 
     /**
-     * Boots a FluxtionServer instance by loading configuration from the provided reader.
-     * The configuration is parsed and converted into an {@code AppConfig} instance, which is used
+     * Boots a MongooseServer instance by loading configuration from the provided reader.
+     * The configuration is parsed and converted into an {@code MongooseServerConfig} instance, which is used
      * for initializing the server along with the specified log record listener.
      *
      * @param reader            A {@code Reader} instance used to read the configuration input.
      * @param logRecordListener A {@code LogRecordListener} instance for handling log messages during server operations.
-     * @return A new instance of {@code FluxtionServer} configured with the supplied {@code AppConfig} and log record listener.
+     * @return A new instance of {@code MongooseServer} configured with the supplied {@code MongooseServerConfig} and log record listener.
      */
-    public static FluxtionServer bootServer(Reader reader, LogRecordListener logRecordListener) {
+    public static MongooseServer bootServer(Reader reader, LogRecordListener logRecordListener) {
         log.info("booting server loading config from reader");
         LoaderOptions loaderOptions = new LoaderOptions();
         loaderOptions.setTagInspector(tag -> true);
         Yaml yaml = new Yaml(loaderOptions);
-        AppConfig appConfig = yaml.loadAs(reader, AppConfig.class);
+        MongooseServerConfig mongooseServerConfig = yaml.loadAs(reader, MongooseServerConfig.class);
         log.info("successfully loaded config from reader");
 
-        return bootServer(appConfig, logRecordListener);
+        return bootServer(mongooseServerConfig, logRecordListener);
     }
 
     /**
-     * Boots a FluxtionServer instance using a configuration file specified by a system property
+     * Boots a MongooseServer instance using a configuration file specified by a system property
      * and a log record listener. The configuration file path must be specified using the system property
      * {@value #CONFIG_FILE_PROPERTY} ({@code fluxtionserver.config.file}). The configuration file
-     * should contain YAML-formatted server configuration that will be parsed into an {@link AppConfig}
+     * should contain YAML-formatted server configuration that will be parsed into an {@link MongooseServerConfig}
      * instance.
      *
      * @param logRecordListener A {@code LogRecordListener} instance for handling log messages during server operations.
-     * @return A new instance of {@code FluxtionServer} configured with the loaded configuration and supplied log record listener.
+     * @return A new instance of {@code MongooseServer} configured with the loaded configuration and supplied log record listener.
      * @throws NullPointerException if the configuration file name is not specified in the system property.
      * @throws IOException          if an error occurs while reading the configuration file.
      */
     @SneakyThrows
-    public static FluxtionServer bootServer(LogRecordListener logRecordListener) {
+    public static MongooseServer bootServer(LogRecordListener logRecordListener) {
         String configFileName = System.getProperty(CONFIG_FILE_PROPERTY);
         Objects.requireNonNull(configFileName, "fluxtion config file must be specified by system property: " + CONFIG_FILE_PROPERTY);
         File configFile = new File(configFileName);
@@ -181,19 +181,19 @@ public class FluxtionServer implements FluxtionServerController {
     }
 
     /**
-     * Boots a FluxtionServer instance using the provided application configuration and log record listener.
+     * Boots a MongooseServer instance using the provided application configuration and log record listener.
      * The server is initialized based on the configuration data, and the log record listener
      * is used to handle log messages during its operation.
      *
-     * @param appConfig         An {@code AppConfig} instance containing the server configuration.
+     * @param mongooseServerConfig         An {@code MongooseServerConfig} instance containing the server configuration.
      * @param logRecordListener A {@code LogRecordListener} instance for handling log messages.
-     * @return A new {@code FluxtionServer} instance configured with the given {@code AppConfig} and {@code LogRecordListener}.
+     * @return A new {@code MongooseServer} instance configured with the given {@code MongooseServerConfig} and {@code LogRecordListener}.
      */
-    public static FluxtionServer bootServer(AppConfig appConfig, LogRecordListener logRecordListener) {
-        FluxtionServer.logRecordListener = logRecordListener;
+    public static MongooseServer bootServer(MongooseServerConfig mongooseServerConfig, LogRecordListener logRecordListener) {
+        MongooseServer.logRecordListener = logRecordListener;
         log.info("booting fluxtion server");
-        log.fine("config:" + appConfig);
-        return com.fluxtion.server.internal.ServerConfigurator.bootFromConfig(appConfig, logRecordListener);
+        log.fine("config:" + mongooseServerConfig);
+        return com.fluxtion.server.internal.ServerConfigurator.bootFromConfig(mongooseServerConfig, logRecordListener);
     }
 
     /**
@@ -291,7 +291,7 @@ public class FluxtionServer implements FluxtionServerController {
      * The supplied {@link ServiceAgent} advertises an agent group name and may provide an
      * {@link IdleStrategy}. If the service's idle strategy is {@code null}, an appropriate
      * strategy is resolved from configuration using the agent group via
-     * {@link AppConfig#lookupIdleStrategyWhenNull(IdleStrategy, String)}.
+     * {@link MongooseServerConfig#lookupIdleStrategyWhenNull(IdleStrategy, String)}.
      * <p>
      * Services registered under the same agent group are executed within a shared
      * {@code AgentRunner}. If no runner exists for the group, it is created on demand.
@@ -301,7 +301,7 @@ public class FluxtionServer implements FluxtionServerController {
      */
     public void registerWorkerService(ServiceAgent<?> service) {
         String agentGroup = service.agentGroup();
-        IdleStrategy idleStrategy = appConfig.lookupIdleStrategyWhenNull(service.idleStrategy(), service.agentGroup());
+        IdleStrategy idleStrategy = mongooseServerConfig.lookupIdleStrategyWhenNull(service.idleStrategy(), service.agentGroup());
         log.info("registerWorkerService:" + service + " agentGroup:" + agentGroup + " idleStrategy:" + idleStrategy);
         ComposingWorkerServiceAgentRunner composingAgentRunner = composingServiceAgents.computeIfAbsent(
                 agentGroup,
@@ -327,7 +327,7 @@ public class FluxtionServer implements FluxtionServerController {
      * <p>
      * Each processor group executes on its own {@code AgentRunner} with a configurable
      * {@link IdleStrategy}. If a specific strategy is not supplied, a suitable strategy
-     * is resolved from configuration via {@link AppConfig#getIdleStrategyOrDefault(String, IdleStrategy)}.
+     * is resolved from configuration via {@link MongooseServerConfig#getIdleStrategyOrDefault(String, IdleStrategy)}.
      * <p>
      * The processor name must be unique within its group; attempting to register a duplicate
      * name results in an {@link IllegalArgumentException}. When added, the processor is wrapped
@@ -346,7 +346,7 @@ public class FluxtionServer implements FluxtionServerController {
             String groupName,
             IdleStrategy idleStrategy,
             Supplier<StaticEventProcessor> feedConsumer) throws IllegalArgumentException {
-        IdleStrategy idleStrategyOverride = appConfig.getIdleStrategyOrDefault(groupName, idleStrategy);
+        IdleStrategy idleStrategyOverride = mongooseServerConfig.getIdleStrategyOrDefault(groupName, idleStrategy);
         ComposingEventProcessorAgentRunner composingEventProcessorAgentRunner = composingEventProcessorAgents.computeIfAbsent(
                 groupName,
                 ket -> {
@@ -519,8 +519,8 @@ public class FluxtionServer implements FluxtionServerController {
      * Returns null when no core pinning is configured for the agent.
      */
     public Integer resolveCoreIdForAgentName(String agentName) {
-        if (appConfig==null || appConfig.getAgentThreads() == null) return null;
-        return appConfig.getAgentThreads().stream()
+        if (mongooseServerConfig ==null || mongooseServerConfig.getAgentThreads() == null) return null;
+        return mongooseServerConfig.getAgentThreads().stream()
                 .filter(t -> agentName != null && agentName.equals(t.getAgentName()))
                 .map(com.fluxtion.server.config.ThreadConfig::getCoreId)
                 .filter(java.util.Objects::nonNull)

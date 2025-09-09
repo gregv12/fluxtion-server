@@ -12,7 +12,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class AppConfigFluentServiceApiTest {
+public class MongooseServerConfigFluentServiceApiTest {
 
     interface FooService { String foo(); }
     static class FooServiceImpl implements FooService { public String foo() { return "bar"; } }
@@ -21,7 +21,7 @@ public class AppConfigFluentServiceApiTest {
 
     @Test
     void addService_inferred_populatesServicesList() {
-        AppConfig cfg = new AppConfig();
+        MongooseServerConfig cfg = new MongooseServerConfig();
         FooServiceImpl svc = new FooServiceImpl();
         cfg.addService(svc, "fooSvc");
 
@@ -37,7 +37,7 @@ public class AppConfigFluentServiceApiTest {
 
     @Test
     void addService_explicitClass_populatesServicesList() {
-        AppConfig cfg = new AppConfig();
+        MongooseServerConfig cfg = new MongooseServerConfig();
         FooServiceImpl svc = new FooServiceImpl();
         cfg.addService(svc, FooService.class, "fooSvcExplicit");
 
@@ -52,7 +52,7 @@ public class AppConfigFluentServiceApiTest {
 
     @Test
     void addWorkerService_inferred_setsAgentDetails() {
-        AppConfig cfg = new AppConfig();
+        MongooseServerConfig cfg = new MongooseServerConfig();
         // For this unit test we don't require a real Agent instance; we only verify config values
         AgentLike agentService = new AgentLike();
         cfg.addWorkerService(agentService, "agentSvc", "groupA", new BusySpinIdleStrategy());
@@ -69,7 +69,7 @@ public class AppConfigFluentServiceApiTest {
 
     @Test
     void addWorkerService_explicit_setsAgentDetails() {
-        AppConfig cfg = new AppConfig();
+        MongooseServerConfig cfg = new MongooseServerConfig();
         FooServiceImpl svc = new FooServiceImpl();
         cfg.addWorkerService(svc, FooService.class, "svcName", "workers", new BusySpinIdleStrategy());
 

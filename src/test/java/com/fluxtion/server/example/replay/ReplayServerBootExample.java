@@ -8,12 +8,9 @@ import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
 import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.event.ReplayRecord;
 import com.fluxtion.runtime.output.MessageSink;
-import com.fluxtion.server.FluxtionServer;
-import com.fluxtion.server.config.AppConfig;
-import com.fluxtion.server.config.EventFeedConfig;
-import com.fluxtion.server.config.EventProcessorConfig;
-import com.fluxtion.server.config.EventProcessorGroupConfig;
-import com.fluxtion.server.config.EventSinkConfig;
+import com.fluxtion.server.MongooseServer;
+import com.fluxtion.server.config.*;
+import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.connector.memory.InMemoryEventSource;
 import com.fluxtion.server.connector.memory.InMemoryMessageSink;
 import org.junit.jupiter.api.Test;
@@ -64,14 +61,14 @@ public class ReplayServerBootExample {
                 .name("memSink")
                 .build();
 
-        AppConfig appConfig = AppConfig.builder()
+        MongooseServerConfig mongooseServerConfig = MongooseServerConfig.builder()
                 .addProcessorGroup(processors)
                 .addEventFeed(feedCfg)
                 .addEventSink(sinkCfg)
                 .build();
 
         LogRecordListener logs = rec -> {};
-        FluxtionServer server = FluxtionServer.bootServer(appConfig, logs);
+        MongooseServer server = MongooseServer.bootServer(mongooseServerConfig, logs);
         try {
             // Publish two replay records with explicit timestamps (data-driven clock)
             long t1 = 1_696_000_000_000L; // example epoch millis

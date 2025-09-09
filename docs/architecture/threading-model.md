@@ -95,7 +95,7 @@ Processor and service agents add their components and then call `startComplete()
 ```mermaid
 sequenceDiagram
     participant CFG as ServerConfigurator
-    participant SVR as FluxtionServer
+    participant SVR as MongooseServer
     participant PGA as ComposingEventProcessorAgent <br>(thread)
     participant SGA as ComposingServiceAgent <br>(thread)
     participant SCH as DeadWheelScheduler <br>(thread)
@@ -192,7 +192,7 @@ public class MySchedulerAwareHandler extends ObjectEventHandlerNode {
 - Guard verbose logging in hot paths with `log.isLoggable(...)` or cached flags.
 - If you need pre‑start replay, enable publisher caching in your source’s `start()` and call `dispatchCachedEventLog()`
   on `startComplete()`.
-- Use meaningful agent group names and idle strategies in `AppConfig` for observability and performance tuning.
+- Use meaningful agent group names and idle strategies in `MongooseServerConfig` for observability and performance tuning.
 
 ## 7) Glossary of threads
 
@@ -207,7 +207,7 @@ public class MySchedulerAwareHandler extends ObjectEventHandlerNode {
 - Writing a service plugin: [writing-a-service-plugin](../plugin/writing-a-service-plugin.md)
 - Writing an admin command: [writing-an-admin-command](../how-to/writing-an-admin-command.md)
 - How to core‑pin agent threads: [how-to-core-pin](../how-to/how-to-core-pin.md)
-- Architecture + sequence diagrams: [architecture](architecture_index.md)
+- Architecture + sequence diagrams: [architecture](index.md)
 
 ## 9) Optional: Core pinning for agent threads
 
@@ -216,7 +216,7 @@ improve tail latency on systems where CPU affinity is desirable.
 
 Key points:
 
-- Configure per-agent core pinning using AppConfig’s agent
+- Configure per-agent core pinning using MongooseServerConfig’s agent
   Threads: [ThreadConfig](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/config/ThreadConfig.java)
   has an optional coreId field (zero-based CPU index).
 - Pinning is applied inside the agent thread itself during start (onStart) for both processor and service agent groups:
@@ -231,11 +231,11 @@ Key points:
 Configure via fluent builder:
 
 ```java
-import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.config.ThreadConfig;
 import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
 
-AppConfig appConfig = AppConfig.builder()
+MongooseServerConfig mongooseServerConfig = MongooseServerConfig.builder()
     // Configure processor agent group thread
     .addThread(ThreadConfig.builder()
         .agentName("processor-agent")
@@ -254,7 +254,7 @@ AppConfig appConfig = AppConfig.builder()
 Runtime behavior:
 
 - When an agent group thread starts, the server resolves the configured core for that agent via
-  FluxtionServer.resolveCoreIdForAgentName and calls CoreAffinity.pinCurrentThreadToCore(coreId). If no coreId is
+  MongooseServer.resolveCoreIdForAgentName and calls CoreAffinity.pinCurrentThreadToCore(coreId). If no coreId is
   configured, nothing is done.
 - If OpenHFT’s Affinity is not on the classpath, pinning is skipped with an info log.
 
@@ -344,7 +344,7 @@ import com.fluxtion.server.config.ThreadConfig;
 import com.fluxtion.agrona.concurrent.BackoffIdleStrategy;
 import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
 
-appConfig = appConfig.toBuilder()
+mongooseServerConfig = mongooseServerConfig.toBuilder()
     .addThread(ThreadConfig.builder()
         .agentName("market-data")
         .idleStrategy(new BusySpinIdleStrategy())
