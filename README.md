@@ -44,14 +44,14 @@ EventSinkConfig<FileMessageSink> sinkCfg = EventSinkConfig.<FileMessageSink>buil
         .name("fileSink")
         .build();
 
-AppConfig appConfig = AppConfig.builder()
+AppConfig mongooseServerConfig = AppConfig.builder()
         .addProcessorGroup(processorGroup)
         .addEventFeed(fileFeedCfg)
         .addEventFeed(memFeedCfg)
         .addEventSink(sinkCfg)
         .build();
 
-FluxtionServer server = FluxtionServer.bootServer(appConfig, logRecordListener);
+FluxtionServer server = FluxtionServer.bootServer(mongooseServerConfig, logRecordListener);
 ```
 
 ## License

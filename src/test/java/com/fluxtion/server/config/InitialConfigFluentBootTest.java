@@ -5,12 +5,8 @@
 package com.fluxtion.server.config;
 
 import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
-import com.fluxtion.runtime.EventProcessor;
-import com.fluxtion.runtime.StaticEventProcessor;
-import com.fluxtion.runtime.input.EventFeed;
-import com.fluxtion.server.FluxtionServer;
+import com.fluxtion.server.MongooseServer;
 import com.fluxtion.server.connector.memory.InMemoryEventSource;
-import com.fluxtion.server.service.EventSubscriptionKey;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -21,12 +17,12 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Verifies that initial configuration provided via the fluent AppConfig builder
+ * Verifies that initial configuration provided via the fluent MongooseServerConfig builder
  * is injected into an event processor that exports ConfigListener.
  */
 public class InitialConfigFluentBootTest {
 
-    private FluxtionServer server;
+    private MongooseServer server;
 
     @AfterEach
     void tearDown() {
@@ -65,13 +61,13 @@ public class InitialConfigFluentBootTest {
                 .build();
 
         // App config via fluent builder
-        AppConfig appConfig = AppConfig.builder()
+        MongooseServerConfig mongooseServerConfig = MongooseServerConfig.builder()
                 .addProcessorGroup(group)
                 .addEventFeed(feed)
                 .build();
 
         // Boot server
-        server = FluxtionServer.bootServer(appConfig, rec -> {});
+        server = MongooseServer.bootServer(mongooseServerConfig, rec -> {});
 
         // Assert: initial config should have been injected during boot
         assertNotNull(handler.lastConfig, "Expected initial config to be injected");

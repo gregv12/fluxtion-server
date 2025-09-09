@@ -5,7 +5,7 @@ reduced context switching on supported platforms.
 
 What you’ll do:
 
-- Configure per‑agent core IDs in AppConfig using the fluent builder
+- Configure per‑agent core IDs in MongooseServerConfig using the fluent builder
 - Understand when and how the pinning is applied at runtime
 - Optionally enable OS‑level pinning via OpenHFT Affinity
 - Verify and troubleshoot your setup
@@ -22,17 +22,17 @@ References in this repo:
 - [POM entry for optional Affinity dependency](https://github.com/gregv12/fluxtion-server/blob/main/pom.xml) (artifact
   net.openhft:affinity)
 
-## 1) Configure core IDs with the fluent AppConfig builder
+## 1) Configure core IDs with the fluent MongooseServerConfig builder
 
 Pinning is configured per agent group using ThreadConfig.coreId (zero‑based CPU index). The server will apply the pin on
 the agent thread during onStart.
 
 ```java
 import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
-import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.config.ThreadConfig;
 
-AppConfig appConfig = AppConfig.builder()
+MongooseServerConfig mongooseServerConfig = MongooseServerConfig.builder()
     // Processor agent group pinned to core 0
     .addThread(ThreadConfig.builder()
         .agentName("processor-agent")
@@ -53,7 +53,7 @@ configured core.
 
 ## 2) How it works at runtime
 
-- FluxtionServer resolves the configured core ID for each agent by name using resolveCoreIdForAgentName(String).
+- MongooseServer resolves the configured core ID for each agent by name using resolveCoreIdForAgentName(String).
 - Both agent types call the pin helper in their onStart():
     - ComposingEventProcessorAgent
     - ComposingServiceAgent
@@ -63,7 +63,7 @@ configured core.
 Key code paths:
 
 - [CoreAffinity.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/internal/CoreAffinity.java)
-- [FluxtionServer.java#resolveCoreIdForAgentName](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/FluxtionServer.java#L726)
+- [MongooseServer.java#resolveCoreIdForAgentName](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/MongooseServer.java#L726)
 - [ComposingEventProcessorAgent.java#onStart](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dutycycle/ComposingEventProcessorAgent.java#L233)
 - [ComposingServiceAgent.java#onStart](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dutycycle/ComposingServiceAgent.java#L89)
 
@@ -113,4 +113,4 @@ Notes:
 ## 6) Related reading
 
 - [Threading overview and agent lifecycles](../architecture/threading-model.md#optional-core-pinning-for-agent-threads)
-- [Fluent AppConfig examples](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/BuilderApiFluentExampleTest.java)
+- [Fluent MongooseServerConfig examples](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/example/BuilderApiFluentExampleTest.java)

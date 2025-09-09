@@ -7,7 +7,7 @@ Related reading:
 
 - How-to: Add an admin command → [write an admin command](../how-to/writing-an-admin-command.md)
 - Programmatic control
-  API → [FluxtionServerController.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/servercontrol/FluxtionServerController.java)
+  API → [MongooseServerController.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/servercontrol/MongooseServerController.java)
 
 ## Overview
 
@@ -102,7 +102,7 @@ Source: [AdminCommandProcessor.java](https://github.com/gregv12/fluxtion-server/
 ## Server controller (optional plugin)
 
 For broader operational control (adding/stopping processors, starting/stopping services, etc.), use the server
-controller API. This is provided by the FluxtionServerController interface. Important: the controller is an optional
+controller API. This is provided by the MongooseServerController interface. Important: the controller is an optional
 plugin — it is not available by default in the runtime. You must include and register the plugin if you want
 programmatic
 control.
@@ -110,10 +110,10 @@ control.
 Security note:
 - Do not expose admin command adapters (CLI/HTTP/gRPC) publicly without authentication and authorization.
 - Consider whitelisting safe commands for external access.
-- The FluxtionServerController plugin should be enabled only when you require runtime control; keep it disabled otherwise.
+- The MongooseServerController plugin should be enabled only when you require runtime control; keep it disabled otherwise.
 
-- FluxtionServerController interface
-  Source: [FluxtionServerController.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/servercontrol/FluxtionServerController.java)
+- MongooseServerController interface
+  Source: [MongooseServerController.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/servercontrol/MongooseServerController.java)
 
 Capabilities provided:
 

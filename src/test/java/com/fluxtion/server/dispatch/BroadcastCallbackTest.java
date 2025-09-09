@@ -5,8 +5,8 @@
 
 package com.fluxtion.server.dispatch;
 
-import com.fluxtion.server.FluxtionServer;
-import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.MongooseServer;
+import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.config.EventProcessorConfig;
 import com.fluxtion.server.config.EventProcessorGroupConfig;
 import com.fluxtion.server.config.ServiceConfig;
@@ -43,12 +43,12 @@ public class BroadcastCallbackTest {
                 .name("adminCli");
 
         //whole config
-        AppConfig appConfig = new AppConfig();
-        appConfig.setEventHandlers(List.of(eventProcessorGroupConfig));
-        appConfig.setServices(List.of(adminRegistryConfig));
+        MongooseServerConfig mongooseServerConfig = new MongooseServerConfig();
+        mongooseServerConfig.setEventHandlers(List.of(eventProcessorGroupConfig));
+        mongooseServerConfig.setServices(List.of(adminRegistryConfig));
 
         //boot the server
-        FluxtionServer.bootServer(appConfig, System.out::println);
+        MongooseServer.bootServer(mongooseServerConfig, System.out::println);
     }
 
     public static void main(String[] args) {
@@ -69,11 +69,11 @@ public class BroadcastCallbackTest {
                 .name("adminCli");
 
         //whole config
-        AppConfig appConfig = new AppConfig();
-        appConfig.setEventHandlers(List.of(eventProcessorGroupConfig));
-        appConfig.setServices(List.of(adminRegistryConfig, adminCli));
+        MongooseServerConfig mongooseServerConfig = new MongooseServerConfig();
+        mongooseServerConfig.setEventHandlers(List.of(eventProcessorGroupConfig));
+        mongooseServerConfig.setServices(List.of(adminRegistryConfig, adminCli));
 
         //boot the server
-        FluxtionServer.bootServer(appConfig, System.out::println);
+        MongooseServer.bootServer(mongooseServerConfig, System.out::println);
     }
 }

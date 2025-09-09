@@ -7,7 +7,7 @@ Server’s event flow. You will learn how to:
 - Implement lifecycle and (optionally) agent work loops
 - Publish events safely and efficiently (with optional pre-start caching)
 - Configure wrapping, slow-consumer strategy, and data mapping
-- Register your source with AppConfig via EventFeedConfig
+- Register your source with MongooseServerConfig via EventFeedConfig
 - Test your event source
 
 Reference implementations in this repository:
@@ -195,13 +195,13 @@ Data mapping lets you transform T->U before dispatch (e.g., parse lines, decode 
 - In code: setDataMapper(Function<T, ?>)
 - Via config builder: EventFeedConfig.Builder#valueMapper
 
-## Register your source with AppConfig
+## Register your source with MongooseServerConfig
 
 Use EventFeedConfig to add your source, control wrapping/broadcast, and optionally host it on an agent thread.
 
 ```java
 import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
-import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.config.mongooseServerConfig;
 import com.fluxtion.server.config.EventFeedConfig;
 
 MyAgentSource src = new MyAgentSource();
@@ -216,7 +216,7 @@ EventFeedConfig<?> feed = EventFeedConfig.builder()
         .agent("my-source-agent", new BusySpinIdleStrategy()) 
         .build();
 
-AppConfig app = AppConfig.builder()
+MongooseServerConfig app = MongooseServerConfig.builder()
         .addEventFeed(feed)
         .build();
 ```
@@ -228,7 +228,7 @@ Notes:
 - If it’s not agent-hosted, omit the agent() call.
 
 Under the hood, ServerConfigurator will translate your EventFeedConfig into a Service or ServiceAgent and register it
-with FluxtionServer. During registration, AbstractEventSourceService wires itself to the EventFlowManager and prepares
+with MongooseServer. During registration, AbstractEventSourceService wires itself to the EventFlowManager and prepares
 the EventToQueuePublisher output.
 
 ## Pre-start caching pattern

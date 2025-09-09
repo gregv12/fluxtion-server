@@ -6,8 +6,8 @@ package com.fluxtion.server.pool;
 
 import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
 import com.fluxtion.runtime.annotations.runtime.ServiceRegistered;
-import com.fluxtion.server.FluxtionServer;
-import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.MongooseServer;
+import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.dispatch.EventToOnEventInvokeStrategy;
 import com.fluxtion.server.example.objectpool.PoolEventSourceServerExample;
 import com.fluxtion.server.service.CallBackType;
@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Boots a FluxtionServer and validates that pooled objects are returned to the pool
+ * Boots a MongooseServer and validates that pooled objects are returned to the pool
  * once processing is complete across the full publish -> queue -> processor pipeline.
  */
 public class ObjectPoolServerIntegrationTest {
@@ -121,7 +121,7 @@ public class ObjectPoolServerIntegrationTest {
         }
     }
 
-    private FluxtionServer server;
+    private MongooseServer server;
 
     @AfterEach
     void cleanup() {
@@ -139,12 +139,12 @@ public class ObjectPoolServerIntegrationTest {
         ObjectPool<PooledMessage> pool = Pools.SHARED.getOrCreate(PooledMessage.class, PooledMessage::new, pm -> pm.value = null);
 
         // Build config with mapping for ON_EVENT
-        AppConfig cfg = AppConfig.builder()
+        MongooseServerConfig cfg = MongooseServerConfig.builder()
                 .idleStrategy(new BusySpinIdleStrategy())
                 .onEventInvokeStrategy(EventToOnEventInvokeStrategy::new)
                 .build();
 
-        server = new FluxtionServer(cfg);
+        server = new MongooseServer(cfg);
 
         // Register event source and processor
         TestPooledEventSource source = new TestPooledEventSource();
@@ -173,12 +173,12 @@ public class ObjectPoolServerIntegrationTest {
         ObjectPool<PooledMessage> pool = Pools.SHARED.getOrCreate(PooledMessage.class, PooledMessage::new, pm -> pm.value = null);
 
         // Build config with mapping for ON_EVENT
-        AppConfig cfg = AppConfig.builder()
+        MongooseServerConfig cfg = MongooseServerConfig.builder()
                 .idleStrategy(new BusySpinIdleStrategy())
                 .onEventInvokeStrategy(EventToOnEventInvokeStrategy::new)
                 .build();
 
-        server = new FluxtionServer(cfg);
+        server = new MongooseServer(cfg);
 
         // Register event source configured to wrap with named event
         TestPooledEventSource source = new TestPooledEventSource();
@@ -207,12 +207,12 @@ public class ObjectPoolServerIntegrationTest {
         Pools.SHARED.remove(PooledMessage.class);
         ObjectPool<PooledMessage> pool = Pools.SHARED.getOrCreate(PooledMessage.class, PooledMessage::new, pm -> pm.value = null);
 
-        AppConfig cfg = AppConfig.builder()
+        MongooseServerConfig cfg = MongooseServerConfig.builder()
                 .idleStrategy(new BusySpinIdleStrategy())
                 .onEventInvokeStrategy(EventToOnEventInvokeStrategy::new)
                 .build();
 
-        server = new FluxtionServer(cfg);
+        server = new MongooseServer(cfg);
         TestPooledEventSource source = new TestPooledEventSource();
         server.registerEventSource("poolSource", source);
         server.addEventProcessor("proc", "groupC", new BusySpinIdleStrategy(), SubscribingProcessor::new);
@@ -259,10 +259,10 @@ public class ObjectPoolServerIntegrationTest {
     public void testServerNamedEvent_tryWithResources() throws Exception {
         PooledEventSource source = new PooledEventSource();
 
-        AppConfig cfg = new AppConfig()
+        MongooseServerConfig cfg = new MongooseServerConfig()
                 .addProcessor("thread-p1", new PoolEventSourceServerExample.MyHandler(), "processor")
                 .addEventSource(source, "pooledSource", true);
-        server = FluxtionServer.bootServer(cfg, (l) -> {});
+        server = MongooseServer.bootServer(cfg, (l) -> {});
 
 
         ObjectPool<PooledMessage> pool = source.getPool();

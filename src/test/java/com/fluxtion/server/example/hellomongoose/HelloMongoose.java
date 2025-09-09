@@ -7,10 +7,10 @@ package com.fluxtion.server.example.hellomongoose;
 
 import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
 import com.fluxtion.runtime.node.ObjectEventHandlerNode;
-import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.connector.memory.InMemoryEventSource;
 
-import static com.fluxtion.server.FluxtionServer.bootServer;
+import static com.fluxtion.server.MongooseServer.bootServer;
 
 /**
  *
@@ -32,7 +32,7 @@ public final class HelloMongoose {
         var feed = new InMemoryEventSource<String>();
 
         // 3) Build and boot server with an in-memory feed and handler
-        var app = new AppConfig()
+        var app = new MongooseServerConfig()
                 .addProcessor("processor-agent", handler, "hello-handler")
                 .addEventSourceWorker(feed,
                         "hello-feed", //name

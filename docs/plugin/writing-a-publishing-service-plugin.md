@@ -10,7 +10,7 @@ We will:
 - Implement a minimal `PublishingService` by extending `AbstractEventSourceService<String>`
 - Implement a processor that injects the service via `@ServiceRegistered`, calls `subscribe()` in `start()`, and
   forwards events to a sink
-- Wire everything with `AppConfig`, publish a few events via the service, and verify reception in a sink
+- Wire everything with `MongooseServerConfig`, publish a few events via the service, and verify reception in a sink
 
 References in this repository:
 
@@ -103,13 +103,13 @@ Notes:
 
 ## 3) Wire and run
 
-Create the service and processor, wire them into `AppConfig`, boot the server, then publish events.
+Create the service and processor, wire them into `MongooseServerConfig`, boot the server, then publish events.
 
 ```java
 import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
 import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.output.MessageSink;
-import com.fluxtion.server.FluxtionServer;
+import com.fluxtion.server.MongooseServer;
 import com.fluxtion.server.config.*;
 import com.fluxtion.server.connector.memory.InMemoryMessageSink;
 
@@ -137,14 +137,14 @@ EventSinkConfig<MessageSink<?>> sinkCfg = EventSinkConfig.<MessageSink<?>>builde
         .name("memSink")
         .build();
 
-AppConfig appConfig = AppConfig.builder()
+MongooseServerConfig mongooseServerConfig = MongooseServerConfig.builder()
         .addProcessorGroup(processorGroup)
         .addService(svcCfg)
         .addEventSink(sinkCfg)
         .build();
 
 LogRecordListener logListener = rec -> {};
-FluxtionServer server = FluxtionServer.bootServer(appConfig, logListener);
+MongooseServer server = MongooseServer.bootServer(mongooseServerConfig, logListener);
 
 // Later: publish events via the service
 pubService.publish("e1");

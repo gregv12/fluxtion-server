@@ -10,8 +10,8 @@ import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.audit.LogRecord;
 import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.input.EventFeed;
-import com.fluxtion.server.FluxtionServer;
-import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.MongooseServer;
+import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.service.CallBackType;
 import com.fluxtion.server.service.EventSourceKey;
 import com.fluxtion.server.service.EventSubscriptionKey;
@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class EventProcessingBenchmark {
 
-    private FluxtionServer server;
+    private MongooseServer server;
     private TestEventSource eventSource;
     private TestEventProcessor eventProcessor;
     private TestLogRecordListener logRecordListener;
@@ -53,21 +53,21 @@ public class EventProcessingBenchmark {
         logRecordListener = new TestLogRecordListener();
 
         // Create a minimal app config
-        AppConfig appConfig = new AppConfig();
+        MongooseServerConfig mongooseServerConfig = new MongooseServerConfig();
 
         // Create a countdown latch to wait for all events to be processed
         eventProcessedLatch = new CountDownLatch(1);
 
         // Create an event processor
         eventProcessor = new TestEventProcessor(eventProcessedLatch);
-        appConfig.addProcessor(eventProcessor, "testHandler");
+        mongooseServerConfig.addProcessor(eventProcessor, "testHandler");
 
         // Create an event source
         eventSource = new TestEventSource("testSource");
-        appConfig.addEventSource(eventSource, "testEventSourceFeed", true);
+        mongooseServerConfig.addEventSource(eventSource, "testEventSourceFeed", true);
 
         // Create the server
-        server = FluxtionServer.bootServer(appConfig, logRecordListener);
+        server = MongooseServer.bootServer(mongooseServerConfig, logRecordListener);
     }
 
     @AfterEach

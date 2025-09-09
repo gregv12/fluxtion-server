@@ -7,8 +7,8 @@ package com.fluxtion.server.benchmark.objectpool;
 import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
 import com.fluxtion.runtime.annotations.runtime.ServiceRegistered;
 import com.fluxtion.runtime.node.ObjectEventHandlerNode;
-import com.fluxtion.server.FluxtionServer;
-import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.MongooseServer;
+import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.config.ThreadConfig;
 import com.fluxtion.server.service.extension.AbstractEventSourceService;
 import com.fluxtion.server.service.pool.ObjectPool;
@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * End-to-end example that boots a FluxtionServer and uses an EventSource that
+ * End-to-end example that boots a MongooseServer and uses an EventSource that
  * acquires messages from the global ObjectPool using try-with-resources. The
  * default PoolAware.close() releases the caller's reference and attempts to
  * return to the pool, while the pipeline (queues/consumers) holds and releases
@@ -168,13 +168,13 @@ public class BenchmarkObjectPoolDistribution {
                 .build();
 
         MyHandler handler = new MyHandler();
-        AppConfig cfg = new AppConfig()
+        MongooseServerConfig cfg = new MongooseServerConfig()
                 .addProcessor("pinned-agent-thread", handler, "processor")
                 .addEventSource(source, "pooledSource", true);
 
         cfg.setAgentThreads(List.of(threadConfig));
 
-        FluxtionServer server = FluxtionServer.bootServer(cfg, rec -> {
+        MongooseServer server = MongooseServer.bootServer(cfg, rec -> {
         });
 
         AtomicBoolean running = new AtomicBoolean(true);

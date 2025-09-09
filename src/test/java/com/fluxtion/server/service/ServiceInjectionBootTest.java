@@ -6,8 +6,8 @@
 package com.fluxtion.server.service;
 
 import com.fluxtion.runtime.annotations.runtime.ServiceRegistered;
-import com.fluxtion.server.FluxtionServer;
-import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.MongooseServer;
+import com.fluxtion.server.config.MongooseServerConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -15,8 +15,8 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Verifies that services registered via AppConfig receive dependency injection
- * through @ServiceRegistered methods when the FluxtionServer boots.
+ * Verifies that services registered via MongooseServerConfig receive dependency injection
+ * through @ServiceRegistered methods when the MongooseServer boots.
  *
  * Disabled in this CI/runtime due to external artifact resolution constraints.
  * The DI mechanism is validated in ServiceInjectorTest; this test serves as an
@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Disabled("Disabled in constrained environment; relies on full boot which requires external artifacts")
 public class ServiceInjectionBootTest {
 
-    private FluxtionServer server;
+    private MongooseServer server;
 
     interface AlphaApi { String who(); }
     interface BetaApi { int answer(); }
@@ -81,12 +81,12 @@ public class ServiceInjectionBootTest {
         BetaService beta = new BetaService(42);
 
         // Configure app with both services by explicit interface to be unambiguous
-        AppConfig cfg = new AppConfig();
+        MongooseServerConfig cfg = new MongooseServerConfig();
         cfg.addService(alpha, AlphaApi.class, "alphaService");
         cfg.addService(beta,  BetaApi.class,  "betaService");
 
         // Act: boot server (registerService performs injection)
-        server = FluxtionServer.bootServer(cfg, null);
+        server = MongooseServer.bootServer(cfg, null);
 
         // Assert: Beta received Alpha (single and dual param methods get invoked)
         assertNotNull(beta.injectedAlpha, "Beta should have Alpha injected");

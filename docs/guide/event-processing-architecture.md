@@ -36,7 +36,7 @@ extending ObjectEventHandlerNode.
 - Has access to processing context via getContext() inherited from its superclass, allowing lookups of shared services
   if needed.
 - Implements lifecycle via LifecycleNode; your handler will receive lifecycle callbacks from the server.
-- Less configuration: [AppConfig](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/config/AppConfig.java) exposes shortcut
+- Less configuration: [MongooseServerConfig](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/config/MongooseServerConfig.java) exposes shortcut
   methods to register ObjectEventHandlerNode-based handlers, reducing boilerplate when wiring.
 - Encourages clean separation of concerns: the server handles scheduling, dispatch, and I/O; your handler handles
   decisions.
@@ -46,7 +46,7 @@ Why it’s simpler:
 - Narrow API surface: fewer concepts to learn before you can write production code.
 - Minimal boilerplate: focus on domain state and methods for processing events.
 - Easy unit testing: instantiate your handler, call methods, assert state.
-- Wiring convenience: AppConfig shortcuts make handler registration straightforward.
+- Wiring convenience: MongooseServerConfig shortcuts make handler registration straightforward.
 
 ## DefaultEventProcessor (deeper integration and typed callbacks)
 
@@ -75,7 +75,7 @@ Below is a practical comparison to help you decide.
 |-------------------|---------------------------------------------------------------|-------------------------------------------------------|
 | Primary goal      | Fast path to business logic                                   | Deep integration with server runtime                  |
 | Complexity        | Lower (simple API)                                            | Higher (lifecycle, context, interfaces)               |
-| Boilerplate       | Minimal; AppConfig shortcuts reduce wiring                    | More (extend class, implement interfaces)             |
+| Boilerplate       | Minimal; MongooseServerConfig shortcuts reduce wiring                    | More (extend class, implement interfaces)             |
 | Typed callbacks   | Optional; can implement interfaces on the handler if desired  | Strongly typed via implemented interfaces             |
 | Lifecycle hooks   | Yes, via LifecycleNode on the handler                         | Full lifecycle support                                |
 | Access to context | Yes, via getContext() on the handler                          | Full context map and runtime hooks                    |
@@ -283,7 +283,7 @@ debug/tracing from normal operations.
 ## Management and control
 
 Event handlers and processors can be managed at runtime through the server control
-service: [FluxtionServerController.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/servercontrol/FluxtionServerController.java).
+service: [MongooseServerController.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/service/servercontrol/MongooseServerController.java).
 It allows you to:
 
 - Add processors into groups with a chosen IdleStrategy
@@ -294,6 +294,6 @@ It allows you to:
 ## Summary
 
 - If you want the simplest path to business logic with minimal ceremony and easy tests, extend ObjectEventHandlerNode;
-  it has getContext(), participates in lifecycle, and benefits from AppConfig shortcuts.
+  it has getContext(), participates in lifecycle, and benefits from MongooseServerConfig shortcuts.
 - If you need lifecycle depth, context control, and strongly typed interface callbacks (e.g., ConfigListener), extend
   DefaultEventProcessor and implement the necessary interfaces.

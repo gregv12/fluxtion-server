@@ -10,8 +10,8 @@ import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.audit.LogRecord;
 import com.fluxtion.runtime.audit.LogRecordListener;
 import com.fluxtion.runtime.input.EventFeed;
-import com.fluxtion.server.FluxtionServer;
-import com.fluxtion.server.config.AppConfig;
+import com.fluxtion.server.MongooseServer;
+import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.service.CallBackType;
 import com.fluxtion.server.service.EventSourceKey;
 import com.fluxtion.server.service.EventSubscriptionKey;
@@ -42,13 +42,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class HighVolumeEventStressTest {
 
-    private FluxtionServer server;
+    private MongooseServer server;
     private List<TestEventSource> eventSources;
     private List<TestEventProcessor> eventProcessors;
     private TestLogRecordListener logRecordListener;
     private ExecutorService executorService;
     private ScheduledExecutorService monitoringService;
-    private AppConfig appConfig;
+    private MongooseServerConfig mongooseServerConfig;
 
     // Stress test parameters
     private static final int SOURCE_COUNT = 5;
@@ -71,14 +71,14 @@ public class HighVolumeEventStressTest {
         logRecordListener = new TestLogRecordListener();
 
         // Create a minimal app config
-        appConfig = new AppConfig();
+        mongooseServerConfig = new MongooseServerConfig();
 
         // Create event processors
         eventProcessors = new ArrayList<>();
         for (int i = 0; i < PROCESSOR_COUNT; i++) {
             TestEventProcessor processor = new TestEventProcessor("processor-" + i);
             eventProcessors.add(processor);
-            appConfig.addProcessor(processor, "testHandler-" + i);
+            mongooseServerConfig.addProcessor(processor, "testHandler-" + i);
         }
 
         // Create event sources
@@ -86,7 +86,7 @@ public class HighVolumeEventStressTest {
         for (int i = 0; i < SOURCE_COUNT; i++) {
             TestEventSource source = new TestEventSource("source-" + i);
             eventSources.add(source);
-            appConfig.addEventSource(source, "testEventSourceFeed-" + i, true);
+            mongooseServerConfig.addEventSource(source, "testEventSourceFeed-" + i, true);
         }
 
 
@@ -134,7 +134,7 @@ public class HighVolumeEventStressTest {
         startMonitoring();
 
         // Start the server
-        server = FluxtionServer.bootServer(appConfig, logRecordListener);
+        server = MongooseServer.bootServer(mongooseServerConfig, logRecordListener);
         // Create the server
 //        server.init();
 //        server.start();

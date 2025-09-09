@@ -62,11 +62,11 @@ public static class PooledEventSource extends AbstractEventSourceService<PooledM
 public static void main(String[] args) throws Exception {
     PooledEventSource source = new PooledEventSource();
 
-    AppConfig cfg = new AppConfig()
+    MongooseServerConfig cfg = new MongooseServerConfig()
             .addProcessor("thread-p1", new MyHandler(), "processor")
             .addEventSource(source, "pooledSource", true);
 
-    FluxtionServer server = FluxtionServer.bootServer(cfg, rec -> {});
+    MongooseServer server = MongooseServer.bootServer(cfg, rec -> {});
 
     // Publish a few messages; the framework handles pooling
     source.publish("hello-1");
