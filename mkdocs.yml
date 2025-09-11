@@ -76,6 +76,7 @@ nav:
           - Subscribe to named event feeds: how-to/how-to-subscribing-to-named-event-feeds.md
           - Using the scheduler service: how-to/how-to-using-the-scheduler-service.md
           - Inject config into a processor: how-to/how-to-injecting-config-into-a-processor.md
+          - Transform events: how-to/how-to-data-mapping.md
           - Schedule re-entrant events: how-to/how-to-scheduler-processAsNewEventCycle.md
           - Add an admin command: how-to/writing-an-admin-command.md
           - Pipe messages between handlers: how-to/how-to-handler-pipe.md

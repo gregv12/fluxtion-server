@@ -18,23 +18,58 @@ import lombok.SneakyThrows;
 
 import java.util.function.Function;
 
+/**
+ * Configuration class for message sinks in the server.
+ * Supports configuration of value mapping and optional agent-based execution
+ * for message output handling.
+ *
+ * @param <S> The type of MessageSink being configured
+ */
 @Experimental
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class EventSinkConfig<S extends MessageSink<?>> {
 
+    /**
+     * The message sink instance to be configured
+     */
     private S instance;
+
+    /**
+     * Name identifier for this sink configuration
+     */
     private String name;
+
+    /**
+     * Function to transform values before they are processed by the sink
+     */
     private Function<Object, ?> valueMapper = Function.identity();
-    //optional agent configuration
+
+    /**
+     * Name of the agent if using agent-based execution
+     */
     private String agentName;
+
+    /**
+     * Idle strategy for agent-based execution
+     */
     private IdleStrategy idleStrategy;
 
+    /**
+     * Checks if this sink is configured for agent-based execution
+     *
+     * @return true if agent execution is configured
+     */
     public boolean isAgent() {
         return agentName != null;
     }
 
+    /**
+     * Converts this configuration to a Service instance
+     *
+     * @return Service wrapper around the configured sink
+     */
     @SneakyThrows
     @SuppressWarnings({"unchecked", "all"})
     public Service<S> toService() {
@@ -43,6 +78,12 @@ public class EventSinkConfig<S extends MessageSink<?>> {
         return svc;
     }
 
+    /**
+     * Converts this configuration to a ServiceAgent instance for agent-based execution
+     *
+     * @param <A> The Agent type
+     * @return ServiceAgent wrapper around the configured sink
+     */
     @SneakyThrows
     @SuppressWarnings({"unchecked", "all"})
     public <A extends Agent> ServiceAgent<A> toServiceAgent() {
@@ -55,31 +96,63 @@ public class EventSinkConfig<S extends MessageSink<?>> {
         return new Builder<>();
     }
 
+    /**
+     * Builder class for constructing EventSinkConfig instances
+     *
+     * @param <S> The type of MessageSink being configured
+     */
     public static final class Builder<S extends MessageSink<?>> {
+        /**
+         * The message sink instance to configure
+         */
         private S instance;
+        /**
+         * Name identifier for the sink
+         */
         private String name;
+        /**
+         * Function to transform values before processing
+         */
         private Function<Object, ?> valueMapper;
+        /**
+         * Optional agent name for agent-based execution
+         */
         private String agentName;
+        /**
+         * Optional idle strategy for agent-based execution
+         */
         private IdleStrategy idleStrategy;
 
         private Builder() {
         }
 
+        /**
+         * Sets the message sink instance
+         */
         public Builder<S> instance(S instance) {
             this.instance = instance;
             return this;
         }
 
+        /**
+         * Sets the sink name
+         */
         public Builder<S> name(String name) {
             this.name = name;
             return this;
         }
 
+        /**
+         * Sets the value mapping function
+         */
         public Builder<S> valueMapper(Function<Object, ?> mapper) {
             this.valueMapper = mapper;
             return this;
         }
 
+        /**
+         * Configures agent-based execution
+         */
         public Builder<S> agent(String agentName, IdleStrategy idleStrategy) {
             this.agentName = agentName;
             this.idleStrategy = idleStrategy;

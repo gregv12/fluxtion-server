@@ -53,13 +53,14 @@ public final class ServerConfigurator {
         //register ObjectPoolService
         mongooseServer.registerService(new Service<>(Pools.SHARED, ObjectPoolsRegistry.class, ObjectPoolsRegistry.SERVICE_NAME));
 
+
         //event sources
         if (mongooseServerConfig.getEventFeeds() != null) {
             mongooseServerConfig.getEventFeeds().forEach(server -> {
                 if (server.isAgent()) {
-                    mongooseServer.registerWorkerService(server.toServiceAgent());
+                    mongooseServer.registerEventFeedWorker(server.toServiceAgent(), server.getValueMapper());
                 } else {
-                    mongooseServer.registerService(server.toService());
+                    mongooseServer.registerEventFeed(server.toService(), server.getValueMapper());
                 }
             });
         }
@@ -68,9 +69,9 @@ public final class ServerConfigurator {
         if (mongooseServerConfig.getEventSinks() != null) {
             mongooseServerConfig.getEventSinks().forEach(server -> {
                 if (server.isAgent()) {
-                    mongooseServer.registerWorkerService(server.toServiceAgent());
+                    mongooseServer.registerEventSinkWorker(server.toServiceAgent(), server.getValueMapper());
                 } else {
-                    mongooseServer.registerService(server.toService());
+                    mongooseServer.registerEventSink(server.toService(), server.getValueMapper());
                 }
             });
         }

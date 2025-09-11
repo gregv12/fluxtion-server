@@ -7,7 +7,6 @@ package com.fluxtion.server.service.admin.impl;
 
 import com.fluxtion.runtime.StaticEventProcessor;
 import com.fluxtion.runtime.annotations.feature.Experimental;
-import com.fluxtion.runtime.lifecycle.Lifecycle;
 import com.fluxtion.server.dispatch.EventFlowManager;
 import com.fluxtion.server.service.*;
 import com.fluxtion.server.service.admin.AdminCommandRegistry;
@@ -28,7 +27,7 @@ import java.util.stream.Collectors;
  */
 @Experimental
 @Log
-public class AdminCommandProcessor implements EventFlowService, AdminCommandRegistry, Lifecycle, EventSource<AdminCommand> {
+public class AdminCommandProcessor implements AdminCommandRegistry, LifeCycleEventSource<AdminCommand> {
 
     /**
      * Create a new AdminCommandProcessor.
