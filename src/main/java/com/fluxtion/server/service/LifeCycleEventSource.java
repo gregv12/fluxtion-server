@@ -21,7 +21,7 @@ import com.fluxtion.server.dispatch.EventToQueuePublisher;
  * @see EventSubscriptionKey
  */
 @Experimental
-public interface LifeCycleEventSource<T> extends EventSource<T>, Lifecycle {
+public interface LifeCycleEventSource<T> extends EventFlowService<T>, Lifecycle {
 
     @Override
     default void subscribe(EventSubscriptionKey<T> eventSourceKey) {

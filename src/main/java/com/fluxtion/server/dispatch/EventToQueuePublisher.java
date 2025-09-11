@@ -51,6 +51,7 @@ public class EventToQueuePublisher<T> {
     private int cacheReadPointer = 0;
     private final boolean logWarning = log.isLoggable(Level.WARNING);
     private final boolean logInfo = log.isLoggable(Level.INFO);
+    private final boolean logFine = log.isLoggable(Level.FINE);
 
     public void addTargetQueue(OneToOneConcurrentArrayQueue<Object> targetQueue, String name) {
         NamedQueue namedQueue = new NamedQueue(name, targetQueue);
@@ -64,12 +65,13 @@ public class EventToQueuePublisher<T> {
 
     public void publish(T itemToPublish) {
         if (itemToPublish == null) {
-            log.fine("itemToPublish is null");
+            log.info("itemToPublish is null");
             return;
         }
 
         Object mappedItem = mapItemSafely(itemToPublish, "publish");
         if (mappedItem == null) {
+            log.fine("mapped itemToPublish is null");
             return;
         }
 
@@ -177,6 +179,9 @@ public class EventToQueuePublisher<T> {
             Object mapped = dataMapper.apply(item);
             if (mapped == null) {
                 log.fine("mappedItem is null");
+            } else if (item != mapped && (item instanceof PoolAware poolAware)) {
+                poolAware.getPoolTracker().releaseReference();
+                poolAware.getPoolTracker().returnToPool();
             }
             return mapped;
         } catch (Throwable t) {
@@ -215,7 +220,7 @@ public class EventToQueuePublisher<T> {
         OneToOneConcurrentArrayQueue<Object> targetQueue = namedQueue.targetQueue();
         boolean offered = false;
         long startNs = -1;
-        final long maxSpinNs = java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(2); // bound spin to avoid publisher timeouts under contention
+        final long maxSpinNs = java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(10); // bound spin to avoid publisher timeouts under contention
         PoolTracker<?> tracker = trackerOf(itemToPublish);
         try {
             while (!offered) {
@@ -256,9 +261,9 @@ public class EventToQueuePublisher<T> {
                     com.fluxtion.server.service.error.ErrorEvent.Severity.CRITICAL);
             throw new com.fluxtion.server.exception.QueuePublishException("Failed to write to queue '" + namedQueue.name() + "' for publisher '" + name + "'", t);
         }
-        if (logInfo && startNs > 1) {
+        if (logFine && startNs > 1) {
             long delta = System.nanoTime() - startNs;
-            log.warning("spin wait took " + (delta / 1_000_000) + "ms queue:" + namedQueue.name() + " size:" + targetQueue.size());
+            log.fine("spin wait took " + (delta / 1_000_000) + "ms queue:" + namedQueue.name() + " size:" + targetQueue.size());
         }
     }
 

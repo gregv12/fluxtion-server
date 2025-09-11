@@ -10,20 +10,37 @@ import com.fluxtion.agrona.concurrent.YieldingIdleStrategy;
 import lombok.Data;
 
 /**
- * Configuration for an agent thread.
- * Supports per-agent idle strategy and optional CPU core pinning.
+ * Configuration for an agent thread in the Fluxtion server.
+ * This class encapsulates settings that control how agent threads behave, including:
+ * <ul>
+ *   <li>Thread naming for identification and monitoring</li>
+ *   <li>Idle strategy for managing thread behavior during quiet periods</li>
+ *   <li>CPU core affinity for optimizing performance</li>
+ * </ul>
  */
 @Data
 public class ThreadConfig {
+    /**
+     * Name assigned to the agent thread for identification purposes
+     */
     private String agentName;
+    /**
+     * Strategy determining thread behavior when no work is available. Defaults to yielding
+     */
     private IdleStrategy idleStrategy = new YieldingIdleStrategy();
-    /** Optional zero-based CPU core index to pin the agent thread to. */
+    /**
+     * Optional zero-based CPU core index to pin the agent thread to for improved performance
+     */
     private Integer coreId;
 
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Builder class for creating ThreadConfig instances with a fluent API.
+     * Allows selective setting of configuration properties with method chaining.
+     */
     public static final class Builder {
         private String agentName;
         private IdleStrategy idleStrategy;

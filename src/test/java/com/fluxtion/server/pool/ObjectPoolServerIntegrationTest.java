@@ -5,22 +5,15 @@
 package com.fluxtion.server.pool;
 
 import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
-import com.fluxtion.runtime.annotations.runtime.ServiceRegistered;
+import com.fluxtion.runtime.service.Service;
 import com.fluxtion.server.MongooseServer;
 import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.dispatch.EventToOnEventInvokeStrategy;
 import com.fluxtion.server.example.objectpool.PoolEventSourceServerExample;
-import com.fluxtion.server.service.CallBackType;
-import com.fluxtion.server.service.EventSource;
-import com.fluxtion.server.service.EventSourceKey;
-import com.fluxtion.server.service.EventSubscriptionKey;
-import com.fluxtion.server.service.extension.AbstractEventSourceService;
+import com.fluxtion.server.service.*;
 import com.fluxtion.server.service.pool.ObjectPool;
 import com.fluxtion.server.service.pool.ObjectPoolsRegistry;
-import com.fluxtion.server.service.pool.PoolAware;
-import com.fluxtion.server.service.pool.impl.PoolTracker;
 import com.fluxtion.server.service.pool.impl.Pools;
-import lombok.Getter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -31,95 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * once processing is complete across the full publish -> queue -> processor pipeline.
  */
 public class ObjectPoolServerIntegrationTest {
-
-    static class PooledMessage implements PoolAware {
-        final PoolTracker<PooledMessage> tracker = new PoolTracker<>();
-        String value;
-
-        @Override
-        public PoolTracker<PooledMessage> getPoolTracker() {
-            return tracker;
-        }
-
-        @Override
-        public String toString() {
-            return "PooledMessage{" + value + '}';
-        }
-    }
-
-    /**
-     * Simple EventSource that publishes via injected EventToQueuePublisher.
-     */
-    static class TestPooledEventSource implements EventSource<PooledMessage> {
-        private com.fluxtion.server.dispatch.EventToQueuePublisher<PooledMessage> publisher;
-        private EventWrapStrategy wrapStrategy = EventWrapStrategy.SUBSCRIPTION_NOWRAP;
-
-        @Override
-        public void subscribe(EventSubscriptionKey<PooledMessage> eventSourceKey) { /* no-op for test */ }
-
-        @Override
-        public void unSubscribe(EventSubscriptionKey<PooledMessage> eventSourceKey) { /* no-op */ }
-
-        @Override
-        public void setEventToQueuePublisher(com.fluxtion.server.dispatch.EventToQueuePublisher<PooledMessage> targetQueue) {
-            this.publisher = targetQueue;
-            this.publisher.setEventWrapStrategy(wrapStrategy);
-        }
-
-        @Override
-        public void setEventWrapStrategy(EventWrapStrategy eventWrapStrategy) {
-            this.wrapStrategy = eventWrapStrategy;
-            if (publisher != null) {
-                publisher.setEventWrapStrategy(eventWrapStrategy);
-            }
-        }
-
-        public void publish(PooledMessage msg) {
-            publisher.publish(msg);
-        }
-    }
-
-    /**
-     * Processor that subscribes on start to the source using ON_EVENT mapping.
-     */
-    static class SubscribingProcessor implements com.fluxtion.runtime.StaticEventProcessor, com.fluxtion.runtime.lifecycle.Lifecycle {
-        private com.fluxtion.runtime.input.EventFeed<EventSubscriptionKey<?>> feed;
-
-        @Override
-        public void onEvent(Object event) { /* no-op */ }
-
-        @Override
-        public void init() {
-        }
-
-        @Override
-        public void start() {
-            // subscribe to our source when started
-            EventSubscriptionKey<PooledMessage> key = new EventSubscriptionKey<>(EventSourceKey.of("poolSource"), CallBackType.ON_EVENT_CALL_BACK);
-            feed.subscribe(this, key);
-        }
-
-        @Override
-        public void stop() {
-        }
-
-        @Override
-        public void tearDown() {
-        }
-
-        @Override
-        public void startComplete() {
-        }
-
-        @Override
-        public void registerService(com.fluxtion.runtime.service.Service<?> service) {
-        }
-
-        @Override
-        public void addEventFeed(com.fluxtion.runtime.input.EventFeed eventFeed) {
-            this.feed = eventFeed;
-        }
-    }
 
     private MongooseServer server;
 
@@ -203,9 +107,11 @@ public class ObjectPoolServerIntegrationTest {
     }
 
     @Test
-    public void testServerNowrap_tryWithResources() throws Exception {
+    public void testServerBootAndReturnMappedEvent() throws Exception {
         Pools.SHARED.remove(PooledMessage.class);
+        Pools.SHARED.remove(MappedPoolMessage.class);
         ObjectPool<PooledMessage> pool = Pools.SHARED.getOrCreate(PooledMessage.class, PooledMessage::new, pm -> pm.value = null);
+        ObjectPool<MappedPoolMessage> pool2 = Pools.SHARED.getOrCreate(MappedPoolMessage.class, MappedPoolMessage::new, MappedPoolMessage::reset);
 
         MongooseServerConfig cfg = MongooseServerConfig.builder()
                 .idleStrategy(new BusySpinIdleStrategy())
@@ -213,8 +119,12 @@ public class ObjectPoolServerIntegrationTest {
                 .build();
 
         server = new MongooseServer(cfg);
+        server.registerService(new Service<>(Pools.SHARED, ObjectPoolsRegistry.class, ObjectPoolsRegistry.SERVICE_NAME));
+
         TestPooledEventSource source = new TestPooledEventSource();
-        server.registerEventSource("poolSource", source);
+        PoolingDataMapper dataMapper = new PoolingDataMapper();
+        source.setDataMapper(dataMapper);
+        server.registerEventSource("poolSource", source, dataMapper);
         server.addEventProcessor("proc", "groupC", new BusySpinIdleStrategy(), SubscribingProcessor::new);
         server.init();
         server.start();
@@ -227,31 +137,14 @@ public class ObjectPoolServerIntegrationTest {
         while (pool.availableCount() == 0 && System.currentTimeMillis() < deadline) {
             Thread.sleep(10);
         }
+        // input message should be returned to pool
         assertEquals(1, pool.availableCount(), "message should be returned using try-with-resources (nowrap)");
-    }
 
-
-    public static class PooledEventSource extends AbstractEventSourceService<PooledMessage> {
-        @Getter
-        private ObjectPool<PooledMessage> pool;
-
-        public PooledEventSource() {
-            super("pooledSource");
+        while (dataMapper.getPool().availableCount() == 0 && System.currentTimeMillis() < deadline) {
+            Thread.sleep(10);
         }
-
-        public void publish(PooledMessage msg) {
-            if (output != null) {
-                output.publish(msg);
-            }
-        }
-
-        @ServiceRegistered
-        public void setObjectPoolsRegistry(ObjectPoolsRegistry objectPoolsRegistry, String name) {
-            this.pool = objectPoolsRegistry.getOrCreate(
-                    PooledMessage.class,
-                    PooledMessage::new,
-                    pm -> pm.value = null);
-        }
+        // output message should be returned to pool
+        assertEquals(1, dataMapper.getPool().availableCount(), "message should be returned using try-with-resources (nowrap)");
     }
 
 

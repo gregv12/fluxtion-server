@@ -99,7 +99,7 @@ public class MongooseServerConfigFluentBootTest {
 
         @Override
         public String toString() {
-            return "TestEvent{" + message + '}';
+            return "TestEvent_In{" + message + '}';
         }
     }
 

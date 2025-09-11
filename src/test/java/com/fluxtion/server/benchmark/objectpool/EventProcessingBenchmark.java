@@ -43,7 +43,7 @@ public class EventProcessingBenchmark {
     private CountDownLatch eventProcessedLatch;
 
     // Benchmark parameters
-    private static final int WARMUP_COUNT = 100_000;
+    private static final int WARMUP_COUNT = 1_000_000;
     private static final int BENCHMARK_COUNT = 20_000_000;
     private static final int BATCH_SIZE = 100;
 
@@ -107,6 +107,8 @@ public class EventProcessingBenchmark {
             eventSource.publishEvent(event);
         }
 
+//        java.lang.Thread.onSpinWait();
+
         eventSource.publishEvent("publishResults");
         eventProcessedLatch.await();
 
@@ -144,7 +146,7 @@ public class EventProcessingBenchmark {
 
         @Override
         public String toString() {
-            return "TestEvent{message='" + message
+            return "TestEvent_In{message='" + message
                     + "', id=" + id
                     + "', publishTime=" + publishTime
                     + "', processedTime=" + processedTime
