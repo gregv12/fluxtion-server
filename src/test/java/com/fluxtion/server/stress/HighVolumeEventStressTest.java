@@ -558,7 +558,7 @@ public class HighVolumeEventStressTest {
 
         @Override
         public String toString() {
-            return "TestEvent{message='" + message + "', timestamp=" + timestamp + '}';
+            return "TestEvent_In{message='" + message + "', timestamp=" + timestamp + '}';
         }
     }
 

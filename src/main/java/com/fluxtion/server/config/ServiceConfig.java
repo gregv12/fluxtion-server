@@ -15,17 +15,38 @@ import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 
+/**
+ * Configuration class for services in the Fluxtion server framework.
+ * Provides a flexible way to configure and build service instances with optional
+ * agent capabilities. Supports both direct instantiation and builder pattern.
+ *
+ * @param <T> the type of service being configured
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Accessors(chain = true, fluent = true)
 public class ServiceConfig<T> {
 
+    /**
+     * The service instance to be configured
+     */
     private T service;
+    /**
+     * The fully qualified class name of the service
+     */
     private String serviceClass;
+    /**
+     * The name identifier for the service
+     */
     private String name;
-    //optional agent configuration
+    /**
+     * Optional agent group name for agent-enabled services
+     */
     private String agentGroup;
+    /**
+     * Optional idle strategy for agent-enabled services
+     */
     private IdleStrategy idleStrategy;
 
     public ServiceConfig(T service, Class<T> serviceClass, String name) {

@@ -98,6 +98,11 @@ public class EventFlowManagerTest {
         public boolean isTornDown() {
             return tornDown;
         }
+
+        @Override
+        public void setEventFlowManager(EventFlowManager eventFlowManager, String serviceName) {
+
+        }
     }
 
     private static class TestAgent implements Agent {

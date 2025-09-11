@@ -19,28 +19,78 @@ import lombok.SneakyThrows;
 
 import java.util.function.Function;
 
+/**
+ * Configuration class for event feeds in the server.
+ * Supports configuration of event sources, wrapping strategies, consumer handling,
+ * and optional agent-based execution.
+ *
+ * @param <IN> The input type for the event feed
+ */
 @Experimental
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class EventFeedConfig<T> {
+public class EventFeedConfig<IN> {
 
-    private T instance;
+    /**
+     * The event source instance
+     */
+    private Object instance;
+
+    /**
+     * Name identifier for this feed
+     */
     private String name;
+
+    /**
+     * Whether events should be broadcast to all subscribers
+     */
     private boolean broadcast = false;
+
+    /**
+     * Whether events should be wrapped with name information
+     */
     private boolean wrapWithNamedEvent = false;
-    //event feed management
+
+    /**
+     * Strategy for wrapping events before delivery
+     */
     private EventSource.EventWrapStrategy eventWrapStrategy = EventSource.EventWrapStrategy.SUBSCRIPTION_NAMED_EVENT;
+
+    /**
+     * Strategy for handling slow consumers
+     */
     private EventSource.SlowConsumerStrategy slowConsumerStrategy = EventSource.SlowConsumerStrategy.BACKOFF;
-    private Function<T, ?> valueMapper = Function.identity();
-    //optional agent configurationx
+
+    /**
+     * Function to transform event values before delivery
+     */
+    private Function<IN, ?> valueMapper = Function.identity();
+
+    /**
+     * Name of the agent if using agent-based execution
+     */
     private String agentName;
+
+    /**
+     * Idle strategy for agent-based execution
+     */
     private IdleStrategy idleStrategy;
 
+    /**
+     * Checks if this feed is configured for agent-based execution
+     *
+     * @return true if agent execution is configured
+     */
     public boolean isAgent() {
         return agentName != null;
     }
 
+    /**
+     * Converts this configuration to a Service instance
+     *
+     * @return Service wrapper around the configured feed
+     */
     @SneakyThrows
     public Service<NamedFeed> toService() {
         if (instance instanceof EventSource<?> eventSource) {
@@ -53,7 +103,7 @@ public class EventFeedConfig<T> {
             } else {
                 eventWrapStrategy = EventSource.EventWrapStrategy.SUBSCRIPTION_NOWRAP;
             }
-            @SuppressWarnings("unchecked") EventSource<T> eventSource_t = (EventSource<T>) eventSource;
+            @SuppressWarnings("unchecked") EventSource<IN> eventSource_t = (EventSource<IN>) eventSource;
             eventSource_t.setEventWrapStrategy(eventWrapStrategy);
             eventSource_t.setSlowConsumerStrategy(slowConsumerStrategy);
             eventSource_t.setDataMapper(valueMapper);
@@ -62,6 +112,12 @@ public class EventFeedConfig<T> {
         return svc;
     }
 
+    /**
+     * Converts this configuration to a ServiceAgent instance for agent-based execution
+     *
+     * @return ServiceAgent wrapper around the configured feed
+     * @throws IllegalArgumentException if instance is not an Agent
+     */
     @SneakyThrows
     public ServiceAgent<NamedFeed> toServiceAgent() {
         Service<NamedFeed> svc = toService();
@@ -72,61 +128,97 @@ public class EventFeedConfig<T> {
     }
 
     // -------- Builder API --------
+
+    /**
+     * Creates a new builder for EventFeedConfig
+     *
+     * @param <T> The input type for the event feed
+     * @return A new builder instance
+     */
     public static <T> Builder<T> builder() {
         return new Builder<>();
     }
 
-    public static final class Builder<T> {
-        private T instance;
+    /**
+     * Builder class for constructing EventFeedConfig instances
+     *
+     * @param <IN> The input type for the event feed
+     */
+    public static final class Builder<IN> {
+        private Object instance;
         private String name;
         private boolean broadcast;
         private boolean wrapWithNamedEvent;
         private EventSource.SlowConsumerStrategy slowConsumerStrategy;
-        private Function<T, ?> valueMapper;
+        private Function<IN, ?> valueMapper;
         private String agentName;
         private IdleStrategy idleStrategy;
 
         private Builder() {
         }
 
-        public Builder<T> instance(T instance) {
+        /**
+         * Sets the event source instance
+         */
+        public Builder<IN> instance(Object instance) {
             this.instance = instance;
             return this;
         }
 
-        public Builder<T> name(String name) {
+        /**
+         * Sets the feed name
+         */
+        public Builder<IN> name(String name) {
             this.name = name;
             return this;
         }
 
-        public Builder<T> broadcast(boolean broadcast) {
+        /**
+         * Sets whether events should be broadcast
+         */
+        public Builder<IN> broadcast(boolean broadcast) {
             this.broadcast = broadcast;
             return this;
         }
 
-        public Builder<T> wrapWithNamedEvent(boolean wrap) {
+        /**
+         * Sets whether events should be wrapped
+         */
+        public Builder<IN> wrapWithNamedEvent(boolean wrap) {
             this.wrapWithNamedEvent = wrap;
             return this;
         }
 
-        public Builder<T> slowConsumerStrategy(EventSource.SlowConsumerStrategy strategy) {
+        /**
+         * Sets the slow consumer handling strategy
+         */
+        public Builder<IN> slowConsumerStrategy(EventSource.SlowConsumerStrategy strategy) {
             this.slowConsumerStrategy = strategy;
             return this;
         }
 
-        public Builder<T> valueMapper(Function<T, ?> mapper) {
+        /**
+         * Sets the value mapping function
+         */
+        public Builder<IN> valueMapper(Function<IN, ?> mapper) {
             this.valueMapper = mapper;
             return this;
         }
 
-        public Builder<T> agent(String agentName, IdleStrategy idleStrategy) {
+        /**
+         * Configures agent-based execution
+         */
+        public Builder<IN> agent(String agentName, IdleStrategy idleStrategy) {
             this.agentName = agentName;
             this.idleStrategy = idleStrategy;
             return this;
         }
 
-        public EventFeedConfig<T> build() {
-            EventFeedConfig<T> cfg = new EventFeedConfig<>();
+        /**
+         * Builds the EventFeedConfig instance
+         */
+        public EventFeedConfig<IN> build() {
+            EventFeedConfig<IN> cfg = new EventFeedConfig<>();
             cfg.setInstance(instance);
             cfg.setName(name);
             cfg.setBroadcast(broadcast);

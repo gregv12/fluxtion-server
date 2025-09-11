@@ -45,8 +45,7 @@ import java.util.function.Supplier;
 public abstract class AbstractEventSourceService<T>
         implements
         NamedFeed,
-        LifeCycleEventSource<T>,
-        EventFlowService {
+        LifeCycleEventSource<T> {
 
     /**
      * Unique service name for this event source.

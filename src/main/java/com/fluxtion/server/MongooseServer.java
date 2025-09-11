@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 
@@ -222,18 +223,138 @@ public class MongooseServer implements MongooseServerController {
     }
 
     /**
+     * Register an event feed service with optional data mapping.
+     * <p>
+     * This is a convenience method that:
+     * <ol>
+     *   <li>Injects registered services into the data mapper function (if any)</li>
+     *   <li>Registers the feed service with the server</li>
+     * </ol>
+     *
+     * @param services   the event feed service to register
+     * @param dataMapper optional function to transform event data (may be null)
+     */
+    public void registerEventFeed(Service<?> services, Function<?, ?> dataMapper) {
+        ServiceInjector.inject(dataMapper, registeredServices.values());
+        registerService(services);
+    }
+
+    /**
+     * Register an agent-hosted event feed service with optional data mapping.
+     * <p>
+     * This is a convenience method that:
+     * <ol>
+     *   <li>Injects registered services into the data mapper function (if any)</li>
+     *   <li>Registers the feed as a worker service with its own agent thread</li>
+     * </ol>
+     *
+     * @param services   the event feed service to register as an agent-hosted worker
+     * @param dataMapper optional function to transform event data (may be null)
+     */
+    public void registerEventFeedWorker(ServiceAgent<?> services, Function<?,?> dataMapper) {
+        ServiceInjector.inject(dataMapper, registeredServices.values());
+        registerWorkerService(services);
+    }
+
+    /**
      * Register a named event source (feed) with the server.
      * <p>
      * The source will be made available to the event flow manager for routing to
-     * interested processors and services.
+     * interested processors and services. This is a convenience method that delegates
+     * to {@link #registerEventSource(String, EventSource, Function)} with a null data
+     * mapper.
      *
-     * @param <T>         event type published by the source
-     * @param sourceName  unique name of the source
-     * @param eventSource source instance to register
+     * @param <T>         The type of events published by the source
+     * @param sourceName  The unique name that identifies this event source within the server
+     * @param eventSource The event source instance to register
+     * @see #registerEventSource(String, EventSource, Function)
+     * @see EventSource
      */
     public <T> void registerEventSource(String sourceName, EventSource<T> eventSource) {
+        registerEventSource(sourceName, eventSource, null);
+    }
+
+    /**
+     * Register a named event source (feed) with optional data transformation.
+     * <p>
+     * This method:
+     * <ol>
+     *   <li>Creates a service wrapper around the event source</li>
+     *   <li>Injects registered services into the data mapper if provided</li>
+     *   <li>Registers the service with the server</li>
+     * </ol>
+     * <p>
+     * The event source becomes available to the event flow manager for routing
+     * events to interested processors and services. Events can optionally be
+     * transformed by the data mapper before delivery.
+     * <p>
+     * Example usage:
+     * <pre>{@code
+     * // Register price feed that transforms raw ticks to normalized format
+     * server.registerEventSource(
+     *     "prices",
+     *     new MarketDataFeed(),
+     *     tick -> new NormalizedPrice(tick)
+     * );
+     * }</pre>
+     *
+     * @param <T>         event type published by the source
+     * @param sourceName  unique name for the event source
+     * @param eventSource source instance that will publish events
+     * @param dataMapper  optional function to transform events before delivery (may be null)
+     * @see EventSource
+     * @see #registerEventSource(String, EventSource)
+     */
+    public <T> void registerEventSource(String sourceName, EventSource<T> eventSource, Function<T, ?> dataMapper) {
         log.info("registerEventSource name:" + sourceName + " eventSource:" + eventSource);
-        flowManager.registerEventSource(sourceName, eventSource);
+        Service<?> service = new Service<>(eventSource, sourceName);
+        ServiceInjector.inject(dataMapper, registeredServices.values());
+        registerService(service);
+    }
+
+
+    /**
+     * Register an event sink service with optional data mapping.
+     * <p>
+     * This method:
+     * <ol>
+     *   <li>Injects registered services into the data mapper function (if provided)</li>
+     *   <li>Registers the sink service with the server</li>
+     * </ol>
+     * <p>
+     * Event sinks are typically services that consume processed events from event processors
+     * or other services.
+     *
+     * @param services   the event sink service to register
+     * @param dataMapper optional function to transform event data (may be null)
+     * @see Service
+     * @see #registerEventSinkWorker(ServiceAgent, Function)
+     */
+    public void registerEventSink(Service<?> services, Function<?, ?> dataMapper) {
+        ServiceInjector.inject(dataMapper, registeredServices.values());
+        registerService(services);
+    }
+
+    /**
+     * Register an agent-hosted event sink service with optional data mapping.
+     * <p>
+     * This method:
+     * <ol>
+     *   <li>Injects registered services into the data mapper function (if provided)</li>
+     *   <li>Registers the sink as a worker service with its own agent thread</li>
+     * </ol>
+     * <p>
+     * Agent-hosted event sinks run on dedicated agent threads and are suitable for
+     * scenarios requiring isolated processing or specific threading models.
+     *
+     * @param services   the event sink service to register as an agent-hosted worker
+     * @param dataMapper optional function to transform event data (may be null)
+     * @see ServiceAgent
+     * @see #registerEventSink(Service, Function)
+     */
+    public void registerEventSinkWorker(ServiceAgent<?> services, Function<?, ?> dataMapper) {
+        ServiceInjector.inject(dataMapper, registeredServices.values());
+        registerWorkerService(services);
     }
 
     /**
