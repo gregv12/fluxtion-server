@@ -37,7 +37,6 @@ public class MongooseServerLifecycleTest {
         server.registerService(new Service<>(service, TestService.class, "svc"));
         // life-cycle event source registered as both a service and event source
         server.registerService(new Service<>(eventSourceService, TestLifeCycleEventSource.class, "src"));
-        server.registerEventSource("src", eventSourceService);
 
         // init
         server.init();

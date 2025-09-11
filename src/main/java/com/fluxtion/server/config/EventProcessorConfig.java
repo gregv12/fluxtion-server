@@ -15,18 +15,51 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
+/**
+ * Configuration holder for EventProcessor instances.
+ * Provides configuration options for event handlers, logging, and custom parameters.
+ * Supports builder pattern for fluent configuration.
+ *
+ * @param <T> type of EventProcessor being configured
+ */
 @Data
 public class EventProcessorConfig<T extends EventProcessor<?>> {
+    /**
+     * The configured event processor instance
+     */
     private T eventHandler;
+
+    /**
+     * Custom event handler node for specialized processing
+     */
     private ObjectEventHandlerNode customHandler;
+
+    /**
+     * Supplier for lazy initialization of event handler
+     */
     private Supplier<T> eventHandlerBuilder;
+
+    /**
+     * Controls the logging level for event processing
+     */
     private EventLogControlEvent.LogLevel logLevel;
+
+    /**
+     * Map of configuration parameters for the event processor
+     */
     private Map<String, Object> configMap = new HashMap<>();
 
+    /**
+     * Creates configuration with a custom handler
+     * @param customHandler the custom event handler node
+     */
     public EventProcessorConfig(ObjectEventHandlerNode customHandler) {
         this.customHandler = customHandler;
     }
 
+    /**
+     * Creates empty configuration with default settings
+     */
     public EventProcessorConfig() {
         configMap = new HashMap<>();
     }
@@ -49,6 +82,10 @@ public class EventProcessorConfig<T extends EventProcessor<?>> {
         return new Builder<>();
     }
 
+    /**
+     * Builder class for creating EventProcessorConfig instances
+     * @param <T> type of EventProcessor being configured
+     */
     public static final class Builder<T extends EventProcessor<?>> {
         private T eventHandler;
         private ObjectEventHandlerNode customHandler;
@@ -59,26 +96,56 @@ public class EventProcessorConfig<T extends EventProcessor<?>> {
         private Builder() {
         }
 
+        /**
+         * Sets the event handler instance
+         * @param handler the event processor instance
+         * @return this builder
+         */
         public Builder<T> handler(T handler) {
             this.eventHandler = handler;
             return this;
         }
 
+        /**
+         * Sets a custom handler node
+         *
+         * @param node the custom event handler node
+         * @return this builder
+         */
         public Builder<T> customHandler(ObjectEventHandlerNode node) {
             this.customHandler = node;
             return this;
         }
 
+        /**
+         * Sets a supplier for lazy handler initialization
+         *
+         * @param builder the handler supplier
+         * @return this builder
+         */
         public Builder<T> handlerBuilder(Supplier<T> builder) {
             this.eventHandlerBuilder = builder;
             return this;
         }
 
+        /**
+         * Sets the logging level
+         *
+         * @param level desired log level
+         * @return this builder
+         */
         public Builder<T> logLevel(EventLogControlEvent.LogLevel level) {
             this.logLevel = level;
             return this;
         }
 
+        /**
+         * Adds a configuration parameter
+         *
+         * @param key   configuration key
+         * @param value configuration value
+         * @return this builder
+         */
         public Builder<T> putConfig(String key, Object value) {
             this.config.put(key, value);
             return this;

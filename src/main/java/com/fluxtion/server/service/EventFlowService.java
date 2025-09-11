@@ -6,6 +6,7 @@
 package com.fluxtion.server.service;
 
 import com.fluxtion.server.dispatch.EventFlowManager;
+import com.fluxtion.server.service.extension.AbstractEventSourceService;
 
 /**
  * Represents a service interface for managing event flows within a system.
@@ -13,8 +14,19 @@ import com.fluxtion.server.dispatch.EventFlowManager;
  * managing event flow configurations using an {@link EventFlowManager}.
  * This interface allows for dynamic assignment of an event flow manager
  * with an associated service name.
+ * <p>
+ * Services implementing this interface typically:
+ * <ul>
+ *   <li>Register themselves as event sources with the event flow manager</li>
+ *   <li>Manage event publishing and subscription lifecycles</li>
+ *   <li>Support configuration of event wrapping and slow-consumer handling strategies</li>
+ *   <li>Enable data mapping and transformation of published events</li>
+ * </ul>
+ *
+ * @param <T> The type of events that this service publishes to subscribers
+ * @see AbstractEventSourceService for a base implementation
  */
-public interface EventFlowService {
+public interface EventFlowService<T> extends EventSource<T>{
 
     /**
      * Inject the event flow manager and logical service name into this service.
@@ -22,5 +34,7 @@ public interface EventFlowService {
      * @param eventFlowManager the event flow manager used to register and route events
      * @param serviceName      the unique service name under which this source will be registered
      */
-    void setEventFlowManager(EventFlowManager eventFlowManager, String serviceName);
+    default void setEventFlowManager(EventFlowManager eventFlowManager, String serviceName){
+        eventFlowManager.registerEventSource(serviceName, this);
+    }
 }

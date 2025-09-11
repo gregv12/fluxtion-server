@@ -104,7 +104,7 @@ public class EndToEndEventFlowIT {
 
         @Override
         public String toString() {
-            return "TestEvent{message='" + message + "'}";
+            return "TestEvent_In{message='" + message + "'}";
         }
     }
 

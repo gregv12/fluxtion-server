@@ -26,18 +26,43 @@ final class GlobalObjectPool implements ObjectPoolsRegistry {
     }
 
     /**
-     * Get (or create) the pool for the specified type.
+     * Get (or create) a pool for the specified type with default capacity and no reset callback.
+     *
+     * @param <T>     The type of objects managed by the pool
+     * @param type    The class of objects to be pooled. Must not be null.
+     * @param factory A supplier that creates new instances when needed. Must not be null.
+     * @return An ObjectPool instance for managing objects of type T
      */
     @Override
     public <T extends PoolAware> ObjectPool<T> getOrCreate(Class<T> type, Supplier<T> factory) {
         return getOrCreate(type, factory, null, ObjectPoolManager.DEFAULT_CAPACITY);
     }
 
+    /**
+     * Get (or create) a pool for the specified type with default capacity and provided reset callback.
+     *
+     * @param <T>     The type of objects managed by the pool
+     * @param type    The class of objects to be pooled. Must not be null.
+     * @param factory A supplier that creates new instances when needed. Must not be null.
+     * @param reset   Optional callback to reset object state when returning to pool. May be null.
+     * @return An ObjectPool instance for managing objects of type T
+     */
     @Override
     public <T extends PoolAware> ObjectPool<T> getOrCreate(Class<T> type, Supplier<T> factory, Consumer<T> reset) {
         return getOrCreate(type, factory, reset, ObjectPoolManager.DEFAULT_CAPACITY);
     }
 
+    /**
+     * Get (or create) a pool for the specified type with provided reset callback and capacity.
+     *
+     * @param <T>      The type of objects managed by the pool
+     * @param type     The class of objects to be pooled. Must not be null.
+     * @param factory  A supplier that creates new instances when needed. Must not be null.
+     * @param reset    Optional callback to reset object state when returning to pool. May be null.
+     * @param capacity Maximum number of objects to keep in the pool. Must be > 0.
+     * @return An ObjectPool instance for managing objects of type T
+     * @throws IllegalArgumentException if capacity is <= 0
+     */
     @Override
     public <T extends PoolAware> ObjectPool<T> getOrCreate(Class<T> type, Supplier<T> factory, Consumer<T> reset, int capacity) {
         Objects.requireNonNull(type, "type");
@@ -49,7 +74,16 @@ final class GlobalObjectPool implements ObjectPoolsRegistry {
     }
 
     /**
-     * New overload: allow specifying partitions.
+     * Get (or create) a pool for the specified type with provided reset callback, capacity and partitions.
+     *
+     * @param <T>        The type of objects managed by the pool
+     * @param type       The class of objects to be pooled. Must not be null.
+     * @param factory    A supplier that creates new instances when needed. Must not be null.
+     * @param reset      Optional callback to reset object state when returning to pool. May be null.
+     * @param capacity   Maximum number of objects to keep in the pool. Must be > 0.
+     * @param partitions Number of partitions for concurrent access. Must be > 0.
+     * @return An ObjectPool instance for managing objects of type T
+     * @throws IllegalArgumentException if capacity or partitions is <= 0
      */
     public <T extends PoolAware> ObjectPool<T> getOrCreate(Class<T> type, Supplier<T> factory, Consumer<T> reset, int capacity, int partitions) {
         Objects.requireNonNull(type, "type");

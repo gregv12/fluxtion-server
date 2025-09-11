@@ -181,7 +181,7 @@ public class MongooseServerTest {
         }
     }
 
-    private static class TestEventSource implements EventSource<String> {
+    private static class TestEventSource implements EventFlowService<String> {
         private EventToQueuePublisher<String> eventToQueuePublisher;
         private final List<EventSubscriptionKey<String>> subscriptions = new ArrayList<>();
 
@@ -277,6 +277,21 @@ public class MongooseServerTest {
 
         public String getServiceName() {
             return serviceName;
+        }
+
+        @Override
+        public void subscribe(EventSubscriptionKey eventSourceKey) {
+
+        }
+
+        @Override
+        public void unSubscribe(EventSubscriptionKey eventSourceKey) {
+
+        }
+
+        @Override
+        public void setEventToQueuePublisher(EventToQueuePublisher targetQueue) {
+
         }
     }
 
