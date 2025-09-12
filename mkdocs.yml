@@ -55,14 +55,15 @@ extra:
       link: https://github.com/gregv12
 
 nav:
-  - Home: index.md
+  - Home:
+      - index: index.md
+      - Mongoose for managers: guide/managers-overview.md
+      - Mongoose for engineers: guide/overview.md
   - Overview:
-      - Overview for managers: guide/managers-overview.md
-      - Overview for engineers: guide/overview.md
+      - Event handling business logic: guide/event-processing-architecture.md
+      - Plugin extension mechanism: guide/plugin_extension_architecture.md
   - Developer guide:
       - 5-minute handler tutorial: guide/five-minute-event-handler-tutorial.md
-      - Event handling and business logic: guide/event-processing-architecture.md
-      - Plugin extension mechanism: guide/plugin_extension_architecture.md
       - Event handler examples:
           - Fluent API: guide/file-and-memory-feeds-example.md
           - YAML config: guide/file-and-memory-feeds-yaml-example.md
