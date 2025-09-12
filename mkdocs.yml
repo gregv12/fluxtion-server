@@ -63,6 +63,7 @@ nav:
       - Event source feeds: overview/event-sources-overview.md
       - Event handling business logic: overview/event-processing-architecture.md
       - Event sink outputs: overview/event-sinks-overview.md
+      - Service functions and requests: overview/services-overview.md
       - Plugin extension mechanism: overview/plugin_extension_architecture.md
   - Developer guide:
       - 5-minute handler tutorial: guide/five-minute-event-handler-tutorial.md
