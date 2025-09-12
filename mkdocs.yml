@@ -60,17 +60,18 @@ nav:
       - Why Mongoose: overview/mongoose-two-page-intro.md
       - Mongoose for managers: overview/managers-overview.md
       - Mongoose for engineers: overview/engineers-overview.md
-  - Overview:
+  - Getting started:
+      - 5-minute handler tutorial: guide/five-minute-event-handler-tutorial.md
+      - Event handler examples:
+          - Fluent API: guide/file-and-memory-feeds-example.md
+          - YAML config: guide/file-and-memory-feeds-yaml-example.md
+  - Component overview:
       - Event source feeds: overview/event-sources-overview.md
       - Event handling business logic: overview/event-processing-architecture.md
       - Event sink outputs: overview/event-sinks-overview.md
       - Service functions: overview/services-overview.md
       - Plugin extension mechanism: overview/plugin_extension_architecture.md
-  - Developer guide:
-      - 5-minute handler tutorial: guide/five-minute-event-handler-tutorial.md
-      - Event handler examples:
-          - Fluent API: guide/file-and-memory-feeds-example.md
-          - YAML config: guide/file-and-memory-feeds-yaml-example.md
+  - Examples and how-to:
       - Plugin examples:
           - Event sink plugin: plugin/writing-a-message-sink-plugin.md
           - Event source plugin: plugin/writing-an-event-source-plugin.md
@@ -90,6 +91,7 @@ nav:
           - Event source read strategy: guide/read-strategy.md
           - Zero‑GC object pooling: how-to/how-to-object-pool.md
           - Core pin agent threads: how-to/how-to-core-pin.md
+  - Reference guide:
       - Architecture and design:
           - Doc description: architecture/index.md
           - Overview: architecture/overview.md
