@@ -201,7 +201,7 @@ Use EventFeedConfig to add your source, control wrapping/broadcast, and optional
 
 ```java
 import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
-import com.fluxtion.server.config.mongooseServerConfig;
+import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.config.EventFeedConfig;
 
 MyAgentSource src = new MyAgentSource();
@@ -251,7 +251,9 @@ This pattern is used by FileEventSource and InMemoryEventSource in this repo.
 
 Example snippet:
 
-```java
+```text
+// Example-only snippet for tests (not part of a compilable class)
+// (wrap in a method/class in your test harness before compiling):
 EventToQueuePublisher<String> pub = new EventToQueuePublisher<>("myFeed");
 OneToOneConcurrentArrayQueue<Object> q = new OneToOneConcurrentArrayQueue<>(128);
 pub.addTargetQueue(q, "out");
