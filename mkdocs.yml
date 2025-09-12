@@ -92,6 +92,7 @@ nav:
           - Zero‑GC object pooling: how-to/how-to-object-pool.md
           - Core pin agent threads: how-to/how-to-core-pin.md
   - Reference guide:
+      - Glossary: reference/glossary.md
       - Architecture and design:
           - Doc description: architecture/index.md
           - Overview: architecture/overview.md
@@ -106,10 +107,8 @@ nav:
           - Object pooling: architecture/object_pooling.md
           - Server control: architecture/server-control.md
       - Reference:
-          - Glossary: reference/index.md
-          - Glossary: reference/glossary.md
-          - Troubleshooting and FAQ: guide/troubleshooting.md
-          - Server benchmarks and performance: reports/server-benchmarks-and-performance.md
-          - Comparisons: guide/comparisons.md
-          - Operations runbook: guide/operations-runbook.md
+          - Troubleshooting and FAQ: reference/troubleshooting.md
+          - Comparisons: reference/comparisons.md
+          - Operations runbook: reference/operations-runbook.md
           - API Reference: https://javadoc.io/doc/com.fluxtion/server/latest/index.html
+      - Server benchmarks and performance: reports/server-benchmarks-and-performance.md
