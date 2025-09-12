@@ -1,6 +1,6 @@
 # How-to: Re-entrant publishing with processAsNewEventCycle and SchedulerService
 
-This guide explains how to publish events back into Fluxtion's event processing cycle from inside your handler using `processAsNewEventCycle`, and how to combine it with `SchedulerService` callbacks for periodic or delayed re-entry.
+This guide explains how to publish events back into Mongoose's event processing cycle from inside your handler using `processAsNewEventCycle`, and how to combine it with `SchedulerService` callbacks for periodic or delayed re-entry.
 
 ## Key concepts
 - `NodeContext.processAsNewEventCycle(Object event)`: Injects an event into the event processor as a brand new event cycle. The event will be mapped and dispatched through the configured event graph just like an external input.

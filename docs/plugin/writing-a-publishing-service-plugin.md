@@ -1,6 +1,6 @@
 # How to write a publishing Service plugin (processor subscribes via @ServiceRegistered)
 
-This guide shows how to implement a Service plugin that can publish events into the Fluxtion event flow, and how an
+This guide shows how to implement a Service plugin that can publish events into the Mongoose event flow, and how an
 EventProcessor subscribes to that service. The processor receives the service instance via `@ServiceRegistered` and
 calls
 `service.subscribe()` to start receiving events.
@@ -157,4 +157,4 @@ The processor will receive these events via its `handleEvent` and forward them t
 
 - You want a reusable service that can push events to processors on-demand (e.g., adapters, gateways, timers).
 - Processors opt-in by calling `service.subscribe()` so the service receives a subscribe request from the processor.
-- You want to leverage Fluxtion’s event flow, backpressure, and dispatching while keeping a clean plugin boundary.
+- You want to leverage Mongoose’s event flow, backpressure, and dispatching while keeping a clean plugin boundary.

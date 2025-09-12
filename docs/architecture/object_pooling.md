@@ -1,7 +1,7 @@
 # Object pooling architecture
 
 
-This document describes how the Fluxtion Server object pool works under the hood. It is intended for developers who need
+This document describes how the Mongoose Server object pool works under the hood. It is intended for developers who need
 a deeper understanding of reference counting, pooling queues, partitions, and integration points with the runtime.
 
 

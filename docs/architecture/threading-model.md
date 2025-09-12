@@ -224,7 +224,7 @@ Key points:
       agent: [ComposingEventProcessorAgent](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dutycycle/ComposingEventProcessorAgent.java)
     - Service
       agent: [ComposingServiceAgent](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/dutycycle/ComposingServiceAgent.java)
-- Fluxtion uses a lightweight
+- Mongoose uses a lightweight
   helper [CoreAffinity](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/internal/CoreAffinity.java)
   that attempts to pin via reflection to OpenHFT’s Affinity library if present; otherwise it logs and no-ops.
 
