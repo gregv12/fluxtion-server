@@ -25,25 +25,36 @@ At runtime, the server owns infrastructure like event sources, sinks, scheduler,
 execution units that process events in single‑threaded loops.
 
 ```mermaid
-flowchart LR
-  subgraph Server
-    direction LR
-    SRC[Event Sources] --> DISP[Dispatcher]
-    SCHED[Scheduler] --> DISP
-    ADMIN[Admin] --> DISP
-    subgraph Agent
-      direction TB
-      DISP --> HANDLER[Your Handler / Processor]
+graph TD
+
+    ES[Plugin<br>Event Source 1] --> FM[Flow Manager]
+    ES2[Plugin<br>Event Source A] --> FM[Flow Manager]
+    ES3[Plugin<br>Event Source B] --> FM[Flow Manager]
+
+    FM --> EH1[Event Handlers <br>business logic]
+    FM --> EH2[Event Handlers <br>business logic]
+
+    EH1 --> ESK[Plugin<br>Event Sinks]
+    EH2 --> ESK[Plugin<br>Event Sinks]
+
+   subgraph "Agent thread group 1"
+        ES2
+        ES3
     end
-    HANDLER --> SINK[Event Sinks]
-  end
+
+    subgraph "Agent thread group 2"
+        EH1
+    end
+    subgraph "Agent thread group 3"
+        EH2
+    end
 ```
 
-- Event sources feed the Dispatcher.
+- Event sources feed the flow manager dispatchers.
 - The Dispatcher routes events to one or more agents according to subscription and broadcast rules.
 - Your handler/processor executes on the agent thread.
 
-See also: overview/event-processing-architecture.md for how handlers are structured.
+See also: [Event handling and business logic](event-processing-architecture.md) for how handlers are structured.
 
 ## Agent vs non‑agent event sources
 
@@ -51,7 +62,7 @@ Event sources can either run inside an agent thread or outside of it.
 
 - Agent event source (in‑agent):
 
-    - Runs on the same single‑threaded loop as your handler.
+    - Runs on a single‑threaded event loop managed by mongoose-server.
     - No cross‑thread handoff; lowest overhead and deterministic ordering with the rest of the agent’s work.
     - Best for in‑memory feeds, synthetic/replay sources, or sources that can be polled cooperatively.
     - Cons: the agent must perform I/O or polling, which can increase duty‑cycle time if reads block. Use non‑blocking
@@ -144,7 +155,7 @@ Implementation tips:
 
 Related docs:
 
-- How‑to: Subscribe to named event feeds (how-to/how-to-subscribing-to-named-event-feeds.md)
+- [Subscribe to named feeds](../how-to/how-to-subscribing-to-named-event-feeds.md)
 
 ## Idle/read strategies (read pacing)
 
@@ -160,8 +171,8 @@ Common strategies:
 
 See also:
 
-- Read strategy guide: guide/read-strategy.md
-- Threading model: architecture/threading-model.md
+- [Event source read strategy](../guide/read-strategy.md)
+- [Threading model](../architecture/threading-model.md)
 
 ## Value mapping (deserialization and transformation)
 
@@ -179,7 +190,7 @@ Recommendations:
 
 Related docs:
 
-- How‑to: Transform events (how-to/how-to-data-mapping.md)
+- [Transform events](../how-to/how-to-data-mapping.md)
 
 ## Zero‑GC object pooling for sources
 
@@ -191,9 +202,9 @@ For high‑throughput, low‑latency workloads, use object pools to reuse event 
 
 Resources in this repo:
 
-- Architecture: architecture/object_pooling.md
-- How‑to: Zero‑GC object pooling (how-to/how-to-object-pool.md)
-- Benchmarks: reports/server-benchmarks-and-performance.md
+- [Object pooling architecture](../architecture/object_pooling.md)
+- [Zero‑GC object pooling](../how-to/how-to-object-pool.md)
+- [Benchmarks and performance](../reports/server-benchmarks-and-performance.md)
 - Tests/benchmarks: src/test/java/com/fluxtion/server/benchmark/objectpool/EventProcessingBenchmark.java and
   src/test/java/com/fluxtion/server/pool/ObjectPoolServerIntegrationTest.java
 
@@ -228,11 +239,11 @@ Guidelines:
 ## Configuration pointers
 
 - Register event source plugins in MongooseServerConfig or via YAML, using existing plugin extension points:
-    - Event source plugin: plugin/writing-an-event-source-plugin.md
-    - Publishing service plugin (service as feed): plugin/writing-a-publishing-service-plugin.md
-    - Typed invoke publishing service (custom dispatch): plugin/writing-a-typed-invoke-publishing-service-plugin.md
-- For handler wiring and subscriptions, see overview/event-processing-architecture.md and
-  how-to/how-to-subscribing-to-named-event-feeds.md.
+  - [Event source plugin](../plugin/writing-an-event-source-plugin.md)
+  - [Publishing service plugin](../plugin/writing-a-publishing-service-plugin.md)
+  - [Typed invoke publishing service](../plugin/writing-a-typed-invoke-publishing-service-plugin.md)
+- For handler wiring and subscriptions, see [Event handling and business logic](event-processing-architecture.md) and
+  [Subscribe to named feeds](../how-to/how-to-subscribing-to-named-event-feeds.md).
 
 ## Quick checklist
 
@@ -244,8 +255,8 @@ Guidelines:
 
 ## See also
 
-- Event handling and Business Logic: overview/event-processing-architecture.md
-- Event source read strategy: guide/read-strategy.md
-- Object pooling: architecture/object_pooling.md
-- Writing an event source plugin: plugin/writing-an-event-source-plugin.md
-- Threading model: architecture/threading-model.md
+- [Event handling and business logic](event-processing-architecture.md)
+- [Event source read strategy](../guide/read-strategy.md)
+- [Object pooling](../architecture/object_pooling.md)
+- [Event source plugin guide](../plugin/writing-an-event-source-plugin.md)
+- [Threading model](../architecture/threading-model.md)
