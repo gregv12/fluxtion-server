@@ -57,6 +57,7 @@ extra:
 nav:
   - Home:
       - index: index.md
+      - Why Mongoose: overview/mongoose-two-page-intro.md
       - Mongoose for managers: overview/managers-overview.md
       - Mongoose for engineers: overview/engineers-overview.md
   - Overview:

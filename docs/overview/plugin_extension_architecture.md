@@ -1,9 +1,12 @@
-# Plugin architecture: extending Mongoose Server
+# Plugin architecture: Extending Mongoose
 
 Mongoose Server is designed to be extended through composable plugins that provide reusable infrastructure capabilities.
 Your business logic (event handlers/processors) should remain focused on domain behavior and be decoupled from
 infrastructure concerns like IO, scheduling, or dispatching. Plugins encapsulate those concerns and are wired into your
 application at boot.
+
+- Audience: engineers and architects new to Mongoose Server
+- Read this with: ""Event source feeds", "Event sink outputs" and "Service functions" all are plugin extensions.
 
 At a high level, there are three kinds of plugins:
 
