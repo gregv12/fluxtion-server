@@ -7,9 +7,9 @@ application at boot.
 
 At a high level, there are three kinds of plugins:
 
-- Event feeds (event sources)
-- Services
-- Event sinks
+- Event sources (feeds)
+- Services (functions)
+- Event sinks (outputs)
 
 These can be combined and reused across many applications. This page explains each type, how they are integrated, and
 how event handlers interact with them while keeping a clean separation between domain code and infrastructure.
@@ -24,7 +24,7 @@ how event handlers interact with them while keeping a clean separation between d
 
 ## Types of plugins
 
-### 1) Event feeds (sources)
+### 1) Event sources
 
 Event feeds produce events and publish them into the event processing graph.
 

@@ -1,23 +1,29 @@
 # Services: A High‑Level Guide
 
-This guide introduces services in Mongoose Server: what they are, where they fit in the system, and how to use them to provide reusable functions or to wrap request/response style programming.
+This guide introduces services in Mongoose Server: what they are, where they fit in the system, and how to use them to
+provide reusable functions or to wrap request/response style programming.
 
 - Audience: engineers and architects designing reusable capabilities for handlers/processors
 - Read this with: "Event handling and business logic" for how handlers call services and consume results
 
 ## What is a service?
 
-A service encapsulates reusable functionality that can be invoked by handlers/processors or other services. Services are ideal for:
+A service encapsulates reusable functionality that can be invoked by handlers/processors or other services. Services are
+ideal for:
 
 - Cross‑cutting capabilities (caching, lookups, reference data, validation, auth, metrics)
 - Integrations that expose a typed API (HTTP/Kafka clients, DB accessors, file writers)
 - Wrapping request/response style operations while integrating with the server’s event/threading model
 
-In Mongoose Server, services are registered components that participate in lifecycle (init/start/stop/tearDown), can be injected or looked up from the processing context, and may optionally run on an agent thread if they need their own cooperative work loop.
+In Mongoose Server, services are registered components that participate in lifecycle (init/start/stop/tearDown), can be
+injected or looked up from the processing context, and may optionally run on an agent thread if they need their own
+cooperative work loop.
 
 ## Where do services fit?
 
-At runtime, handlers execute on agent threads. Services live alongside server infrastructure (sources, sinks, scheduler, admin) and are accessed by handlers via the context or direct injection. Services may also publish events or write to sinks.
+At runtime, handlers execute on agent threads. Services live alongside server infrastructure (sources, sinks, scheduler,
+admin) and are accessed by handlers via the context or direct injection. Services may also publish events or write to
+sinks.
 
 ```mermaid
 flowchart TD
@@ -44,7 +50,8 @@ See also: [Event handling and business logic](event-processing-architecture.md).
 
 ## Agent vs non‑agent services
 
-Most services do not need their own agent thread. However, when a service must run a cooperative loop (periodic flush, retry, housekeeping), you can host it on an agent thread.
+Most services do not need their own agent thread. However, when a service must run a cooperative loop (periodic flush,
+retry, housekeeping), you can host it on an agent thread.
 
 - Agent‑hosted service (in‑agent):
     - Runs on an Agrona Agent thread managed by Mongoose Server (single‑threaded event loop per agent)
@@ -58,9 +65,40 @@ Most services do not need their own agent thread. However, when a service must r
 Choosing:
 
 - Prefer non‑agent for simple, synchronous utilities or thin wrappers where calls are quick
-- Use agent‑hosted when you own a cooperative loop or want predictable flush/retry pacing without blocking handler threads
+- Use agent‑hosted when you own a cooperative loop or want predictable flush/retry pacing without blocking handler
+  threads
 
-See also: [Threading model](../architecture/threading-model.md) and [Service plugin guide](../plugin/writing-a-service-plugin.md).
+See also: [Threading model](../architecture/threading-model.md)
+and [Service plugin guide](../plugin/writing-a-service-plugin.md).
+
+## Threading and invocation
+
+- Synchronous calls: Service methods invoked from a handler run on the caller thread — typically the handler’s agent
+  thread. Keep these calls fast; do not block the agent loop with long or blocking I/O. Prefer quick in‑memory work or
+  enqueue work to another thread if needed.
+- Asynchronous responses: If an operation is long‑running or I/O bound, use one of the following patterns:
+    - Callback event: perform the work off‑thread (e.g., client callback or executor) and publish a typed response event
+      back into the server. Handlers subscribe to the response type and process it deterministically on the agent
+      thread.
+    - Future/Promise: return a CompletableFuture or similar; complete it off‑thread. If handlers must observe the result
+      on the agent thread, have the completion stage publish a response event into the dispatcher instead of calling
+      handler code directly.
+    - Scheduler assisted: for periodic or deferred completions, schedule a timer and publish results when due.
+    - See [Service as a publishing event source](../plugin/writing-a-publishing-service-plugin.md) guide for more
+      details.
+
+## **Thread safety warning**:
+
+If your service is agent‑hosted (has a doWork loop) or uses its own threads/executors, it must
+be thread safe. Calls to your service will be on the caller thread, Guard shared state, avoid unsynchronized mutable
+cross‑thread access, and prefer immutable messages.
+
+
+Never block inside doWork(); use non‑blocking operations and an appropriate IdleStrategy.
+
+See also:
+[Threading model](../architecture/threading-model.md) and
+[Event handling and business logic](event-processing-architecture.md)
 
 ## Lifecycle and invocation patterns
 
@@ -96,7 +134,8 @@ When wrapping request/response:
 
 Tips:
 
-- For async responses, consider publishing a typed response event and subscribing handlers to it for deterministic processing on the agent thread
+- For async responses, consider publishing a typed response event and subscribing handlers to it for deterministic
+  processing on the agent thread
 - For sync lookups that are fast and local (e.g., in‑memory cache), direct returns are fine
 
 ## Data mapping and validation
@@ -141,7 +180,10 @@ Resources in this repo:
 - [Object pooling architecture](../architecture/object_pooling.md)
 - [Zero‑GC object pooling](../how-to/how-to-object-pool.md)
 - [Benchmarks and performance](../reports/server-benchmarks-and-performance.md)
-- Tests/benchmarks: [EventProcessingBenchmark.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/benchmark/objectpool/EventProcessingBenchmark.java) and [ObjectPoolServerIntegrationTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/pool/ObjectPoolServerIntegrationTest.java)
+-
+
+Tests/benchmarks: [EventProcessingBenchmark.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/benchmark/objectpool/EventProcessingBenchmark.java)
+and [ObjectPoolServerIntegrationTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/pool/ObjectPoolServerIntegrationTest.java)
 
 ## Configuration pointers
 
