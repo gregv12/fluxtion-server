@@ -205,8 +205,7 @@ Resources in this repo:
 - [Object pooling architecture](../architecture/object_pooling.md)
 - [Zero‑GC object pooling](../how-to/how-to-object-pool.md)
 - [Benchmarks and performance](../reports/server-benchmarks-and-performance.md)
-- Tests/benchmarks: src/test/java/com/fluxtion/server/benchmark/objectpool/EventProcessingBenchmark.java and
-  src/test/java/com/fluxtion/server/pool/ObjectPoolServerIntegrationTest.java
+- Tests/benchmarks: [EventProcessingBenchmark.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/benchmark/objectpool/EventProcessingBenchmark.java) and [ObjectPoolServerIntegrationTest.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/pool/ObjectPoolServerIntegrationTest.java)
 
 Guidelines:
 
