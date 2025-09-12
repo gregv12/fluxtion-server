@@ -57,11 +57,11 @@ extra:
 nav:
   - Home:
       - index: index.md
-      - Mongoose for managers: guide/managers-overview.md
-      - Mongoose for engineers: guide/overview.md
+      - Mongoose for managers: overview/managers-overview.md
+      - Mongoose for engineers: overview/engineers-overview.md
   - Overview:
-      - Event handling business logic: guide/event-processing-architecture.md
-      - Plugin extension mechanism: guide/plugin_extension_architecture.md
+      - Event handling business logic: overview/event-processing-architecture.md
+      - Plugin extension mechanism: overview/plugin_extension_architecture.md
   - Developer guide:
       - 5-minute handler tutorial: guide/five-minute-event-handler-tutorial.md
       - Event handler examples:
