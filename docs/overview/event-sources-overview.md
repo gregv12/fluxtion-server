@@ -58,31 +58,31 @@ See also: [Event handling and business logic](event-processing-architecture.md) 
 
 ## Agent vs non‑agent event sources
 
-Event sources can either run inside an agent thread or outside of it.
+Event sources can run either on a server‑managed agent thread or on a user‑managed thread.
 
 - Agent event source (in‑agent):
 
-    - Runs on a single‑threaded event loop managed by mongoose-server.
-    - No cross‑thread handoff; lowest overhead and deterministic ordering with the rest of the agent’s work.
-    - Best for in‑memory feeds, synthetic/replay sources, or sources that can be polled cooperatively.
-    - Cons: the agent must perform I/O or polling, which can increase duty‑cycle time if reads block. Use non‑blocking
-      reads and an appropriate read/idle strategy.
+    - Runs on an Agrona Agent thread managed by Mongoose Server (single‑threaded event loop per agent).
+    - Publishes to a queue that the event handler agent reads; ordering per target agent is deterministic with a low‑overhead in‑process handoff.
+    - Best for in‑memory feeds, synthetic/replay sources, or sources that can be polled cooperatively (non‑blocking).
+    - Caveat: avoid blocking I/O inside doWork(); use non‑blocking reads and an appropriate idle strategy.
+    - Customizable idle strategy (see below).
 
 - Non‑agent event source (out‑of‑agent):
 
-    - Runs on its own thread(s) and publishes into the server.
-    - Good for blocking I/O, network listeners, or high‑latency producers.
-    - Cons: requires cross‑thread publication (still efficient, but introduces handoff and potential batching
-      considerations).
+    - Runs on a user/caller‑managed thread (e.g., library callback, custom executor) and publishes into the server.
+    - Ideal for blocking I/O, external listener callbacks, or high‑latency producers that shouldn’t run on an agent.
 
 Choosing:
 
-- If data is already in memory or can be polled without blocking, prefer in‑agent for simplicity and zero handoff.
-- If you need to perform blocking I/O or manage separate listener threads, use non‑agent.
+- Use in‑agent when you control a cooperative, non‑blocking poll; events are enqueued to the handler agent’s queue with deterministic per‑agent ordering.
+- Use non‑agent when reads block or when an external library drives callbacks on its own threads.
+
+See also: [Threading model](../architecture/threading-model.md) and [Event source plugin guide](../plugin/writing-an-event-source-plugin.md).
 
 ## Lifecycle and publishing patterns
 
-Minimal recommended sequence:
+Mongoose server supports a strict startup order for event sources, guidelines below for common patterns:
 
 - init(): cheap setup
 - start(): open resources; optionally enable pre-start caching via output.setCacheEventLog(true)
