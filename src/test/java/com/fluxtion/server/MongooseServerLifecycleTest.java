@@ -15,6 +15,14 @@ import com.fluxtion.server.service.LifeCycleEventSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -89,6 +97,43 @@ public class MongooseServerLifecycleTest {
         server.stop();
     }
 
+    /**
+     * Robustness guard: a LifeCycleEventSource registered as a plain service that neither is
+     * agent-hosted nor registers itself with the EventFlowManager is started by NO path and is
+     * silently inert. The server must emit a SEVERE warning naming it (instead of booting "OK"
+     * and exiting) — this is the failure mode that stopped the Javalin webadmin from binding.
+     */
+    @Test
+    void warnsAboutRegisteredServiceStartedByNoPath() {
+        Logger lifecycleLogger = Logger.getLogger("com.fluxtion.server.internal.LifecycleManager");
+        lifecycleLogger.setLevel(Level.ALL);
+        List<LogRecord> records = new CopyOnWriteArrayList<>();
+        Handler handler = new Handler() {
+            @Override public void publish(LogRecord record) { records.add(record); }
+            @Override public void flush() { }
+            @Override public void close() { }
+        };
+        lifecycleLogger.addHandler(handler);
+
+        OrphanEventSource orphan = new OrphanEventSource();
+        try {
+            server.registerService(new Service<>(orphan, OrphanEventSource.class, "orphanSvc"));
+            server.init();
+            server.start();
+
+            assertFalse(orphan.started,
+                    "orphan LifeCycleEventSource is started by no path (documents the trap)");
+            assertTrue(records.stream().anyMatch(r ->
+                            r.getLevel() == Level.SEVERE
+                                    && r.getMessage() != null
+                                    && r.getMessage().contains("orphanSvc")),
+                    "expected a SEVERE warning naming the never-started service 'orphanSvc'");
+        } finally {
+            lifecycleLogger.removeHandler(handler);
+            server.stop();
+        }
+    }
+
     // Test fixtures
     public static class TestService implements Lifecycle {
         boolean initialized;
@@ -158,6 +203,47 @@ public class MongooseServerLifecycleTest {
 
         @Override
         public void setEventToQueuePublisher(EventToQueuePublisher<String> targetQueue) {
+        }
+
+        @Override
+        public void subscribe(EventSubscriptionKey<String> eventSourceKey) {
+        }
+
+        @Override
+        public void unSubscribe(EventSubscriptionKey<String> eventSourceKey) {
+        }
+    }
+
+    /**
+     * A LifeCycleEventSource that overrides setEventFlowManager WITHOUT registering itself as an
+     * event source — so it is skipped by the plain-service loop and unknown to the flow manager.
+     * Started by no path; the server should warn about it.
+     */
+    public static class OrphanEventSource implements LifeCycleEventSource<String> {
+        boolean initialized;
+        boolean started;
+
+        @Override
+        public void setEventFlowManager(EventFlowManager eventFlowManager, String serviceName) {
+            // intentionally does NOT call eventFlowManager.registerEventSource(...)
+        }
+
+        @Override
+        public void init() {
+            initialized = true;
+        }
+
+        @Override
+        public void start() {
+            started = true;
+        }
+
+        @Override
+        public void tearDown() {
+        }
+
+        @Override
+        public void setEventToQueuePublisher(com.fluxtion.server.dispatch.EventToQueuePublisher<String> targetQueue) {
         }
 
         @Override

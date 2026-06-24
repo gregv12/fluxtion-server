@@ -50,6 +50,7 @@ public class EventFlowManager {
     private final ConcurrentHashMap<EventSinkKey<?>, ManyToOneConcurrentArrayQueue<?>> eventSinkToQueueMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<CallBackType, Supplier<EventToInvokeStrategy>> eventToInvokerFactoryMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<EventSourceKey_Subscriber<?>, OneToOneConcurrentArrayQueue<Object>> subscriberKeyToQueueMap = new ConcurrentHashMap<>();
+    private final java.util.Set<Object> registeredEventSourceInstances = ConcurrentHashMap.newKeySet();
 
     public EventFlowManager() {
         eventToInvokerFactoryMap.put(CallBackType.ON_EVENT_CALL_BACK, EventToOnEventInvokeStrategy::new);
@@ -100,7 +101,18 @@ public class EventFlowManager {
 
         com.fluxtion.server.dispatch.EventToQueuePublisher<T> queuePublisher = (com.fluxtion.server.dispatch.EventToQueuePublisher<T>) eventSourceQueuePublisher.queuePublisher();
         eventSource.setEventToQueuePublisher(queuePublisher);
+        registeredEventSourceInstances.add(eventSource);
         return queuePublisher;
+    }
+
+    /**
+     * @return true if the given instance has been registered as an event source via
+     * {@link #registerEventSource(String, EventSource)}. Used by lifecycle management to detect
+     * services that implement {@link com.fluxtion.server.service.LifeCycleEventSource} but never
+     * wired themselves into the event flow (and so would never be started).
+     */
+    public boolean isRegisteredEventSource(Object instance) {
+        return registeredEventSourceInstances.contains(instance);
     }
 
     public void registerEventMapperFactory(Supplier<EventToInvokeStrategy> eventMapper, CallBackType type) {
