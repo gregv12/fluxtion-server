@@ -56,6 +56,12 @@ public class AdminCommandProcessor implements AdminCommandRegistry, LifeCycleEve
     public void setEventFlowManager(EventFlowManager eventFlowManager, String serviceName) {
         this.eventFlowManager = eventFlowManager;
         eventFlowManager.registerEventMapperFactory(AdminCommandInvoker::new, AdminCallbackType.class);
+        // Register as an event source so the EventFlowManager drives this service's lifecycle.
+        // AdminCommandProcessor is a LifeCycleEventSource, so it is skipped by the plain-service
+        // lifecycle loop; without registering here it is also unknown to the flow manager, so
+        // start() never runs and the built-in commands (help, ?, commands, eventSources) are
+        // never registered — making the admin gateways appear to have no commands.
+        eventFlowManager.registerEventSource(serviceName, this);
     }
 
     @Override
