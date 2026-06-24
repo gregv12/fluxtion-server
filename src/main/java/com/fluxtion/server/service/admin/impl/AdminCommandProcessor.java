@@ -31,8 +31,17 @@ public class AdminCommandProcessor implements AdminCommandRegistry, LifeCycleEve
 
     /**
      * Create a new AdminCommandProcessor.
+     * <p>
+     * Built-in commands are registered here (not in start()) so they are always available
+     * regardless of lifecycle wiring. AdminCommandProcessor is a LifeCycleEventSource, so its
+     * start() is only invoked when it is registered with the EventFlowManager; registering the
+     * discovery commands at construction makes them robust even if that wiring is missing.
      */
     public AdminCommandProcessor() {
+        registerCommand("help", this::printHelp);
+        registerCommand("?", this::printHelp);
+        registerCommand("eventSources", this::printQueues);
+        registerCommand("commands", this::registeredCommands);
     }
 
     private final Map<String, AdminCommand> registeredCommandMap = new HashMap<>();
@@ -67,10 +76,6 @@ public class AdminCommandProcessor implements AdminCommandRegistry, LifeCycleEve
     @Override
     public void start() {
         log.info("start");
-        registerCommand("help", this::printHelp);
-        registerCommand("?", this::printHelp);
-        registerCommand("eventSources", this::printQueues);
-        registerCommand("commands", this::registeredCommands);
     }
 
     @Override

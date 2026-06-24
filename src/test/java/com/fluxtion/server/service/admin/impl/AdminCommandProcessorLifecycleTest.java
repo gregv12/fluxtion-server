@@ -7,6 +7,7 @@ package com.fluxtion.server.service.admin.impl;
 import com.fluxtion.runtime.service.Service;
 import com.fluxtion.server.MongooseServer;
 import com.fluxtion.server.config.MongooseServerConfig;
+import com.fluxtion.server.dispatch.EventFlowManager;
 import com.fluxtion.server.service.admin.AdminCommandRegistry;
 import org.junit.jupiter.api.Test;
 
@@ -24,6 +25,34 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * telnet/REST gateways report "command not found" for everything.
  */
 public class AdminCommandProcessorLifecycleTest {
+
+    private static final List<String> BUILT_INS = List.of("help", "?", "commands", "eventSources");
+
+    /**
+     * Built-in discovery commands must be present immediately after construction — independent of
+     * any lifecycle wiring — so the admin gateways always have something to list/route.
+     */
+    @Test
+    void builtInCommandsAreRegisteredAtConstruction() {
+        AdminCommandProcessor processor = new AdminCommandProcessor();
+        assertTrue(processor.commandList().containsAll(BUILT_INS),
+                "built-in commands must be registered in the constructor; actual = " + processor.commandList());
+    }
+
+    /**
+     * AdminCommandProcessor is a LifeCycleEventSource, so it is skipped by the plain-service
+     * lifecycle loop. It must register itself with the EventFlowManager so the flow manager drives
+     * its lifecycle and the boot-time sweep knows about it. Guards the registerEventSource call in
+     * setEventFlowManager.
+     */
+    @Test
+    void registersItselfAsEventSourceOnSetEventFlowManager() {
+        AdminCommandProcessor processor = new AdminCommandProcessor();
+        EventFlowManager flowManager = new EventFlowManager();
+        processor.setEventFlowManager(flowManager, "adminRegistry");
+        assertTrue(flowManager.isRegisteredEventSource(processor),
+                "AdminCommandProcessor must register itself as an event source so its init()/start() run");
+    }
 
     @Test
     void builtInCommandsAreRegisteredAfterServerStart() {
