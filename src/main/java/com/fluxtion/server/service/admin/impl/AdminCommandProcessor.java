@@ -38,10 +38,20 @@ public class AdminCommandProcessor implements AdminCommandRegistry, LifeCycleEve
      * discovery commands at construction makes them robust even if that wiring is missing.
      */
     public AdminCommandProcessor() {
-        registerCommand("help", this::printHelp);
-        registerCommand("?", this::printHelp);
-        registerCommand("eventSources", this::printQueues);
-        registerCommand("commands", this::registeredCommands);
+        // Use direct global registration, NOT registerCommand(): the built-ins are always
+        // server-global, and registerCommand() branches on the ProcessorContext thread-local
+        // (taking the processor path + EventFlowManager when a processor is current). At
+        // construction time the EventFlowManager is not yet set, and the thread-local may be
+        // polluted (e.g. left set by a prior unit test in a shared JVM), which would NPE.
+        registerGlobalCommand("help", this::printHelp);
+        registerGlobalCommand("?", this::printHelp);
+        registerGlobalCommand("eventSources", this::printQueues);
+        registerGlobalCommand("commands", this::registeredCommands);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <OUT, ERR> void registerGlobalCommand(String name, AdminFunction<OUT, ERR> command) {
+        registeredCommandMap.put(name, new AdminCommand((AdminFunction<Object, Object>) command));
     }
 
     private final Map<String, AdminCommand> registeredCommandMap = new HashMap<>();
