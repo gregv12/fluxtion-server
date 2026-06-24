@@ -1,6 +1,6 @@
 # How-to: Use HandlerPipe for in-VM communication between handlers
 
-HandlerPipe is a lightweight, in-VM pipe for sending messages from one handler (or service) to other handlers via Fluxtion's event flow, without external IO.
+HandlerPipe is a lightweight, in-VM pipe for sending messages from one handler (or service) to other handlers via Mongoose's event flow, without external IO.
 
 It couples:
 - a publish-side MessageSink (sink()) that you call to send data, and
@@ -9,7 +9,7 @@ It couples:
 ## When to use
 - You want handlers to talk to each other inside the same JVM without setting up external transports.
 - You want lifecycle-aware dispatch: cache events before startComplete and replay them once the system is ready.
-- You want to reuse Fluxtion’s subscription, wrapping, and data-mapping features.
+- You want to reuse Mongoose’s subscription, wrapping, and data-mapping features.
 
 ## Quick start
 

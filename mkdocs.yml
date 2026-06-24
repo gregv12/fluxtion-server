@@ -55,17 +55,23 @@ extra:
       link: https://github.com/gregv12
 
 nav:
-  - Home: index.md
-  - Overview:
-      - Overview for managers: guide/managers-overview.md
-      - Overview for engineers: guide/overview.md
-  - Developer guide:
+  - Home:
+      - index: index.md
+      - Why Mongoose: overview/mongoose-two-page-intro.md
+      - Mongoose for managers: overview/managers-overview.md
+      - Mongoose for engineers: overview/engineers-overview.md
+  - Getting started:
       - 5-minute handler tutorial: guide/five-minute-event-handler-tutorial.md
-      - Event handling and business logic: guide/event-processing-architecture.md
-      - Plugin extension mechanism: guide/plugin_extension_architecture.md
       - Event handler examples:
           - Fluent API: guide/file-and-memory-feeds-example.md
           - YAML config: guide/file-and-memory-feeds-yaml-example.md
+  - Component overview:
+      - Event source feeds: overview/event-sources-overview.md
+      - Event handling business logic: overview/event-processing-architecture.md
+      - Event sink outputs: overview/event-sinks-overview.md
+      - Service functions: overview/services-overview.md
+      - Plugin extension mechanism: overview/plugin_extension_architecture.md
+  - Examples and how-to:
       - Plugin examples:
           - Event sink plugin: plugin/writing-a-message-sink-plugin.md
           - Event source plugin: plugin/writing-an-event-source-plugin.md
@@ -85,6 +91,8 @@ nav:
           - Event source read strategy: guide/read-strategy.md
           - Zero‑GC object pooling: how-to/how-to-object-pool.md
           - Core pin agent threads: how-to/how-to-core-pin.md
+  - Reference guide:
+      - Glossary: reference/glossary.md
       - Architecture and design:
           - Doc description: architecture/index.md
           - Overview: architecture/overview.md
@@ -99,10 +107,8 @@ nav:
           - Object pooling: architecture/object_pooling.md
           - Server control: architecture/server-control.md
       - Reference:
-          - Glossary: reference/index.md
-          - Glossary: reference/glossary.md
-          - Troubleshooting and FAQ: guide/troubleshooting.md
-          - Server benchmarks and performance: reports/server-benchmarks-and-performance.md
-          - Comparisons: guide/comparisons.md
-          - Operations runbook: guide/operations-runbook.md
+          - Troubleshooting and FAQ: reference/troubleshooting.md
+          - Comparisons: reference/comparisons.md
+          - Operations runbook: reference/operations-runbook.md
           - API Reference: https://javadoc.io/doc/com.fluxtion/server/latest/index.html
+      - Server benchmarks and performance: reports/server-benchmarks-and-performance.md

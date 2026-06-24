@@ -4,6 +4,10 @@ This guide explains where your business logic lives in a Mongoose server applica
 building blocks, ObjectEventHandlerNode and DefaultEventProcessor, fit into the server. It also provides practical
 guidance on which one to choose, with a pros/cons comparison.
 
+- Audience: engineers and architects designing bespoke event-driven application logic.
+- Read this with: "Event source feeds", "Event sink outputs" and "Service functions" for how handlers consume events,
+  interact with services and emit events.
+
 ## Key ideas
 
 - Business logic processing is triggered when events are received by your event handler (onEvent or typed callbacks).
@@ -15,7 +19,37 @@ guidance on which one to choose, with a pros/cons comparison.
 - Testing is easier: because handlers are pure Java objects with well-defined entry points, you can unit-test them
   without booting the full server.
 
-## Where to put business logic
+## Diagram where logic lives
+
+The diagram below shows where DefaultEventProcessor and ObjectEventHandlerNode sit within the server. The server owns
+agents and infrastructure; an agent runs a single-threaded event loop that invokes your handler/processor.
+
+```mermaid
+flowchart TB
+    subgraph Server
+      direction TB
+      ES[Event Sources] -->|events| DISP[Dispatcher]
+      SCHED[Scheduler] -->|timers| DISP
+      ADMIN[Admin/Control] --> DISP
+
+      subgraph Agent
+        direction TB
+        DISP -->|dispatch| HANDLER[DefaultEventProcessor<br>wraps and calls<br>ObjectEventHandlerNode]
+      end
+
+      HANDLER -->|optional calls| SVC[Services / Context]
+      HANDLER -->|emit| SINKS[Event Sinks]
+    end
+```
+
+Notes:
+
+- The agent’s event loop is single-threaded; your handler/processor runs on that thread.
+- ObjectEventHandlerNode focuses on lifecycle/config, handling events and services
+- DefaultEventProcessor wraps ObjectEventHandlerNode and can also integrate more deeply with the server and support
+  strongly typed callbacks.
+
+## Where to put business logic code
 
 Place your domain logic inside an event handler component that receives events and updates state. In Mongoose server you
 typically structure this in one of two ways:
@@ -36,7 +70,9 @@ extending ObjectEventHandlerNode.
 - Has access to processing context via getContext() inherited from its superclass, allowing lookups of shared services
   if needed.
 - Implements lifecycle via LifecycleNode; your handler will receive lifecycle callbacks from the server.
-- Less configuration: [MongooseServerConfig](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/config/MongooseServerConfig.java) exposes shortcut
+- Less
+  configuration: [MongooseServerConfig](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/config/MongooseServerConfig.java)
+  exposes shortcut
   methods to register ObjectEventHandlerNode-based handlers, reducing boilerplate when wiring.
 - Encourages clean separation of concerns: the server handles scheduling, dispatch, and I/O; your handler handles
   decisions.
@@ -57,9 +93,11 @@ lifecycle, and interfaces.
   hooks.
 - For strongly typed dispatch with interface callbacks, extend DefaultEventProcessor and implement the required
   interface(s). The server can then route typed calls directly (compile-time safety, less casting).
-- Example: [ConfigAwareEventProcessor](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/internal/ConfigAwareEventProcessor.java)
-  demonstrates a processor that implements ConfigListener and receives configuration updates via strongly typed
-  callbacks.
+-
+
+Example: [ConfigAwareEventProcessor](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/internal/ConfigAwareEventProcessor.java)
+demonstrates a processor that implements ConfigListener and receives configuration updates via strongly typed
+callbacks.
 
 When this helps:
 
@@ -75,7 +113,7 @@ Below is a practical comparison to help you decide.
 |-------------------|---------------------------------------------------------------|-------------------------------------------------------|
 | Primary goal      | Fast path to business logic                                   | Deep integration with server runtime                  |
 | Complexity        | Lower (simple API)                                            | Higher (lifecycle, context, interfaces)               |
-| Boilerplate       | Minimal; MongooseServerConfig shortcuts reduce wiring                    | More (extend class, implement interfaces)             |
+| Boilerplate       | Minimal; MongooseServerConfig shortcuts reduce wiring         | More (extend class, implement interfaces)             |
 | Typed callbacks   | Optional; can implement interfaces on the handler if desired  | Strongly typed via implemented interfaces             |
 | Lifecycle hooks   | Yes, via LifecycleNode on the handler                         | Full lifecycle support                                |
 | Access to context | Yes, via getContext() on the handler                          | Full context map and runtime hooks                    |
@@ -89,42 +127,14 @@ Guidance:
 - Prefer DefaultEventProcessor when you require lifecycle participation, typed interface callbacks, or direct use of
   server context/state.
 
-## Diagram: where they fit
-
-The diagram below shows where DefaultEventProcessor and ObjectEventHandlerNode sit within the server. The server owns
-agents and infrastructure; an agent runs a single-threaded event loop that invokes your handler/processor.
-
-```mermaid
-flowchart TB
-    subgraph Server
-      direction TB
-      ES[Event Sources] -->|events| DISP[Dispatcher]
-      SCHED[Scheduler] -->|timers| DISP
-      ADMIN[Admin/Control] --> DISP
-
-      subgraph Agent
-        direction TB
-        DISP -->|dispatch| HANDLER[ObjectEventHandlerNode<br>or<br>DefaultEventProcessor]
-      end
-
-      HANDLER -->|optional calls| SVC[Services / Context]
-      HANDLER -->|emit| SINKS[Event Sinks]
-    end
-```
-
-Notes:
-
-- The agent’s event loop is single-threaded; your handler/processor runs on that thread.
-- ObjectEventHandlerNode focuses on handling events; DefaultEventProcessor can also interact with services and
-  participate in lifecycle/config.
-
 ## EventProcessor groups and threading
 
 Mongoose server composes handlers into EventProcessor groups. Many handlers can be partitioned within a group but still
 execute
 on the same thread. Each EventProcessor group runs on its own agent (single-threaded loop). This means you can move
 handlers to different threads/agents by changing configuration, without changing application code.
-See [EventProcessorGroupConfig.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/config/EventProcessorGroupConfig.java) for
+See [EventProcessorGroupConfig.java](https://github.com/gregv12/fluxtion-server/blob/main/src/main/java/com/fluxtion/server/config/EventProcessorGroupConfig.java)
+for
 grouping options.
 
 ## Idle strategies
@@ -249,6 +259,7 @@ To emit messages/events out of your handler, request a MessageSink<T> via @Servi
 sink.accept(payload):
 
 ```java
+
 @Override
 public void onServiceEvent(String event) {
     if (sink != null) {

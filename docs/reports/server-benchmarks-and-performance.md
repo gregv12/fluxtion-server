@@ -1,4 +1,4 @@
-# Fluxtion Server Benchmarks and Performance
+# Mongoose Server Benchmarks and Performance
 
 Summary:
 
@@ -7,7 +7,7 @@ Summary:
 - In built batching boosts throughput but lifts median and tail latencies; distributions shift right with heavier tails.
 - Memory: Zero‑GC hot path via pooled events; stable heap with no per‑operation allocations in steady state.
 
-This page summarizes benchmark results and observations for the Fluxtion Server using the object pool and in-VM event flow.
+This page summarizes benchmark results and observations for the Mongoose Server using the object pool and in-VM event flow.
 
 Source of results:
 - Data files: `*.hgrm` under this directory were produced by running the test/benchmark [BenchmarkObjectPoolDistribution.java](https://github.com/gregv12/fluxtion-server/blob/main/src/test/java/com/fluxtion/server/benchmark/objectpool/BenchmarkObjectPoolDistribution.java) in report mode.
@@ -135,7 +135,7 @@ Use the `.hgrm` data (latency_1m_mps.hgrm) to regenerate or further analyze the 
 
 ## Assessment: Is this a high‑performance Java server?
 
-Yes. With Avg ≈ 270 ns and p99.999 ≈ 81 µs (Max ≈ 90.1 µs) at 1M mps, Fluxtion Server exhibits excellent in‑JVM event‑flow latency while sustaining high throughput:
+Yes. With Avg ≈ 270 ns and p99.999 ≈ 81 µs (Max ≈ 90.1 µs) at 1M mps, Mongoose Server exhibits excellent in‑JVM event‑flow latency while sustaining high throughput:
 
 - Throughput: ~10M msgs/sec achievable by leveraging batching and zero‑GC pooled events.
 - Median/mean: Sub‑microsecond mean at 1M mps is exceptional for Java hot paths.
@@ -156,6 +156,6 @@ Trade‑off: Batching raises throughput but can increase per‑event latency and
 
 ## Takeaways
 - Based on sub-microsecond average latency at 1M mps (≈270 ns) and strong high-percentile performance with zero‑GC hot paths, this is world‑class performance for a Java in‑JVM event processing server.
-- Fluxtion Server can sustain ~10 million msgs/sec in this configuration on commodity hardware by leveraging batching and Zero‑GC pooled events.
+- Mongoose Server can sustain ~10 million msgs/sec in this configuration on commodity hardware by leveraging batching and Zero‑GC pooled events.
 - Latency distributions broaden with increased batching; tune batch sizes and idle strategies according to your SLA (throughput vs. latency).
 - For production-grade latency characterization, run on a Linux host with CPU isolation to reduce OS jitter and tighten the high-percentile tail.

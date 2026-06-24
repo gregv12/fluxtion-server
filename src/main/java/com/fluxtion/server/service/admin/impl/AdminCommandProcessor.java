@@ -31,8 +31,27 @@ public class AdminCommandProcessor implements AdminCommandRegistry, LifeCycleEve
 
     /**
      * Create a new AdminCommandProcessor.
+     * <p>
+     * Built-in commands are registered here (not in start()) so they are always available
+     * regardless of lifecycle wiring. AdminCommandProcessor is a LifeCycleEventSource, so its
+     * start() is only invoked when it is registered with the EventFlowManager; registering the
+     * discovery commands at construction makes them robust even if that wiring is missing.
      */
     public AdminCommandProcessor() {
+        // Use direct global registration, NOT registerCommand(): the built-ins are always
+        // server-global, and registerCommand() branches on the ProcessorContext thread-local
+        // (taking the processor path + EventFlowManager when a processor is current). At
+        // construction time the EventFlowManager is not yet set, and the thread-local may be
+        // polluted (e.g. left set by a prior unit test in a shared JVM), which would NPE.
+        registerGlobalCommand("help", this::printHelp);
+        registerGlobalCommand("?", this::printHelp);
+        registerGlobalCommand("eventSources", this::printQueues);
+        registerGlobalCommand("commands", this::registeredCommands);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <OUT, ERR> void registerGlobalCommand(String name, AdminFunction<OUT, ERR> command) {
+        registeredCommandMap.put(name, new AdminCommand((AdminFunction<Object, Object>) command));
     }
 
     private final Map<String, AdminCommand> registeredCommandMap = new HashMap<>();
@@ -56,15 +75,17 @@ public class AdminCommandProcessor implements AdminCommandRegistry, LifeCycleEve
     public void setEventFlowManager(EventFlowManager eventFlowManager, String serviceName) {
         this.eventFlowManager = eventFlowManager;
         eventFlowManager.registerEventMapperFactory(AdminCommandInvoker::new, AdminCallbackType.class);
+        // Register as an event source so the EventFlowManager drives this service's lifecycle.
+        // AdminCommandProcessor is a LifeCycleEventSource, so it is skipped by the plain-service
+        // lifecycle loop; without registering here it is also unknown to the flow manager, so
+        // start() never runs and the built-in commands (help, ?, commands, eventSources) are
+        // never registered — making the admin gateways appear to have no commands.
+        eventFlowManager.registerEventSource(serviceName, this);
     }
 
     @Override
     public void start() {
         log.info("start");
-        registerCommand("help", this::printHelp);
-        registerCommand("?", this::printHelp);
-        registerCommand("eventSources", this::printQueues);
-        registerCommand("commands", this::registeredCommands);
     }
 
     @Override

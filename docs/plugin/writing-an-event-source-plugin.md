@@ -1,6 +1,6 @@
 # Guide: Writing an Event Source Plugin for Mongoose server
 
-This guide explains how to implement a custom event source (input connector) that publishes events into Fluxtion
+This guide explains how to implement a custom event source (input connector) that publishes events into Mongoose
 Server’s event flow. You will learn how to:
 
 - Choose the right base class for your source
@@ -33,7 +33,7 @@ from an external library callback (and you don’t need your own loop), a non-ag
 
 - AbstractEventSourceService<T>
     - Use when your source does not need an Agrona Agent; e.g., you receive callbacks from another component and can
-      forward to Fluxtion.
+      forward to event handlers.
     - You get lifecycle hooks (init/start/stop/tearDown) and are wired into the event flow.
 
 - AbstractAgentHostedEventSourceService<T>
@@ -201,7 +201,7 @@ Use EventFeedConfig to add your source, control wrapping/broadcast, and optional
 
 ```java
 import com.fluxtion.agrona.concurrent.BusySpinIdleStrategy;
-import com.fluxtion.server.config.mongooseServerConfig;
+import com.fluxtion.server.config.MongooseServerConfig;
 import com.fluxtion.server.config.EventFeedConfig;
 
 MyAgentSource src = new MyAgentSource();
@@ -251,7 +251,9 @@ This pattern is used by FileEventSource and InMemoryEventSource in this repo.
 
 Example snippet:
 
-```java
+```text
+// Example-only snippet for tests (not part of a compilable class)
+// (wrap in a method/class in your test harness before compiling):
 EventToQueuePublisher<String> pub = new EventToQueuePublisher<>("myFeed");
 OneToOneConcurrentArrayQueue<Object> q = new OneToOneConcurrentArrayQueue<>(128);
 pub.addTargetQueue(q, "out");

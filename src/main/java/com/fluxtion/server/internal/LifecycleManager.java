@@ -106,6 +106,28 @@ public final class LifecycleManager {
         // Notify start complete on agent groups
         log.info("calling startup complete on agent hosted services");
         composingServiceAgents.values().forEach(GroupRunner::startCompleteIfSupported);
+
+        // Robustness guard: detect registered services whose lifecycle was driven by NO path.
+        // A service is started by exactly one of: the plain-service loop (non-LifeCycleEventSource),
+        // an agent group (agent-hosted), or the EventFlowManager (registered as an event source).
+        // A LifeCycleEventSource that is neither agent-hosted nor registered as an event source
+        // (e.g. it overrides setEventFlowManager without calling registerEventSource) falls through
+        // every path and is silently never init()/start()ed. Surface it loudly.
+        for (Service<?> service : registeredServices.values()) {
+            Object instance = service.instance();
+            boolean startedByServiceLoop = !(instance instanceof LifeCycleEventSource);
+            boolean agentHosted = registeredAgentServices.contains(service);
+            boolean flowSource = flowManager.isRegisteredEventSource(instance);
+            if (!startedByServiceLoop && !agentHosted && !flowSource) {
+                log.severe("registered service '" + service.serviceName() + "' ("
+                        + instance.getClass().getName() + ") implements LifeCycleEventSource but was "
+                        + "started by NO lifecycle path: it is not agent-hosted and did not register "
+                        + "with the EventFlowManager (a setEventFlowManager override may skip "
+                        + "registerEventSource). init()/start() were NOT invoked - the service is inert. "
+                        + "Make it a plain Lifecycle service, host it on an agent group, or register it "
+                        + "as an event source.");
+            }
+        }
     }
 
     public void stop(boolean started,

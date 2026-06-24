@@ -1,6 +1,6 @@
 # ReadStrategy guide
 
-This guide explains ReadStrategy and how it is used with event sources in Fluxtion Server. It also provides a runnable
+This guide explains ReadStrategy and how it is used with event sources in Mongoose Server. It also provides a runnable
 example using FileEventSource with multiple input files, each configured with a different ReadStrategy.
 
 ## What is ReadStrategy?
